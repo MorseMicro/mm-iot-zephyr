@@ -1,0 +1,51 @@
+# Copyright 2024 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig WIFI_MORSE
+	bool "MorseMicro HaLow WiFi support"
+	default y
+	select FPU if CPU_CORTEX_M33 || CPU_CORTEX_M7
+
+if WIFI_MORSE
+
+choice WIFI_MORSE_BUS
+	bool "Select BUS interface"
+	default WIFI_MORSE_BUS_SPI
+
+config WIFI_MORSE_BUS_SPI
+	bool "SPI Bus interface"
+	select SPI
+
+endchoice
+
+config WIFI_MORSE_REGION
+	string "Device regulatory domain"
+	default "AU"
+	help
+	  Specifies the regulatory domain for which to operate the device.
+	  Must be one of AU, EU, IN, JP, KR, NZ, SG, US.
+
+choice WIFI_MORSE_BCF
+	bool "Board Calibration File"
+	default WIFI_MORSE_BCF_MF08651_US
+
+config WIFI_MORSE_BCF_MF08651_US
+	bool "MF08651-US"
+
+config WIFI_MORSE_BCF_MF08551
+	bool "MF08551"
+
+config WIFI_MORSE_BCF_MF08251
+	bool "MF08251"
+
+endchoice
+
+config WIFI_MORSE_TEST
+	bool "Morse Micro device test driver"
+	help
+	  Disable registration of network interface to allow testing.
+	  To allow testing of the Morse Micro driver HAL layears, and verifying
+	  the hardware configuration, this configuration will disable the
+	  registration of the Morse Micro device as a Zephyr network interface.
+
+endif
