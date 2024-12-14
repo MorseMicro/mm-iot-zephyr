@@ -40,6 +40,20 @@ config WIFI_MORSE_BCF_MF08251
 
 endchoice
 
+menu "Morse Micro Packet Memory Configuration"
+	config MMPKTMEM_TX_POOL_N_BLOCKS
+		int "TX queue blocks"
+		default 20
+		help
+			Number of blocks allocated for the transmit queue
+
+	config MMPKTMEM_RX_POOL_N_BLOCKS
+		int "RX queue blocks"
+		default 23
+		help
+			Number of blocks allocated for the receive queue
+endmenu
+
 config WIFI_MORSE_TEST
 	bool "Morse Micro device test driver"
 	help

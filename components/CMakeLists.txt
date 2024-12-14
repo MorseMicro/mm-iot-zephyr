@@ -4,3 +4,4 @@
 add_subdirectory(firmware)
 add_subdirectory(libmorse)
 add_subdirectory(mmutils)
+add_subdirectory(mmpktmem)
