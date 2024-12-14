@@ -1,0 +1,23 @@
+# Copyright 2024 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: Morse Micro SPI module
+
+compatible: "morse,spi"
+
+include: spi-device.yaml
+
+properties:
+  resetn-gpios:
+    type: phandle-array
+    required: true
+
+  busy-gpios:
+    type: phandle-array
+
+  wakeup-gpios:
+    type: phandle-array
+
+  spi-irq-gpios:
+    type: phandle-array
+    required: true
