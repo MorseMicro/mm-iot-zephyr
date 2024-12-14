@@ -4,7 +4,18 @@
 menuconfig WIFI_MORSE
 	bool "MorseMicro HaLow WiFi support"
 	default y
+	select DYNAMIC_THREAD
+	select REBOOT
+	select THREAD_CUSTOM_DATA
+	select WIFI_USE_NATIVE_NETWORKING
+	select NET_L2_WIFI_MGMT
+	select NET_L2_ETHERNET
+	select DYNAMIC_THREAD_ALLOC
+	select GPIO_GET_CONFIG
+	select HWINFO
+	select CRC
 	select FPU if CPU_CORTEX_M33 || CPU_CORTEX_M7
+	select THREAD_ABORT_HOOK
 
 if WIFI_MORSE
 
@@ -61,5 +72,9 @@ config WIFI_MORSE_TEST
 	  To allow testing of the Morse Micro driver HAL layears, and verifying
 	  the hardware configuration, this configuration will disable the
 	  registration of the Morse Micro device as a Zephyr network interface.
+
+config HEAP_MEM_POOL_ADD_SIZE_MORSE
+	int
+	default 65536
 
 endif
