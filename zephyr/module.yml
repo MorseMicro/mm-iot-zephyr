@@ -1,0 +1,95 @@
+build:
+  cmake: .
+  kconfig: Kconfig
+  settings:
+    board_root: .
+    dts_root: .
+blobs:
+  - path: lib/arm-cortex-m7f/libmorse.a
+    sha256: f1ac313d2e391af2b90ec6df0282ee411d9914a498af4c273f00128e64bed3af
+    type: lib
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morselib/lib/arm-cortex-m7f/libmorse.a
+    description: "Binary libraries supporting the Morse Micro MM6108"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: lib/arm-cortex-m33f/libmorse.a
+    sha256: 978e9358b35e5f90745434be4c03602afeace2d8aa8a802fd2b9661084996dad
+    type: lib
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morselib/lib/arm-cortex-m33f/libmorse.a
+    description: "Binary libraries supporting the Morse Micro MM6108"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: lib/arm-cortex-m4f/libmorse.a
+    sha256: b2a9bdc101db5b23225039e45a0c06f6b6357827ff5363ef532e22c096dd5e5d
+    type: lib
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morselib/lib/arm-cortex-m4f/libmorse.a
+    description: "Binary libraries supporting the Morse Micro MM6108"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: lib/arm-fa626te/libmorse.a
+    sha256: 84bd81e1291fb77abd02e9bfd65921b32d221e0e193cfd7af4db8ecb83dfe342
+    type: lib
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morselib/lib/arm-fa626te/libmorse.a
+    description: "Binary libraries supporting the Morse Micro MM6108"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: firmware/mm6108.mbin
+    sha256: a7365b34d4fae5d0c9da6e8afd7f79629e5835ff816c62fa917d9b2375125b5d
+    type: img
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morsefirmware/mm6108.mbin
+    description: "Morse Micro MM6108 chip firmware"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: firmware/bcf_aw_hm593.mbin
+    sha256: 3029a1e7837aa193ef90198d982a6f5c585d14f6b72fc7d025cee6f89ad9ca73
+    type: img
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morsefirmware/bcf_aw_hm593.mbin
+    description: "Chip calibration data for the Azurewave HM593 module"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: firmware/bcf_aw_hm593_4v3.mbin
+    sha256: d2394be42e679f7dfac1446d7bb987251f93fd4aa07d7396b6ffb24e2d1429e9
+    type: img
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morsefirmware/bcf_aw_hm593_4v3.mbin
+    description: "Chip calibration data for the Azurewave HM593 module running with a 4.3V VFEM"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: firmware/bcf_mf03120.mbin
+    sha256: 8188e3d2ea97059776c22674547779ecf7ac72a4edc80b83bd96b19505e4f8f6
+    type: img
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morsefirmware/bcf_mf03120.mbin
+    description: "Chip calibration data for the Morse Micro MF03120 module"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: firmware/bcf_mf08251.mbin
+    sha256: 064f9bd235d8e795f6d4222cc595e9eedc04aa8a64beb9fa62565e524740598c
+    type: img
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morsefirmware/bcf_mf08251.mbin
+    description: "Chip calibration data for the Morse Micro MF08251 module"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: firmware/bcf_mf08551.mbin
+    sha256: ec9408ff6f91de72f36eef1b73d4005e188b63fb0e143a65a535b1bee76515a1
+    type: img
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morsefirmware/bcf_mf08551.mbin
+    description: "Chip calibration data for the Morse Micro MF08551 module"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
+  - path: firmware/bcf_mf08651_us.mbin
+    sha256: f8bd656e9a0a552d6fce40437d76d8eb8759bc7fbbe5c1389fce77d3a4b93ad7
+    type: img
+    version: '2.6.4'
+    license-path: zephyr/blobs/license.txt
+    url: https://github.com/MorseMicro/mm-iot-sdk/raw/refs/tags/2.6.4/framework/morsefirmware/bcf_mf08651_us.mbin
+    description: "Chip calibration data for the Morse Micro MF08651-US module"
+    doc-url: https://github.com/MorseMicro/mm-iot-sdk
