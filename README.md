@@ -16,7 +16,7 @@ Before using this module, please ensure you have followed the [Zephyr Getting St
 
 ## Modify your project's west manifest
 
-Add the Morse Micro repository and module to your west.yml:
+Following the Zephyr Getting Started Guide you should be in the root directory of your west workspace, eg `~/zephyrproject`. Next add the Morse Micro repository and module to `zephyr/west.yml`:
 ```
 manifest:
   remotes:
@@ -49,8 +49,7 @@ west blobs fetch morsemicro
 Build and execute `porting_assistant`
 
 ```
-cd [zephyrproject]
-west build -p auto -b [board] [--shield morse_mmech08] modules/lib/morsemicro/zephyr/samples/porting_assistant
+west build -p auto -b [board] [--shield morse_mmech08] modules/lib/morsemicro/samples/porting_assistant
 west flash
 ```
 If using a Morse Micro MMECH08 hat, add the shield parameter to the build command.
@@ -62,8 +61,7 @@ in the compiled device tree.
 Build and execute `halow_client`
 
 ```
-cd [zephyrproject]
-west build -p auto -b [board] [--shield morse_mmech08] modules/lib/morsemicro/zephyr/samples/halow_client
+west build -p auto -b [board] [--shield morse_mmech08] modules/lib/morsemicro/samples/halow_client
 west flash
 ```
 This application will boot the MM6108 and enable device connectivity via the Zephyr command line.
