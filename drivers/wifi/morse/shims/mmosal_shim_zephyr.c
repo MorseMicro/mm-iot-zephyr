@@ -281,7 +281,13 @@ bool mmosal_task_wait_for_notification(uint32_t timeout_ms)
 void mmosal_task_notify(struct mmosal_task *task)
 {
 	struct mmosal_task_data *data = k_thread_other_custom_data_get((k_tid_t)task);
-	__ASSERT(data, "%s called against incompatible thread: %p", __func__, tid);
+
+	if (data == NULL) {
+		data = mmosal_task_metadata_create();
+		k_thread_custom_data_set(data);
+	}
+
+	__ASSERT(data->magic, "%s called against incompatible thread: %p", __func__, tid);
 
 	k_sem_give(&data->sem);
 }
