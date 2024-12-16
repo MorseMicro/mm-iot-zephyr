@@ -3,5 +3,6 @@
 
 zephyr_library_named(mmutils)
 zephyr_library_sources(${CMAKE_CURRENT_SOURCE_DIR}/mmutils_wlan.c)
+zephyr_include_directories(.)
 zephyr_library_add_dependencies(libmorse)
 zephyr_library_link_libraries(libmorse)
