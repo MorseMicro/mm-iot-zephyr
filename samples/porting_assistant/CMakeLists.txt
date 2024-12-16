@@ -6,5 +6,5 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(porting_assistant)
 
 FILE(GLOB app_sources src/*.c)
-target_include_directories(app PRIVATE ${ZEPHYR_MORSEMICRO_MODULE_DIR}/drivers/wifi/morse/include)
+target_link_libraries(app PRIVATE libmorse)
 target_sources(app PRIVATE ${app_sources})
