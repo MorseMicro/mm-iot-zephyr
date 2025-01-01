@@ -3,7 +3,7 @@
 
 menuconfig WIFI_MORSE
 	bool "MorseMicro HaLow WiFi support"
-	default y
+	default n
 	select DYNAMIC_THREAD
 	select REBOOT
 	select THREAD_CUSTOM_DATA
