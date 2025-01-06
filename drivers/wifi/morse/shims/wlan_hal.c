@@ -118,7 +118,7 @@ void mmhal_wlan_send_training_seq(void)
 	const struct device *spi = cfg->spi.bus;
 	struct gpio_dt_spec *cs_gpio = &cfg->spi.config.cs.gpio;
 	struct spi_config spi_cfg = cfg->spi.config;
-	gpio_flags_t flags;
+	gpio_flags_t flags = GPIO_OUTPUT_INACTIVE;
 	int ret = 0;
 
 	struct spi_buf tx_bufs = {.buf = (uint8_t *)spi_ones, .len = sizeof(spi_ones)};
@@ -129,7 +129,9 @@ void mmhal_wlan_send_training_seq(void)
 	};
 
 	ret = gpio_pin_get_config_dt(cs_gpio, &flags);
-	if (ret != 0) {
+	if (ret == -ENOSYS) {
+		LOG_DBG("Platform does not implement gpio_pin_get_config(), using default flags\n");
+	} else if (ret < 0) {
 		LOG_ERR("Unhandled error %d in gpio_pin_get_config_dt()\n", ret);
 		return;
 	}
