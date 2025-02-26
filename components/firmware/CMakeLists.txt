@@ -45,12 +45,13 @@ function(add_mbin library mbin section)
   target_link_libraries(${library} INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.o)
 endfunction()
 
-if(CONFIG_WIFI_MORSE_BCF_MF08651_US)
-  set(bcf     bcf_mf08651_us.mbin)
-elseif(CONFIG_WIFI_MORSE_BCF_MF08551)
-  set(bcf     bcf_mf08551.mbin)
-elseif(CONFIG_WIFI_MORSE_BCF_MF08251)
-  set(bcf     bcf_mf08251.mbin)
+
+set(bcf     ${CONFIG_WIFI_MORSE_BCF})
+if(NOT IS_READABLE ${BLOB_DIR}/firmware/${bcf})
+  message(FATAL_ERROR
+  "Invalid BCF specified\n"
+  "File must be present in ${BLOB_DIR}/firmware/")
+  return()
 endif()
 
 

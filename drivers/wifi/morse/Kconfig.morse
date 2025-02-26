@@ -36,20 +36,12 @@ config WIFI_MORSE_REGION
 	  Specifies the regulatory domain for which to operate the device.
 	  Must be one of AU, EU, IN, JP, KR, NZ, SG, US.
 
-choice WIFI_MORSE_BCF
-	bool "Board Calibration File"
-	default WIFI_MORSE_BCF_MF08651_US
-
-config WIFI_MORSE_BCF_MF08651_US
-	bool "MF08651-US"
-
-config WIFI_MORSE_BCF_MF08551
-	bool "MF08551"
-
-config WIFI_MORSE_BCF_MF08251
-	bool "MF08251"
-
-endchoice
+config WIFI_MORSE_BCF
+	string "Board Calibration File"
+	default "bcf_mf08651_us.mbin"
+	help
+	  Specifies the filename for the bcf. This file must be present
+	  in the Morse Micro firmware blobs directory: zephyr/blobs/firmware/
 
 menu "Morse Micro Packet Memory Configuration"
 	config MMPKTMEM_TX_POOL_N_BLOCKS
