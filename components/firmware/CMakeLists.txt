@@ -1,4 +1,4 @@
-# Copyright 2024 Morse Micro
+# Copyright 2024-2025 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
 get_property(OUTPUT_FORMAT GLOBAL PROPERTY PROPERTY_OUTPUT_FORMAT)
@@ -20,11 +20,28 @@ function(generate_end_symbol filename output_variable)
   set(${output_variable} "_binary_${temp}_end" PARENT_SCOPE)
 endfunction()
 
-function(add_mbin library mbin section)
-  generate_start_symbol(${mbin} section_start_symbol)
-  generate_end_symbol(${mbin} section_end_symbol)
+function(add_mbin library fw section)
+  generate_start_symbol(${fw} section_start_symbol)
+  generate_end_symbol(${fw} section_end_symbol)
+  get_filename_component(ftype ${fw} LAST_EXT)
 
-  get_filename_component(base_file ${mbin} NAME)
+  if(${ftype} EQUAL "bin")
+    set(mbin_tool ${ZEPHYR_MORSEMICRO_MODULE_DIR}/tools/convert-bin-to-mbin.py)
+    set(bin ${fw})
+    get_filename_component(base_file ${bin} NAME)
+    set(fw ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.mbin)
+    add_custom_command(
+      OUTPUT ${fw}
+      COMMAND
+      ${mbin_tool}
+      -s
+      -o ${fw}
+      ${bin}
+      DEPENDS ${bin}
+    )
+  endif()
+
+  get_filename_component(base_file ${fw} NAME)
   set(section_binary ${section}_binary)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.o
@@ -35,9 +52,9 @@ function(add_mbin library mbin section)
     --redefine-sym ${section_start_symbol}=${section}_binary_start
     --redefine-sym ${section_end_symbol}=${section}_binary_end
     --rename-section .data=.rodata,contents,alloc,load,readonly,data
-    ${mbin}
+    ${fw}
     ${base_file}.o
-    DEPENDS ${mbin}
+    DEPENDS ${fw}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   )
   add_custom_target(${section_binary} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.o)
