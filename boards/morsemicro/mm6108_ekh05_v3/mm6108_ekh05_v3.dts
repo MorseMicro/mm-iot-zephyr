@@ -1,0 +1,236 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+ #include <st/u5/stm32u585Xi.dtsi>
+ #include <st/u5/stm32u585vitxq-pinctrl.dtsi>
+ #include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "Morse Micro EKH05 V3 Evaluation Kit";
+	compatible = "morsemicro,mm6108-ekh05-v3";
+
+	chosen {
+		zephyr,console = &lpuart1;
+		zephyr,shell-uart = &lpuart1;
+
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+
+		zephyr,bt-hci = &hci_spi;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		red_led: led_r {
+			gpios = <&gpiod 12 GPIO_ACTIVE_LOW>;
+			label = "RED";
+		};
+		green_led: led_g {
+			gpios = <&gpiod 13 GPIO_ACTIVE_LOW>;
+			label = "GREEN";
+		};
+		blue_led: led_b {
+			gpios = <&gpiod 14 GPIO_ACTIVE_LOW>;
+			label = "BLUE";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		user_button: button {
+			label = "User";
+			gpios = <&gpioc 3 GPIO_ACTIVE_LOW>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+
+	aliases {
+		led0 = &red_led;
+		led1 = &green_led;
+		led2 = &blue_led;
+		sw0 = &user_button;
+		watchdog0 = &iwdg;
+		die-temp0 = &die_temp;
+		volt-sensor0 = &vref1;
+		volt-sensor1 = &vbat4;
+		accel0 = &iis328;
+		ambient-temp0 = &sht40;
+		volt-sensor0 = &adc1;
+	};
+};
+
+&clk_hsi48 {
+	status = "okay";
+};
+
+&clk_hse {
+	clock-frequency = <DT_FREQ_M(30)>;
+	status = "okay";
+};
+
+&clk_lse {
+	status = "okay";
+};
+
+&clk_msis {
+	status = "okay";
+	msi-range = <4>;
+	msi-pll-mode;
+};
+
+&pll1 {
+	div-m = <6>;
+	mul-n = <32>;
+	div-q = <1>;
+	div-r = <1>;
+	clocks = <&clk_hse>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll1>;
+	clock-frequency = <DT_FREQ_M(160)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <1>;
+	apb2-prescaler = <1>;
+	apb3-prescaler = <1>;
+};
+
+&gpioa {
+	status = "okay";
+};
+
+&gpiob {
+	status = "okay";
+};
+
+&gpioc {
+	status = "okay";
+};
+
+&gpiod {
+	status = "okay";
+};
+
+&gpioe {
+	status = "okay";
+};
+
+
+stm32_lp_tick_source: &lptim1 {
+	clocks = <&rcc STM32_CLOCK_BUS_APB3 0x00000800>,
+		<&rcc STM32_SRC_LSE LPTIM1_SEL(3)>;
+	status = "okay";
+};
+
+&lpuart1 {
+	pinctrl-0 = <&lpuart1_tx_pc1 &lpuart1_rx_pc0>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&spi3 {
+	pinctrl-0 = <&spi3_sck_pc10 &spi3_miso_pc11 &spi3_mosi_pc12>;
+	pinctrl-names = "default";
+	status = "okay";
+	cs-gpios = <&gpioa 15 GPIO_ACTIVE_LOW>;
+	hci_spi: bluenrg-2@0 {
+		compatible = "st,hci-spi-v2";
+		reg = <0>;
+		reset-gpios = <&gpiod 2 GPIO_ACTIVE_LOW>;
+		irq-gpios = <&gpioa 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		spi-cpha; /* CPHA=1 */
+		spi-hold-cs;
+		spi-max-frequency = <DT_FREQ_M(1)>;
+		reset-assert-duration-ms = <6>;
+	};
+};
+
+/* MM Module SPI connecters */
+
+&spi2_miso_pd3 {
+	drive-push-pull;
+	bias-disable;
+	/delete-property/ bias-pull-down;
+	slew-rate = "very-high-speed";
+};
+
+&spi2_sck_pd1 {
+	drive-push-pull;
+	bias-disable;
+	/delete-property/ bias-pull-down;
+	slew-rate = "very-high-speed";
+};
+
+&spi2_mosi_pd4 {
+	drive-push-pull;
+	bias-disable;
+	/delete-property/ bias-pull-down;
+	slew-rate = "very-high-speed";
+};
+
+&spi2 {
+	status = "okay";
+	pinctrl-0 = <&spi2_sck_pd1 &spi2_miso_pd3 &spi2_mosi_pd4>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpiob 4 GPIO_ACTIVE_LOW>;
+
+	morse_wifi_spi: morse@0 {
+		status = "okay";
+		compatible = "morse,spi";
+		spi-max-frequency = <50000000>;
+		reg = <0>;
+
+		busy-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
+		wakeup-gpios = <&gpiod 0 GPIO_ACTIVE_HIGH>;
+		resetn-gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;
+		spi-irq-gpios = <&gpiob 15 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb8 &i2c1_sda_pb9>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	iis328: iis328dq@19 {
+		compatible = "st,iis328dq";
+		reg = <0x19>;
+		int1-gpios = <&gpioa 4 GPIO_ACTIVE_HIGH>;
+		int2-gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+
+	sht40: sht40@44 {
+		compatible = "sensirion,sht4x";
+		reg = <0x44>;
+		status = "okay";
+		repeatability = <2>;
+	};
+};
+
+&aes {
+	status = "okay";
+};
+
+&rng {
+	status = "okay";
+};
+
+&iwdg {
+	status = "okay";
+};
+
+&vbat4 {
+	status = "okay";
+};
+
+&gpdma1 {
+	status = "okay";
+};

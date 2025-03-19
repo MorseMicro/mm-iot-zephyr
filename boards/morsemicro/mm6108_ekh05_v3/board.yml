@@ -1,0 +1,5 @@
+board:
+  name: mm6108_ekh05_v3
+  vendor: morsemicro
+  socs:
+    - name: stm32u585xx
