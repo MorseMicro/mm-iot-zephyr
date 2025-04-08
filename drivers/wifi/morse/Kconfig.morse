@@ -69,4 +69,12 @@ config HEAP_MEM_POOL_ADD_SIZE_MORSE
 	int
 	default 65536
 
+config WIFI_MORSE_EXT_XTAL_INIT
+	bool "Enable external crystal initialisation"
+	default n
+	help
+	 For modules which drive the MM6108 with an external crystal, extra
+	 initialisation is required. This configuration implements the necessary
+	 hook to support this initialisation.
+
 endif

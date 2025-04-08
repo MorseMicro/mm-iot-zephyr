@@ -37,6 +37,13 @@ void mmhal_wlan_hard_reset(void)
 	mmosal_task_sleep(20);
 }
 
+#if defined(CONFIG_WIFI_MORSE_EXT_XTAL_INIT) && CONFIG_WIFI_MORSE_EXT_XTAL_INIT
+bool mmhal_wlan_ext_xtal_init_is_required(void)
+{
+	return true;
+}
+#endif
+
 void mmhal_wlan_spi_cs_assert(void)
 {
 }
