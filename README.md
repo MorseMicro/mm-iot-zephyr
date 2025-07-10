@@ -12,7 +12,7 @@ Morse Micro will provide Alpha ports of its software for some platforms. These p
 
 ## Follow the Zephyr Getting Started Guide
 
-Before using this module, please ensure you have followed the [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/develop/getting_started/index.html).
+Before using this module, please ensure you have followed the [Zephyr Getting Started Guide](https://docs.zephyrproject.org/3.7.0/develop/getting_started/index.html).
 
 ## Modify your project's west manifest
 
