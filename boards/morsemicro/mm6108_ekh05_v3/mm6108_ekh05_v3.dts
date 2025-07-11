@@ -234,3 +234,16 @@ stm32_lp_tick_source: &lptim1 {
 &gpdma1 {
 	status = "okay";
 };
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		storage_partition: partition@170000 {
+			label = "storage";
+			reg = <0x180000 0x00008000>;
+		};
+	};
+};
