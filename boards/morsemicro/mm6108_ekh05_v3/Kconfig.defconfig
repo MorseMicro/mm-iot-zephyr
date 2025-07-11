@@ -31,11 +31,10 @@ DT_CHOSEN_ZEPHYR_CONSOLE := zephyr,console
 config UART_CONSOLE
 	default y if $(dt_chosen_enabled,$(DT_CHOSEN_ZEPHYR_CONSOLE)) && CONSOLE
 
-if WIFI
-
 config WIFI_MORSE
 	default y
+	select WIFI
+	select NETWORKING
 
-endif # WIFI
 
 endif # BOARD_MM6108_EKH05_V3
