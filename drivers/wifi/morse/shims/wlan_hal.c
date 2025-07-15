@@ -63,15 +63,15 @@ uint8_t mmhal_wlan_spi_rw(uint8_t data)
 	struct spi_buf tx_bufs[] = {{.buf = &data, .len = 1}};
 
 	const struct spi_buf_set tx = {
-	        .buffers = tx_bufs,
-	        .count = 1,
+		.buffers = tx_bufs,
+		.count = 1,
 	};
 
 	struct spi_buf rx_bufs[] = {{.buf = &read_val, .len = 1}};
 
 	const struct spi_buf_set rx = {
-	        .buffers = rx_bufs,
-	        .count = 1,
+		.buffers = rx_bufs,
+		.count = 1,
 	};
 
 	if ((ret = spi_transceive(spi, spi_cfg, &tx, &rx)) < 0) {
@@ -91,8 +91,8 @@ void mmhal_wlan_spi_read_buf(uint8_t *buf, unsigned len)
 	struct spi_buf rx_bufs[] = {{.buf = buf, .len = len}};
 
 	const struct spi_buf_set rx = {
-	        .buffers = rx_bufs,
-	        .count = 1,
+		.buffers = rx_bufs,
+		.count = 1,
 	};
 
 	if ((ret = spi_read(spi, spi_cfg, &rx)) < 0) {
@@ -110,8 +110,8 @@ void mmhal_wlan_spi_write_buf(const uint8_t *buf, unsigned len)
 	struct spi_buf tx_bufs[] = {{.buf = buf, .len = len}};
 
 	const struct spi_buf_set tx = {
-	        .buffers = tx_bufs,
-	        .count = 1,
+		.buffers = tx_bufs,
+		.count = 1,
 	};
 
 	if ((ret = spi_write(spi, spi_cfg, &tx)) < 0) {
@@ -131,8 +131,8 @@ void mmhal_wlan_send_training_seq(void)
 	struct spi_buf tx_bufs = {.buf = (uint8_t *)spi_ones, .len = sizeof(spi_ones)};
 
 	const struct spi_buf_set tx = {
-	        .buffers = &tx_bufs,
-	        .count = 1,
+		.buffers = &tx_bufs,
+		.count = 1,
 	};
 
 	ret = gpio_pin_get_config_dt(cs_gpio, &flags);

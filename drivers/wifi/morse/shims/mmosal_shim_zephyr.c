@@ -78,11 +78,11 @@ void *mmosal_calloc(size_t nitems, size_t size)
 }
 
 int mmosal_task_priorities[MMOSAL_TASK_PRI_HIGH + 1] = {
-        12, /* MMOSAL_TASK_PRI_IDLE */
-        9,  /* MMOSAL_TASK_PRI_MIN */
-        6,  /* MMOSAL_TASK_PRI_LOW */
-        3,  /* MMOSAL_TASK_PRI_NORM */
-        0   /* MMOSAL_TASK_PRI_HIGH */
+	12, /* MMOSAL_TASK_PRI_IDLE */
+	9,  /* MMOSAL_TASK_PRI_MIN */
+	6,  /* MMOSAL_TASK_PRI_LOW */
+	3,  /* MMOSAL_TASK_PRI_NORM */
+	0   /* MMOSAL_TASK_PRI_HIGH */
 };
 
 /*

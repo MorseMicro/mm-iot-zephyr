@@ -27,14 +27,14 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #define SPI_FRAME_BITS 8
 
 const struct morse_config morse_config0 = {
-        .spi = SPI_DT_SPEC_INST_GET(0,
+	.spi = SPI_DT_SPEC_INST_GET(0,
                                     (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
                                      SPI_WORD_SET(SPI_FRAME_BITS)),
                                     0),
-        .resetn = GPIO_DT_SPEC_INST_GET(0, resetn_gpios),
-        .wakeup = GPIO_DT_SPEC_INST_GET(0, wakeup_gpios),
-        .busy = GPIO_DT_SPEC_INST_GET(0, busy_gpios),
-        .spi_irq = GPIO_DT_SPEC_INST_GET(0, spi_irq_gpios),
+	.resetn = GPIO_DT_SPEC_INST_GET(0, resetn_gpios),
+	.wakeup = GPIO_DT_SPEC_INST_GET(0, wakeup_gpios),
+	.busy = GPIO_DT_SPEC_INST_GET(0, busy_gpios),
+	.spi_irq = GPIO_DT_SPEC_INST_GET(0, spi_irq_gpios),
 };
 
 struct morse_data morse_data0;
@@ -378,7 +378,7 @@ static void morse_iface_init(struct net_if *iface)
 	LOG_DBG("%s: initialising morse interface\n", __func__);
 
 	channel_list =
-	        mmwlan_lookup_regulatory_domain(get_regulatory_db(), CONFIG_WIFI_MORSE_REGION);
+		mmwlan_lookup_regulatory_domain(get_regulatory_db(), CONFIG_WIFI_MORSE_REGION);
 
 	if (channel_list == NULL) {
 		LOG_ERR("Could not find specified regulatory domain matching country code %s\n",
@@ -488,16 +488,16 @@ static int morse_init(const struct device *dev)
 }
 
 static const struct wifi_mgmt_ops morse_mgmt_api = {
-        .scan = morse_mgmt_scan,
-        .connect = morse_mgmt_connect,
-        .disconnect = morse_mgmt_disconnect,
-        .iface_status = morse_mgmt_iface_status,
+	.scan = morse_mgmt_scan,
+	.connect = morse_mgmt_connect,
+	.disconnect = morse_mgmt_disconnect,
+	.iface_status = morse_mgmt_iface_status,
 };
 
 static const struct net_wifi_mgmt_offload morse_api = {
-        .wifi_iface.iface_api.init = morse_iface_init,
-        .wifi_iface.send = mmnetif_tx,
-        .wifi_mgmt_api = &morse_mgmt_api,
+	.wifi_iface.iface_api.init = morse_iface_init,
+	.wifi_iface.send = mmnetif_tx,
+	.wifi_mgmt_api = &morse_mgmt_api,
 };
 
 #ifndef CONFIG_WIFI_MORSE_TEST
