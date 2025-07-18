@@ -19,7 +19,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
-#include "mmhal_flash.h"
 #include "mmhal_wlan.h"
 
 #ifdef __cplusplus
