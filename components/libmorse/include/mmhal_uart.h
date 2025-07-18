@@ -32,8 +32,11 @@ extern "C" {
 /**
  * Function type for UART RX callback.
  *
- * @note The UART HAL must not invoke this function from interrupt context. However, the
- *       implementation should not block for long periods of time or received data may be lost.
+ * @note The UART HAL must not invoke this function from interrupt context. As such, it is safe for
+ *       implementations of this callback to assume that it will not be invoked from interrupt
+ *       context. However, implementations of this function should avoid blocking for long periods
+ *       of time, since this may result in the UART HAL dropping received data if its buffer becomes
+ *       full.
  *
  * @param data      The received data.
  * @param length    Length of the received data.
@@ -45,8 +48,6 @@ typedef void (*mmhal_uart_rx_cb_t)(const uint8_t *data, size_t length, void *arg
  * Initialize the UART HAL and perform any setup necessary.
  *
  * @param rx_cb     Optional callback to be invoked on receive (may be NULL).
- *                  This callback may be invoked from interrupt context so should return
- *                  quickly.
  * @param rx_cb_arg Optional opaque argument to be passed to the RX callback. May be NULL.
  */
 void mmhal_uart_init(mmhal_uart_rx_cb_t rx_cb, void *rx_cb_arg);

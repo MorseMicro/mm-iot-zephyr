@@ -48,6 +48,18 @@ static inline void mmpkt_list_init(struct mmpkt_list *list)
 }
 
 /**
+ * Gets the current length of the given mmpkt list.
+ *
+ * @param list  The list to get the length of.
+ *
+ * @return the current length of @c list.
+ */
+static inline uint32_t mmpkt_list_length(struct mmpkt_list *list)
+{
+    return list->len;
+}
+
+/**
  * Add an mmpkt to the start of an mmpkt list.
  *
  * @param list  The list to prepend to.
@@ -62,6 +74,15 @@ void mmpkt_list_prepend(struct mmpkt_list *list, struct mmpkt *mmpkt);
  * @param mmpkt The mmpkt to append.
  */
 void mmpkt_list_append(struct mmpkt_list *list, struct mmpkt *mmpkt);
+
+/**
+ * Insert an mmpkt into an mmpkt list after a specified list entry.
+ *
+ * @param list  The list to insert into.
+ * @param ref   The packet to insert after.
+ * @param mmpkt The mmpkt to insert.
+ */
+void mmpkt_list_insert_after(struct mmpkt_list *list, struct mmpkt *ref, struct mmpkt *mmpkt);
 
 /**
  * Remove an mmpkt from an mmpkt list.

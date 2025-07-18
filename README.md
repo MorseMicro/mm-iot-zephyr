@@ -3,7 +3,7 @@ Morse Micro IoT Zephyr Module (Alpha Port)
 
 # Overview
 
-This alpha module includes drivers and sample applications to add Morse Micro HaLow Wi-Fi to LTS version 3.7 of the [Zephyr RTOS Project](https://www.zephyrproject.org/). The module is based on the 2.6.4 release of the [MM-IoT-SDK](https://www.github.com/MorseMicro/mm-iot-sdk)
+This alpha module includes drivers and sample applications to add Morse Micro HaLow Wi-Fi to LTS version 3.7 of the [Zephyr RTOS Project](https://www.zephyrproject.org/). The module is based on the 2.8.2 release of the [MM-IoT-SDK](https://www.github.com/MorseMicro/mm-iot-sdk)
 
 ## What is an Alpha Port
 Morse Micro will provide Alpha ports of its software for some platforms. These ports are not part of the standard test and development cycle for a software release and may be incomplete in the set of supported features. They intend to provide a starting point for integrating Morse Micro software to projects based on these platforms.
