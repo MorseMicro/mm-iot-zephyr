@@ -94,6 +94,23 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 		return;
 	}
 
+	/* Parse the RSN Information to get the MFP requirements */
+	if (rsn_info.rsn_capabilities & RSN_MFPC) {
+		scan.mfp = WIFI_MFP_OPTIONAL;
+		if (rsn_info.rsn_capabilities & RSN_MFPR) {
+			scan.mfp = WIFI_MFP_REQUIRED;
+		}
+	}
+
+	switch (scan.mfp) {
+	case WIFI_MFP_REQUIRED:
+		morse->sta_args.pmf_mode = MMWLAN_PMF_REQUIRED;
+		break;
+	default:
+		morse->sta_args.pmf_mode = MMWLAN_PMF_DISABLED;
+		break;
+	}
+
 	scan.security = WIFI_SECURITY_TYPE_NONE;
 	if (ret == -1 || rsn_info.num_akm_suites == 0) {
 		goto scan_cb_end;
