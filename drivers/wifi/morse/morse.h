@@ -20,7 +20,6 @@
 
 struct morse_config {
 	struct spi_dt_spec spi;
-	struct spi_cs_control cs_control;
 	struct gpio_dt_spec resetn;
 	struct gpio_dt_spec wakeup;
 	struct gpio_dt_spec busy;
