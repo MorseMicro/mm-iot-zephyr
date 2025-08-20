@@ -47,7 +47,7 @@ endfunction()
 
 
 set(bcf     ${CONFIG_WIFI_MORSE_BCF})
-if(NOT IS_READABLE ${BLOB_DIR}/firmware/${bcf})
+if(NOT EXISTS ${BLOB_DIR}/firmware/${bcf})
   message(FATAL_ERROR
   "Invalid BCF specified\n"
   "File must be present in ${BLOB_DIR}/firmware/")
