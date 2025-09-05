@@ -1,0 +1,31 @@
+&spi0_default {
+	group1 {
+		/* MISO MOSI RSPCK */
+		psels = <RA_PSEL(RA_PSEL_SPI, 2, 2)>,
+		<RA_PSEL(RA_PSEL_SPI, 2, 3)>,
+		<RA_PSEL(RA_PSEL_SPI, 2, 4)>;
+		drive-strength = "high";
+	};
+};
+
+/* 
+ * This soc doesn't enable external interrupts on all GPIOs.
+ * So we bridge BUSY: arduino A2 (P002) to D3 (P111, IRQ4)
+ * and SPI IRQ: arduino A4 (P014) to D2 (P409, IRQ6)
+ */
+
+&port_irq4 {
+	interrupts = <35 12>;
+	status = "okay";
+	renesas,trigger = "rising";
+};
+
+&port_irq6 {
+	interrupts = <37 12>;
+	status = "okay";
+};
+
+&morse_wifi_arduino_spi {
+	busy-gpios = <&arduino_header 9 GPIO_ACTIVE_HIGH>;
+	spi-irq-gpios = <&arduino_header 8 GPIO_ACTIVE_LOW>;
+};
