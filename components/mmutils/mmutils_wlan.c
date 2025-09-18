@@ -185,3 +185,50 @@ int mm_parse_rsn_information(const uint8_t *ies, uint32_t ies_len,
     output->rsn_capabilities = ies[offset] | ies[offset+1] << 8;
     return 0;
 }
+
+
+int mm_parse_s1g_operation(const uint8_t *ies, uint32_t ies_len,
+                           struct mm_s1g_operation *output)
+{
+    const struct MM_PACKED dot11_ie_s1g_operation
+    {
+        /** Information Element header (type) */
+        uint8_t type;
+        /** Information Element header (length) */
+        uint8_t length;
+        /** See P802.11me D1.1, Section 9.4.2.212, Table 9-353 */
+        uint8_t channel_width;
+        /** See P802.11me D1.1, Section 9.4.2.212, Table 9-353 */
+        uint8_t operating_class;
+        /** See P802.11me D1.1, Section 9.4.2.212, Table 9-353 */
+        uint8_t primary_channel_number;
+        /**
+         * See P802.11me D1.1, Section 9.4.2.212, Table 9-353.
+         * Note that despite the name, this is a channel number and not a frequency in Hz.
+         */
+        uint8_t channel_center_freq;
+        /** See P802.11me D1.1, Section 9.4.2.212, Figure 9-800 */
+        uint8_t basic_s1g_mcs_nss_set[2];
+    } *s1g_op;
+
+    int offset = mm_find_ie(ies, ies_len, MM_S1G_OPERATION_IE_TYPE);
+    if (offset < 0)
+    {
+        return offset;
+    }
+
+    s1g_op = (const struct dot11_ie_s1g_operation *)(ies + offset);
+    if (sizeof(*s1g_op) > ((size_t)s1g_op->length + 2))
+    {
+        printf("ERROR: S1G Operation IE too short\n");
+        return -2;
+    }
+
+    output->operating_class = s1g_op->operating_class;
+    output->operating_channel_number = s1g_op->channel_center_freq;
+    output->operating_channel_width_mhz = ((s1g_op->channel_width >> 1) & 0x0f) + 1;
+    output->primary_channel_number = s1g_op->primary_channel_number;
+    output->primary_channel_width_mhz = 2 - (s1g_op->channel_width & 0x01);
+
+    return 0;
+}

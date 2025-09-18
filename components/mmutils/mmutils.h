@@ -78,6 +78,11 @@ extern "C" {
 #define MM_WEAK __attribute__((weak))
 #endif
 
+/** Allows a case to fallthrough to the next case in a switch case.  */
+#ifndef MM_FALLTHROUGH
+#define MM_FALLTHROUGH __attribute__((fallthrough))
+#endif
+
 #ifndef MM_STATIC_ASSERT
 /**
  * Assertion check that is evaluated at compile time.
@@ -174,6 +179,8 @@ enum mm_cipher_suite_oui
 #define MM_RSN_INFORMATION_IE_TYPE                      (48)
 /** Tag number of the Vendor Specific information element. */
 #define MM_VENDOR_SPECIFIC_IE_TYPE                      (221)
+/** Tag number of the S1G Operation information element. */
+#define MM_S1G_OPERATION_IE_TYPE                        (232)
 
 /** Explicitly defined errno values to obviate the need to include errno.h. MM prefix to
  *  avoid namespace collision in case errno.h gets included. */
@@ -227,7 +234,7 @@ const char *mm_akm_suite_to_string(uint32_t akm_suite_oui);
  *          undefined behaviour.
  *
  * @param ies           Buffer containing the information elements.
- * @param ies_len       Length of @p ies
+ * @param ies_len       Length of @p ies.
  * @param search_offset Offset to start searching from. This **must** point to a IE header.
  * @param ie_type       The type of the IE to look for.
  *
@@ -261,7 +268,7 @@ static inline int mm_find_ie(const uint8_t *ies, uint32_t ies_len, uint8_t ie_ty
  *          undefined behaviour.
  *
  * @param[in] ies           Buffer containing the information elements.
- * @param[in] ies_len       Length of @p ies
+ * @param[in] ies_len       Length of @p ies.
  * @param[in] search_offset Offset to start searching from. This **must** point to a IE header.
  * @param[in] id            Buffer containing the IE ID, usually OUI+TYPE.
  * @param[in] id_len        Length of the ID.
@@ -278,7 +285,7 @@ int mm_find_vendor_specific_ie_from_offset(const uint8_t *ies, uint32_t ies_len,
  * that matches the given id.
  *
  * @param[in] ies       Buffer containing the information elements.
- * @param[in] ies_len   Length of @p ies
+ * @param[in] ies_len   Length of @p ies.
  * @param[in] id        Buffer containing the IE ID, usually OUI+TYPE.
  * @param[in] id_len    Length of the ID.
  *
@@ -296,13 +303,44 @@ static inline int mm_find_vendor_specific_ie(const uint8_t *ies, uint32_t ies_le
  * to extract relevant information into an instance of @ref mm_rsn_information.
  *
  * @param[in] ies       Buffer containing the information elements.
- * @param[in] ies_len   Length of @p ies
+ * @param[in] ies_len   Length of @p ies.
  * @param[out] output   Pointer to an instance of @ref mm_rsn_information to receive output.
  *
  * @returns -2 on parse error, -1 if the RSN IE was not found, 0 if the RSN IE was found.
  */
 int mm_parse_rsn_information(const uint8_t *ies, uint32_t ies_len,
                              struct mm_rsn_information *output);
+
+
+/**
+ * Data structure to represent information extracted from an S1G Operation information element.
+ */
+struct mm_s1g_operation
+{
+    /** Operating class. */
+    uint8_t operating_class;
+    /** Width of the operating channel in MHz. */
+    uint8_t operating_channel_width_mhz;
+    /** Width of the primary channel in MHz. */
+    uint8_t primary_channel_width_mhz;
+    /** Channel number of the operating channel. */
+    uint8_t operating_channel_number;
+    /** Channel number of the primary channel. */
+    uint8_t primary_channel_number;
+};
+
+/**
+ * Find the S1G Operation information element from within a block of IEs and extract useful
+ * information from it.
+ *
+ * @param[in] ies       Buffer containing the information elements.
+ * @param[in] ies_len   Length of @p ies.
+ * @param[out] output   Pointer to an instance of @ref mm_rsn_information to receive output.
+ *
+ * @returns -2 on parse error, -1 if the S1G Opration IE was not found, 0 on success.
+ */
+int mm_parse_s1g_operation(const uint8_t *ies, uint32_t ies_len,
+                           struct mm_s1g_operation *output);
 
 /** @} */
 
