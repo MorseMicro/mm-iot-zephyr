@@ -54,6 +54,7 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 	struct morse_data *morse = arg;
 	struct wifi_scan_result scan;
 	struct mm_rsn_information rsn_info;
+	struct mm_s1g_operation s1g_operation;
 	int ii;
 
 	memset(&scan, 0, sizeof(scan));
@@ -76,19 +77,15 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 	scan.channel = 0;
 	scan.rssi = (int8_t)result->rssi;
 
-	for (ii = 0; ii < morse->channel_list->num_channels; ii++) {
-		if (morse->channel_list->channels[ii].bw_mhz == result->op_bw_mhz) {
-			scan.channel = morse->channel_list->channels[ii].s1g_chan_num;
-		}
-	}
 
-	if (scan.channel == 0) {
-		LOG_ERR("ssid: %s not found on any channel in regdb for %s", scan.ssid,
-		        morse->country_code);
+	int ret = mm_parse_s1g_operation(result->ies, result->ies_len, &s1g_operation);
+	if (ret != 0) {
+		LOG_ERR("Failed to parse S1G Operation Element");
 		return;
 	}
+	scan.channel = s1g_operation.primary_channel_number;
 
-	int ret = mm_parse_rsn_information(result->ies, result->ies_len, &rsn_info);
+	ret = mm_parse_rsn_information(result->ies, result->ies_len, &rsn_info);
 	if (ret == -2) {
 		LOG_ERR("Failed to parse RSN IE for ssid: %s", scan.ssid);
 		return;
