@@ -78,12 +78,16 @@ void *mmosal_calloc(size_t nitems, size_t size)
 }
 
 int mmosal_task_priorities[MMOSAL_TASK_PRI_HIGH + 1] = {
-	12, /* MMOSAL_TASK_PRI_IDLE */
-	9,  /* MMOSAL_TASK_PRI_MIN */
-	6,  /* MMOSAL_TASK_PRI_LOW */
-	3,  /* MMOSAL_TASK_PRI_NORM */
-	0   /* MMOSAL_TASK_PRI_HIGH */
-};
+	/* MMOSAL_TASK_PRI_IDLE */
+	CONFIG_NUM_PREEMPT_PRIORITIES,
+	/* MMOSAL_TASK_PRI_MIN */
+	CONFIG_NUM_PREEMPT_PRIORITIES - (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
+	/* MMOSAL_TASK_PRI_LOW */
+	CONFIG_NUM_PREEMPT_PRIORITIES - 2 * (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
+	/* MMOSAL_TASK_PRI_NORM */
+	CONFIG_NUM_PREEMPT_PRIORITIES - 3 * (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
+	/* MMOSAL_TASK_PRI_HIGH */
+	0};
 
 /*
  * For implementation of the mmosal_task functions in Zephyr, we need some storage.
