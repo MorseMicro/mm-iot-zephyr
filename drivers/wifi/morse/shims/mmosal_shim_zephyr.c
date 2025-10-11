@@ -100,7 +100,6 @@ struct mmosal_task_data {
 	struct k_thread tid;
 	uint32_t magic;
 	k_thread_stack_t *stack;
-	struct k_sem sem;
 };
 
 /*
@@ -124,7 +123,6 @@ struct mmosal_task_data *mmosal_task_metadata_create(void)
 	}
 	data->magic = mmosal_data_id;
 	data->stack = NULL;
-	k_sem_init(&data->sem, 0, 1);
 	return data;
 exit:
 	return NULL;
@@ -248,53 +246,6 @@ void mmosal_enable_interrupts(void)
 const char *mmosal_task_name(void)
 {
 	return k_thread_name_get(k_current_get());
-}
-
-/*
- * We are sometimes called from contexts where a thread was created without using the mmosal
- * functions. In most cases, we should be able to create and inject custom data. However, there
- * is a distinct incompatibility if custom data already exists. Fail spectacularly.
- * The thread_abort_hook will clean up this data.
- */
-bool mmosal_task_wait_for_notification(uint32_t timeout_ms)
-{
-	struct mmosal_task_data *data = k_thread_custom_data_get();
-	int ret;
-
-	if (data == NULL) {
-		data = mmosal_task_metadata_create();
-		k_thread_custom_data_set(data);
-	}
-
-	__ASSERT(data->magic == mmosal_data_id, "%s called from incompatible thread: %p", __func__,
-	         k_current_get());
-
-	ret = k_sem_take(&data->sem, K_MSEC(timeout_ms));
-
-	return !(ret < 0);
-}
-
-/*
- * mmosal_task_notify is only used after being told which task to notify. That task
- * will have had metadata created.
- */
-void mmosal_task_notify(struct mmosal_task *task)
-{
-	struct mmosal_task_data *data = k_thread_other_custom_data_get((k_tid_t)task);
-
-	if (data == NULL) {
-		data = mmosal_task_metadata_create();
-		k_thread_custom_data_set(data);
-	}
-
-	__ASSERT(data->magic, "%s called against incompatible thread: %p", __func__, tid);
-
-	k_sem_give(&data->sem);
-}
-
-void mmosal_task_notify_from_isr(struct mmosal_task *task)
-{
-	mmosal_task_notify(task);
 }
 
 struct mmosal_mutex {
