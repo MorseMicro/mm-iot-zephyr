@@ -1,0 +1,8 @@
+# Copyright 2024-2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: Morse Micro MM6108 module
+
+compatible: "morse,mm6108"
+
+include: morse,spi.yaml

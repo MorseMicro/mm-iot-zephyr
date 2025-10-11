@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT morse_spi
 #include "morse_log.h"
 LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 
@@ -23,19 +22,14 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "regdb.h"
 #include "mmutils.h"
 
+#if CONFIG_DT_HAS_MORSE_MM8108_ENABLED
+	#define DT_DRV_COMPAT morse_mm8108
+#else
+	#define DT_DRV_COMPAT morse_mm6108
+#endif
+
 /* 8-bit frames */
 #define SPI_FRAME_BITS 8
-
-const struct morse_config morse_config0 = {
-	.spi = SPI_DT_SPEC_INST_GET(0,
-                                    (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
-                                     SPI_WORD_SET(SPI_FRAME_BITS)),
-                                    0),
-	.resetn = GPIO_DT_SPEC_INST_GET(0, resetn_gpios),
-	.wakeup = GPIO_DT_SPEC_INST_GET(0, wakeup_gpios),
-	.busy = GPIO_DT_SPEC_INST_GET(0, busy_gpios),
-	.spi_irq = GPIO_DT_SPEC_INST_GET(0, spi_irq_gpios),
-};
 
 struct morse_data morse_data0;
 
@@ -514,17 +508,29 @@ static const struct net_wifi_mgmt_offload morse_api = {
 	.wifi_mgmt_api = &morse_mgmt_api,
 };
 
+const struct morse_config conf = {
+	.spi = SPI_DT_SPEC_INST_GET(0,
+                                    (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
+                                     SPI_WORD_SET(SPI_FRAME_BITS)),
+                                    0),
+	.resetn = GPIO_DT_SPEC_INST_GET(0, resetn_gpios),
+	.wakeup = GPIO_DT_SPEC_INST_GET(0, wakeup_gpios),
+	.busy = GPIO_DT_SPEC_INST_GET(0, busy_gpios),
+	.spi_irq = GPIO_DT_SPEC_INST_GET(0, spi_irq_gpios),
+};
+
 #ifndef CONFIG_WIFI_MORSE_TEST
 
-NET_DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &morse_config0,
-                          CONFIG_WIFI_INIT_PRIORITY, &morse_api, ETHERNET_L2,
-                          NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
+NET_DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, CONFIG_WIFI_INIT_PRIORITY,
+                          &morse_api, ETHERNET_L2, NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
 
 CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(0)));
 
 #else
 
-DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &morse_config0, POST_KERNEL,
+DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, POST_KERNEL,
                       CONFIG_WIFI_INIT_PRIORITY, NULL);
 
 #endif /* CONFIG_WIFI_MORSE_TEST */
+
+const struct morse_config *morse_config0 = conf;

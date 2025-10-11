@@ -11,7 +11,7 @@
 
 	morse_wifi_arduino_spi: morse@0 {
 		status = "okay";
-		compatible = "morse,spi";
+		compatible = "morse,mm6108";
 		spi-max-frequency = <50000000>;
 		reg = <0>;
 

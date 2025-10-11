@@ -1,9 +1,5 @@
-# Copyright 2024 Morse Micro
+# Copyright 2024-2025 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
-
-description: Morse Micro SPI module
-
-compatible: "morse,spi"
 
 include: spi-device.yaml
 
