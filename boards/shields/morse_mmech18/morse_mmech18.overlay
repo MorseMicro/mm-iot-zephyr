@@ -1,0 +1,23 @@
+/*
+ * Copyright 2025 Morse Micro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&arduino_spi {
+	status = "okay";
+
+	/* D10 */
+	cs-gpios = <&arduino_header 16 GPIO_ACTIVE_LOW>;
+
+	morse_wifi_arduino_spi: morse@0 {
+		status = "okay";
+		compatible = "morse,mm8108";
+		spi-max-frequency = <50000000>;
+		reg = <0>;
+
+		busy-gpios = <&arduino_header 2 GPIO_ACTIVE_HIGH>;
+		wakeup-gpios = <&arduino_header 1 GPIO_ACTIVE_HIGH>;
+		resetn-gpios = <&arduino_header 0 GPIO_ACTIVE_LOW>;
+		spi-irq-gpios = <&arduino_header 4 GPIO_ACTIVE_LOW>;
+	};
+};
