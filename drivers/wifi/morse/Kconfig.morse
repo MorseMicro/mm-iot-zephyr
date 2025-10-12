@@ -4,6 +4,8 @@
 menuconfig WIFI_MORSE
 	bool "MorseMicro HaLow WiFi support"
 	default n
+	depends on DT_HAS_MORSE_MM6108_ENABLED \
+		|| DT_HAS_MORSE_MM8108_ENABLED
 	select DYNAMIC_THREAD
 	select REBOOT
 	select THREAD_CUSTOM_DATA
