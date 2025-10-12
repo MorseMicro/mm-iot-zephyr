@@ -45,7 +45,7 @@ struct morse_data {
 #define RSN_MFPR 1 << 6
 #define RSN_MFPC 1 << 7
 
-extern const struct morse_config morse_config0;
+extern const struct morse_config *morse_config0;
 extern struct morse_data morse_data0;
 
 #endif /* ZEPHYR_DRIVERS_WIFI_MORSE_MORSE_H_ */

@@ -533,4 +533,4 @@ DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, POST_KERNEL,
 
 #endif /* CONFIG_WIFI_MORSE_TEST */
 
-const struct morse_config *morse_config0 = conf;
+const struct morse_config *morse_config0 = &conf;

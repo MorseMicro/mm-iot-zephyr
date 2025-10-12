@@ -23,7 +23,7 @@ static const uint8_t spi_ones[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf
 
 void mmhal_wlan_hard_reset(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->resetn;
 	int ret = 0;
 
@@ -54,7 +54,7 @@ void mmhal_wlan_spi_cs_deassert(void)
 
 uint8_t mmhal_wlan_spi_rw(uint8_t data)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct device *spi = cfg->spi.bus;
 	const struct spi_config *spi_cfg = &cfg->spi.config;
 	int ret = 0;
@@ -83,7 +83,7 @@ uint8_t mmhal_wlan_spi_rw(uint8_t data)
 
 void mmhal_wlan_spi_read_buf(uint8_t *buf, unsigned len)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct device *spi = cfg->spi.bus;
 	const struct spi_config *spi_cfg = &cfg->spi.config;
 	int ret = 0;
@@ -102,7 +102,7 @@ void mmhal_wlan_spi_read_buf(uint8_t *buf, unsigned len)
 
 void mmhal_wlan_spi_write_buf(const uint8_t *buf, unsigned len)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct device *spi = cfg->spi.bus;
 	const struct spi_config *spi_cfg = &cfg->spi.config;
 	int ret = 0;
@@ -121,7 +121,7 @@ void mmhal_wlan_spi_write_buf(const uint8_t *buf, unsigned len)
 
 void mmhal_wlan_send_training_seq(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct device *spi = cfg->spi.bus;
 	struct gpio_dt_spec *cs_gpio = &cfg->spi.config.cs.gpio;
 	struct spi_config spi_cfg = cfg->spi.config;
@@ -171,7 +171,7 @@ void mmhal_wlan_register_spi_irq_handler(mmhal_irq_handler_t handler)
 
 bool mmhal_wlan_spi_irq_is_asserted(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->spi_irq;
 	int ret = 0;
 	if ((ret = gpio_pin_get_dt(gpio_dt)) < 0) {
@@ -183,7 +183,7 @@ bool mmhal_wlan_spi_irq_is_asserted(void)
 
 void mmhal_wlan_set_spi_irq_enabled(bool enabled)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 
 	if (enabled) {
 		/* The transiver will hold the IRQ line low if there is additional information
@@ -203,7 +203,7 @@ void mmhal_wlan_set_spi_irq_enabled(bool enabled)
 
 void mmhal_wlan_init(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->resetn;
 	int ret = 0;
 	if ((ret = gpio_pin_set_dt(gpio_dt, 1)) < 0) {
@@ -213,7 +213,7 @@ void mmhal_wlan_init(void)
 
 void mmhal_wlan_deinit(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->resetn;
 	int ret = 0;
 	if ((ret = gpio_pin_set_dt(gpio_dt, 0)) < 0) {
@@ -223,7 +223,7 @@ void mmhal_wlan_deinit(void)
 
 void mmhal_wlan_wake_assert(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->wakeup;
 	int ret = 0;
 	if ((ret = gpio_pin_set_dt(gpio_dt, 1)) < 0) {
@@ -233,7 +233,7 @@ void mmhal_wlan_wake_assert(void)
 
 void mmhal_wlan_wake_deassert(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->wakeup;
 	int ret = 0;
 	if ((ret = gpio_pin_set_dt(gpio_dt, 0)) < 0) {
@@ -243,7 +243,7 @@ void mmhal_wlan_wake_deassert(void)
 
 bool mmhal_wlan_busy_is_asserted(void)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->busy;
 	int ret = 0;
 	if ((ret = gpio_pin_get_dt(gpio_dt)) < 0) {
@@ -260,7 +260,7 @@ void mmhal_wlan_register_busy_irq_handler(mmhal_irq_handler_t handler)
 
 void mmhal_wlan_set_busy_irq_enabled(bool enabled)
 {
-	const struct morse_config *cfg = &morse_config0;
+	const struct morse_config *cfg = morse_config0;
 
 	if (enabled) {
 		gpio_pin_interrupt_configure_dt(&cfg->busy, GPIO_INT_EDGE_TO_ACTIVE);
