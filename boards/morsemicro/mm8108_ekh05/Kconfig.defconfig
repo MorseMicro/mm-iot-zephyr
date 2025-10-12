@@ -1,0 +1,40 @@
+# Morse Micro MM8108 EKH05 Evaluation Kit
+
+# Copyright 2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_MM8108_EKH05
+
+if BT
+
+config SPI
+	default y
+
+config BT_SPI
+	default y
+
+config BT_BLUENRG_ACI
+	default y
+
+# Disable Flow control
+config BT_HCI_ACL_FLOW_CONTROL
+	default n
+
+endif # BT
+
+config SPI_STM32_INTERRUPT
+	default y
+	depends on SPI
+
+DT_CHOSEN_ZEPHYR_CONSOLE := zephyr,console
+
+config UART_CONSOLE
+	default y if $(dt_chosen_enabled,$(DT_CHOSEN_ZEPHYR_CONSOLE)) && CONSOLE
+
+config WIFI_MORSE
+	default y
+	select WIFI
+	select NETWORKING
+
+
+endif # BOARD_MM8108_EKH05

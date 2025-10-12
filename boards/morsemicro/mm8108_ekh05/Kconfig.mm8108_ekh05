@@ -1,0 +1,5 @@
+# Copyright 2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_MM8108_EKH05
+	select SOC_STM32U585XX

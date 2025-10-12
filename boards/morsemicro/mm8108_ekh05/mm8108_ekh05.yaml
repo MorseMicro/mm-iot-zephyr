@@ -1,0 +1,17 @@
+identifier: mm8108_ekh05
+name: Morse Micro MM8108 EKH05 Evaluation Kit
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 786
+flash: 2048
+supported:
+  - counter
+  - gpio
+  - pwm
+  - watchdog
+  - ble
+  - wifi
+vendor: morsemicro
