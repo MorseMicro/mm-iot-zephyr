@@ -1,0 +1,5 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+config SHIELD_MORSEMICRO_XIAO_FGH100MHAAMD
+	def_bool $(shields_list_contains,xiao_fgh100mhaamd)
