@@ -9,10 +9,10 @@
 #include "mmhal.h"
 #include "mmlog.h"
 #include "mmutils.h"
-#include "mm6108_reg.h"
+#include "chip_cfg.h"
 
 /** Address used when measuring raw throughput */
-#define MM6108_BENCHMARK_ADDR_START      0x80100000
+#define BENCHMARK_ADDR_START      0x80100000
 
 /** Packet length used for bulk read/write operations. Chosen because it is the approximate size of
  * a max data frame. */
@@ -22,18 +22,8 @@
 #define BENCHMARK_WAIT_MS (2500)
 
 
-/* MM6108 WLAN GPIO definitions */
-#define BUSY_GPIO_MASK (0x00000001)
-
-#define GPIO_NOT_ASSERTED    0
-#define GPIO_ASSERTED        1
-
-/** Array of valid chip ids for the MM6108 */
-const uint32_t valid_chip_ids[] = {
-    0x206,
-    0x306,
-    0x406,
-};
+/** The chip configuration as detected by probing the chip ID register. */
+const struct chip_cfg *probed_chip_cfg;
 
 /**
  * Function to validate if a given chip id is valid.
@@ -42,14 +32,11 @@ const uint32_t valid_chip_ids[] = {
  *
  * @return @c true if the given id is in the list of valid ids, else @c false
  */
-static bool valid_chip_id(uint32_t chip_id)
+static bool validate_chip_id(uint32_t chip_id, const struct chip_cfg *chip_cfg)
 {
-    int ii;
-    int num_valid_chip_ids = sizeof(valid_chip_ids)/sizeof(valid_chip_ids[0]);
-
-    for (ii = 0; ii < num_valid_chip_ids; ii++)
+    for (size_t ii = 0; ii < chip_cfg->n_valid_chip_ids; ii++)
     {
-        if (chip_id == valid_chip_ids[ii])
+        if (chip_id == chip_cfg->valid_chip_ids[ii])
         {
             return true;
         }
@@ -185,13 +172,31 @@ TEST_STEP(test_step_read_chip_id, "Read chip id from the MM chip")
     int ret = MMHAL_SDIO_OTHER_ERROR;
     uint32_t data;
     int ii;
+    size_t chip_cfg_idx;
 
-    /* MM chip requires few bytes to be written after CMD63 to get it to active state. We just
-     * attempt to read the chip id a few times. */
-    for (ii = 0; ii < 3; ii++)
+    for (chip_cfg_idx = 0; chip_cfg_idx < n_chip_cfgs; chip_cfg_idx++)
     {
-        ret = sdio_spi_read_le32(MM6108_REG_CHIP_ID, &data);
+        /* MM chip requires few bytes to be written after CMD63 to get it to active state. We just
+         * attempt to read the chip id a few times. */
+        for (ii = 0; ii < 3; ii++)
+        {
+            ret = sdio_spi_read_le32(chip_cfgs[chip_cfg_idx].reg_chip_id, &data);
+            if (ret == 0)
+            {
+                break;
+            }
+        }
+
         if (ret == 0)
+        {
+            if (validate_chip_id(data, &chip_cfgs[chip_cfg_idx]))
+            {
+                probed_chip_cfg = &chip_cfgs[chip_cfg_idx];
+                return TEST_PASSED;
+            }
+            ret = MMHAL_SDIO_OTHER_ERROR;
+        }
+        else
         {
             break;
         }
@@ -199,14 +204,6 @@ TEST_STEP(test_step_read_chip_id, "Read chip id from the MM chip")
 
     switch (ret)
     {
-    case 0:
-        if (valid_chip_id(data))
-        {
-            return TEST_PASSED;
-        }
-        TEST_LOG_APPEND("Failed to read valid chip id, recieved 0x%04lx\n\n", data);
-        break;
-
     case MMHAL_SDIO_CMD_TIMEOUT:
         /* We shouldn't get this error code in this test, since it should have caused the
          * previous test to fail. */
@@ -224,8 +221,12 @@ TEST_STEP(test_step_read_chip_id, "Read chip id from the MM chip")
                         " - Possible noise on the SPI/SDIO lines causing corruption\n\n");
         break;
 
+    case MMHAL_SDIO_OTHER_ERROR:
+        TEST_LOG_APPEND("Failed to match a valid chip ID\n");
+        break;
+
     default:
-        TEST_LOG_APPEND("Failed to read chip id due to an unknown error\n\n");
+        TEST_LOG_APPEND("Failed to read chip ID due to an unknown error\n\n");
         break;
     }
 
@@ -338,7 +339,7 @@ TEST_STEP(test_step_bulk_write_read, "Bulk write/read into the MM chip")
 
     populate_buffer(tx_data, BULK_RW_PACKET_LEN_BYTES);
 
-    ret = sdio_spi_write_multi_byte(MM6108_BENCHMARK_ADDR_START, tx_data, BULK_RW_PACKET_LEN_BYTES);
+    ret = sdio_spi_write_multi_byte(BENCHMARK_ADDR_START, tx_data, BULK_RW_PACKET_LEN_BYTES);
     ok = process_sdio_spi_multi_byte_return(ret, log_buf, log_buf_len);
     if (!ok)
     {
@@ -347,7 +348,7 @@ TEST_STEP(test_step_bulk_write_read, "Bulk write/read into the MM chip")
         goto exit;
     }
 
-    ret = sdio_spi_read_multi_byte(MM6108_BENCHMARK_ADDR_START, rx_data, BULK_RW_PACKET_LEN_BYTES);
+    ret = sdio_spi_read_multi_byte(BENCHMARK_ADDR_START, rx_data, BULK_RW_PACKET_LEN_BYTES);
     ok = process_sdio_spi_multi_byte_return(ret, log_buf, log_buf_len);
     if (!ok)
     {
@@ -413,7 +414,7 @@ TEST_STEP(test_step_raw_tput, "Raw throughput test")
     while (mmosal_time_le(mmosal_get_time_ms(), benchmark_end_time))
     {
         offset += 4;
-        ret = sdio_spi_write_multi_byte(MM6108_BENCHMARK_ADDR_START, tx_data + (offset & 15),
+        ret = sdio_spi_write_multi_byte(BENCHMARK_ADDR_START, tx_data + (offset & 15),
                                         BULK_RW_PACKET_LEN_BYTES);
         ok = process_sdio_spi_multi_byte_return(ret, log_buf, log_buf_len);
         if (!ok)
@@ -423,7 +424,7 @@ TEST_STEP(test_step_raw_tput, "Raw throughput test")
             goto exit;
         }
 
-        ret = sdio_spi_read_multi_byte(MM6108_BENCHMARK_ADDR_START, rx_data,
+        ret = sdio_spi_read_multi_byte(BENCHMARK_ADDR_START, rx_data,
                                        BULK_RW_PACKET_LEN_BYTES);
         ok = process_sdio_spi_multi_byte_return(ret, log_buf, log_buf_len);
         if (!ok)
@@ -471,26 +472,22 @@ exit:
 
 TEST_STEP(test_step_verify_busy_pin, "Verify BUSY pin")
 {
-    /* In this We toggle the BUSY pin from MM6108 and expect that we can see the
-     * input change and the busy irq handler gets called. */
+    /* In this We toggle the BUSY pin on the chip and expect that we can see the GPIO input
+     * on the host change and that the busy irq handler gets called. */
     enum test_result result = TEST_PASSED;
-    uint32_t out_en_backup = 0;
     uint8_t i = 0;
-    irq_counter = 0;
-    if (sdio_spi_read_le32(MM6108_REG_OUT_EN, &out_en_backup) != 0)
-    {
-        TEST_LOG_APPEND("Unable to Read MM6108_REG_OUT_EN\n");
-        return TEST_FAILED;
-    }
-    sdio_spi_set_bits_le32(MM6108_REG_OUT_EN, BUSY_GPIO_MASK);
-    sdio_spi_clear_bits_le32(MM6108_REG_OUT_VAL, BUSY_GPIO_MASK);
+    probed_chip_cfg->gpio_set_oe(probed_chip_cfg->busy_gpio_num, true);
+    probed_chip_cfg->gpio_set_value(probed_chip_cfg->busy_gpio_num, false);
     mmhal_wlan_register_busy_irq_handler(test_hal_irq_handle);
 
-    /* First toggle pin with IRQ enabled to verify the input value and irq handle call. */
     mmhal_wlan_set_busy_irq_enabled(true);
+    /* Clear counter after irq_enabled to ignore potential stale interrupt. */
+    mmosal_task_sleep(1);
+    irq_counter = 0;
+    /* First toggle pin with IRQ enabled to verify the input value and irq handle call. */
     for (i = 0; i < 2; i++)
     {
-        sdio_spi_set_bits_le32(MM6108_REG_OUT_VAL, BUSY_GPIO_MASK);
+        probed_chip_cfg->gpio_set_value(probed_chip_cfg->busy_gpio_num, true);
         mmosal_task_sleep(2);
         if (!mmhal_wlan_busy_is_asserted())
         {
@@ -499,7 +496,7 @@ TEST_STEP(test_step_verify_busy_pin, "Verify BUSY pin")
             result = TEST_FAILED;
             goto exit;
         }
-        sdio_spi_clear_bits_le32(MM6108_REG_OUT_VAL, BUSY_GPIO_MASK);
+        probed_chip_cfg->gpio_set_value(probed_chip_cfg->busy_gpio_num, false);
         mmosal_task_sleep(2);
         if (mmhal_wlan_busy_is_asserted())
         {
@@ -511,7 +508,7 @@ TEST_STEP(test_step_verify_busy_pin, "Verify BUSY pin")
     }
     if (irq_counter != 2)
     {
-        TEST_LOG_APPEND("BUSY ping IRQ hander was not called as expected. Expected 2 invocations, "
+        TEST_LOG_APPEND("BUSY pin IRQ hander was not called as expected. Expected 2 invocations, "
                         "but was invoked %u times\n\n",
                         irq_counter);
         result = TEST_FAILED;
@@ -521,9 +518,9 @@ TEST_STEP(test_step_verify_busy_pin, "Verify BUSY pin")
     mmhal_wlan_set_busy_irq_enabled(false);
     for (i = 0; i < 2; i++)
     {
-        sdio_spi_set_bits_le32(MM6108_REG_OUT_VAL, BUSY_GPIO_MASK);
+        probed_chip_cfg->gpio_set_value(probed_chip_cfg->busy_gpio_num, true);
         mmosal_task_sleep(2);
-        sdio_spi_clear_bits_le32(MM6108_REG_OUT_VAL, BUSY_GPIO_MASK);
+        probed_chip_cfg->gpio_set_value(probed_chip_cfg->busy_gpio_num, false);
         mmosal_task_sleep(2);
     }
     if (irq_counter > 2)
@@ -536,8 +533,6 @@ TEST_STEP(test_step_verify_busy_pin, "Verify BUSY pin")
 exit:
     mmhal_wlan_set_busy_irq_enabled(false);
     mmhal_wlan_register_busy_irq_handler(NULL);
-    sdio_spi_write_multi_byte(MM6108_REG_OUT_EN, (uint8_t *)&out_en_backup,
-                              sizeof(out_en_backup));
     irq_counter = 0;
     return result;
 }
