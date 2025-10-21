@@ -20,7 +20,7 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "morse.h"
 #include "mmosal.h"
 #include "mmwlan.h"
-#include "mmwlan_regdb.def"
+#include "regdb.h"
 #include "mmutils.h"
 
 /* 8-bit frames */

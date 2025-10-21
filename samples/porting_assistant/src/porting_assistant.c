@@ -13,8 +13,8 @@
  * framework.
  *
  * The Morse Micro Porting Assistant is a tool that assists with validating OSAL, HALs, and
- * platform hardware. It runs a sequence of tests and displays the results of each along with
- * information about potential causes on failure.
+ * platform hardware necessary for communicating with a Morse Micro chip. It runs a sequence of
+ * tests and displays the results of each along with information about potential causes on failure.
  *
  * This tool has been provided as an example application on the Morse Micro reference platforms.
  * Running this application on a known-good platform should result in a 100% pass rate.
@@ -48,7 +48,6 @@ extern const struct test_step test_step_raw_tput;                       /**< Tes
 extern const struct test_step test_step_mmhal_wlan_validate_fw;         /**< Test definition */
 extern const struct test_step test_step_mmhal_wlan_validate_bcf;        /**< Test definition */
 
-extern const struct test_step test_step_enable_leds;                    /**< Test definition */
 extern const struct test_step test_step_verify_busy_pin;                /**< Test definition */
 
 
@@ -67,7 +66,6 @@ static const struct test_step * const test_steps[] = {
     &test_step_raw_tput,
     &test_step_mmhal_wlan_validate_fw,
     &test_step_mmhal_wlan_validate_bcf,
-    &test_step_enable_leds,
 };
 
 /** Counters to track test runs. */

@@ -30,6 +30,7 @@ if(CONFIG_WIFI_MORSE)
     firmware
     mmutils
     mmpktmem
+    regdb
   )
 
   zephyr_library_link_libraries(
@@ -38,6 +39,7 @@ if(CONFIG_WIFI_MORSE)
     firmware
     mmutils
     mmpktmem
+    regdb
   )
 
 endif()
