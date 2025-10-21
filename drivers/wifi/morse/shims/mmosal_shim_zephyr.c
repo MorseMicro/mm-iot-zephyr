@@ -694,3 +694,13 @@ bool mmosal_is_timer_active(struct mmosal_timer *timer)
 
 	return !!k_timer_remaining_get(&timer->timer);
 }
+
+int mmosal_printf(const char *format, ...)
+{
+	int ret;
+	va_list args;
+	va_start(args, format);
+	ret = vprintf(format, args);
+	va_end(args);
+	return ret;
+};
