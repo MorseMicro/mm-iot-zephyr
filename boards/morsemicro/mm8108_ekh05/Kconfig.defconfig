@@ -31,7 +31,7 @@ DT_CHOSEN_ZEPHYR_CONSOLE := zephyr,console
 config UART_CONSOLE
 	default y if $(dt_chosen_enabled,$(DT_CHOSEN_ZEPHYR_CONSOLE)) && CONSOLE
 
-config WIFI_MORSE
+config WIFI_MORSE_SM
 	default y
 	select WIFI
 	select NETWORKING

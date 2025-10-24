@@ -1,7 +1,7 @@
 # Copyright 2024 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-menuconfig WIFI_MORSE
+menuconfig WIFI_MORSE_SM
 	bool "MorseMicro HaLow WiFi support"
 	default n
 	depends on DT_HAS_MORSE_MM6108_ENABLED \
@@ -19,7 +19,7 @@ menuconfig WIFI_MORSE
 	select FPU if CPU_CORTEX_M33 || CPU_CORTEX_M7
 	select THREAD_ABORT_HOOK
 
-if WIFI_MORSE
+if WIFI_MORSE_SM
 
 choice WIFI_MORSE_BUS
 	bool "Select BUS interface"

@@ -1,7 +1,7 @@
 # Copyright 2024 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-if(CONFIG_WIFI_MORSE)
+if(CONFIG_WIFI_MORSE_SM)
 
   list(APPEND REGIONS "AU" "EU" "IN" "JP" "KR" "NZ" "SG" "US")
   if(NOT CONFIG_WIFI_MORSE_REGION IN_LIST REGIONS)
