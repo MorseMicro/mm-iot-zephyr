@@ -1,0 +1,42 @@
+tests:
+  alpha_testing.run:
+    platform_allow:
+      - mm6108_ekh05_v3
+      - mm8108_ekh05
+    build_only: false
+    build_on_all: false
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: true
+      regex:
+        - "Wi-Fi connected"
+        - "net_dhcpv4: Received"
+        - "net_mqtt: Connect completed"
+        - "MQTT connected"
+        - "Received message on topic twister/output"
+        - "Wi-Fi disconnected"
+    tags:
+      - wifi
+      - morse
+  alpha_testing.run.shield:
+    platform_allow:
+      - nucleo_u575zi_q
+    build_only: false
+    build_on_all: false
+    extra_args: SHIELD=morse_mmech08
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: true
+      regex:
+        - "Wi-Fi connected"
+        - "net_dhcpv4: Received"
+        - "net_mqtt: Connect completed"
+        - "MQTT connected"
+        - "Received message on topic twister/output"
+        - "Wi-Fi disconnected"
+    tags:
+      - shield
+      - wifi
+      - morse
