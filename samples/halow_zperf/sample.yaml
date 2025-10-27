@@ -1,0 +1,18 @@
+tests:
+  halow_zperf.run:
+    platform_allow:
+      - mm6108_ekh05_v3
+      - mm8108_ekh05
+    build_only: true
+    build_on_all: true
+    tags:
+      - build-only
+  halow_zperf.run.shield:
+    platform_allow:
+      - nucleo_u575zi_q
+    build_only: true
+    build_on_all: true
+    extra_args: SHIELD=morse_mmech08
+    tags:
+      - shield
+      - build-only
