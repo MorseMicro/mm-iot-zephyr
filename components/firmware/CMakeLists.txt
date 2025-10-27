@@ -21,11 +21,9 @@ function(generate_end_symbol filename output_variable)
 endfunction()
 
 function(add_mbin library fw section)
-  generate_start_symbol(${fw} section_start_symbol)
-  generate_end_symbol(${fw} section_end_symbol)
   get_filename_component(ftype ${fw} LAST_EXT)
 
-  if(${ftype} EQUAL "bin")
+  if(${ftype} STREQUAL ".bin")
     set(mbin_tool ${ZEPHYR_MORSEMICRO_MODULE_DIR}/tools/convert-bin-to-mbin.py)
     set(bin ${fw})
     get_filename_component(base_file ${bin} NAME)
@@ -34,12 +32,14 @@ function(add_mbin library fw section)
       OUTPUT ${fw}
       COMMAND
       ${mbin_tool}
-      -s
       -o ${fw}
       ${bin}
       DEPENDS ${bin}
     )
   endif()
+
+  generate_start_symbol(${fw} section_start_symbol)
+  generate_end_symbol(${fw} section_end_symbol)
 
   get_filename_component(base_file ${fw} NAME)
   set(section_binary ${section}_binary)
