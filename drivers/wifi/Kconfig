@@ -1,1 +1,2 @@
 rsource "morse_sm/Kconfig.morse_sm"
+rsource "morse_fs/Kconfig.morse_fs"

@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2021 Linaro Limited
+ * Copyright (c) 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include "m2m_u575-common.dtsi"
+
+/ {
+	model = "Morse Micro M2M U575 FS board";
+	compatible = "st,stm32u575zi-nucleo-q";
+
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	chosen {
+		zephyr,console = &usart1;
+		zephyr,shell-uart = &usart1;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,canbus = &fdcan1;
+	};
+
+	aliases {
+		led0 = &blue_led_1;
+		sw0 = &user_button;
+		pwm-led0 = &pwm_led_1;
+		pwm-led1 = &pwm_led_2;
+		watchdog0 = &iwdg;
+		volt-sensor0 = &vref1;
+		volt-sensor1 = &vbat4;
+	};
+};
+
+&usart1 {
+	pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&gpdma1 {
+	status = "okay";
+};
+
+&spi2 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi2_mosi_pd4 &spi2_miso_pd3
+		     &spi2_sck_pb13 &spi2_nss_pb9>;
+
+	morse_wifi: morse@0 {
+		status = "okay";
+		compatible = "morse,fs";
+		spi-max-frequency =   <30000000>;
+		reg = <0>;
+
+		irq-gpios = <&gpioe 4 GPIO_ACTIVE_HIGH>;
+		wake-gpios = <&gpioe 5  GPIO_ACTIVE_HIGH>;
+	};
+};

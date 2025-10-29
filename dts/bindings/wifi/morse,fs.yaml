@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# morse,fs.yaml
+description: Morse FS controllers
+compatible: "morse,fs"
+
+include: spi-device.yaml
+properties:
+  wake-gpios:
+    type: phandle-array
+    required: true
+  irq-gpios:
+    type: phandle-array
+    required: true

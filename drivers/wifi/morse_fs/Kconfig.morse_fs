@@ -1,0 +1,44 @@
+menu "Network Drivers / Morse FS Offload"
+
+config WIFI_MORSE_FS
+	bool "Morse FS Network Offload Driver"
+	select NETWORKING
+	select NET_OFFLOAD
+	select THREAD_STACK_INFO
+	select DYNAMIC_THREAD
+	select DYNAMIC_THREAD_ALLOC
+	select THREAD_CUSTOM_DATA
+	select REBOOT
+	select NET_L2_WIFI_MGMT
+	select NET_L2_ETHERNET
+	select GPIO_GET_CONFIG
+	select HWINFO
+	select CRC
+	select NET_SOCKETS
+	select NET_OFFLOAD
+	select NET_IPV4
+	select NET_TCP
+	select WIFI
+	select WIFI_OFFLOAD
+	select NET_SOCKETS_OFFLOAD
+	select NET_MGMT
+
+	depends on !WIFI_MORSE_SM
+    help
+      Enable FS networking offload via the Morse FS hardware/firmware.
+
+	depends on DT_HAS_MORSEMICRO_FS_ENABLED
+
+endmenu
+
+config HEAP_MEM_POOL_SIZE
+	int
+	default 16384
+
+config MAIN_STACK_SIZE
+	int
+	default 4096
+
+config NET_MGMT_EVENT_QUEUE_SIZE
+	int
+	default 10

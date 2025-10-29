@@ -1,0 +1,22 @@
+identifier: m2m_u575
+name: Morse Micro M2M U575 FS board
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+supported:
+  - can
+  - adc
+  - dac
+  - gpio
+  - i2c
+  - spi
+  - usart
+  - watchdog
+  - backup_sram
+  - dma
+  - rtc
+ram: 786
+flash: 2048
+vendor: morsemicro
