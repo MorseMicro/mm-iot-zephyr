@@ -52,6 +52,39 @@ Fetch the required blobs:
 west blobs fetch morsemicro
 ```
 
+## Board Support
+
+This repository supports multiple Morse Micro development boards and shields.
+
+### Development Boards
+We currently support the following Morse Micro development boards:
+
+- `mm6108_ekh05_v3`
+- `mm8108_ekh05`
+- `m2m_u575`
+
+### Shields
+We also support the following Morse Micro shields:
+
+- `morse_mmech08`
+- `morse_mmech18`
+
+The `m2m_u575` is a prototype **FS board** designed for Wi-Fi network stack offloading.
+It uses the `morse_fs` driver, which is currently implemented only for **SPI**.
+This board comprises of an STM32 Nucleo U575ZI-Q connected via SPI to an EKH08_U575
+as defined by the `mmagic` applications in the MM-IoT-SDK.
+
+The other supported shields use the `morse_sm` **SoftMAC** driver.
+
+## Driver Architecture
+
+The drivers and their components are organized in separate trees:
+
+- `morse_sm`: SoftMAC driver
+- `morse_fs`: FS driver (3-chip mockup)
+
+This separation allows independent development and integration of SoftMAC and FS features.
+
 ## Build and Run Porting Assistant Test Application
 
 Build and execute `porting_assistant`
