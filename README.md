@@ -10,27 +10,35 @@ Morse Micro will provide Alpha ports of its software for some platforms. These p
 
 # How to use this Zephyr Module
 
-## Follow the Zephyr Getting Started Guide
-
-Before using this module, please ensure you have followed the [Zephyr Getting Started Guide](https://docs.zephyrproject.org/3.7.0/develop/getting_started/index.html).
-
-## Modify your project's west manifest
-
-Following the Zephyr Getting Started Guide you should be in the root directory of your west workspace, eg `~/zephyrproject`. Next add the Morse Micro repository and module to `zephyr/west.yml`:
+Create your workspace directory:
 ```
-manifest:
-  remotes:
-    # <your other remotes>
-    - name: morsemicro
-      url-base: https://github.com/MorseMicro
+mkdir mm-iot-zephyr-workspace
+cd mm-iot-zephyr-workspace
+```
 
-  projects:
-    # <your other projects>
-    - name: morsemicro
-      path: modules/lib/morsemicro
-      revision: main
-      repo-path: mm-iot-zephyr
-      remote: morsemicro
+Create a virtual environment inside the Zephyr workspace
+```
+python3 -m venv .venv
+```
+
+Activate the virtual environment:
+```
+source .venv/bin/activate
+```
+
+Install west:
+```
+pip install west
+```
+
+Clone the Zephyr SDK:
+```
+west init -m https://github.com/MorseMicro/mm-iot-zephyr.git --mr main --mf west-zephyr.yaml ./
+```
+
+Install all of the python dependencies:
+```
+pip install -r zephyr/scripts/requirements.txt
 ```
 
 Update west's modules:
