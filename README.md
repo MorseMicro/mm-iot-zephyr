@@ -3,7 +3,7 @@ Morse Micro IoT Zephyr Module (Alpha Port)
 
 # Overview
 
-This alpha module includes drivers and sample applications to add Morse Micro HaLow Wi-Fi to LTS version 3.7 of the [Zephyr RTOS Project](https://www.zephyrproject.org/). The module is based on the 2.8.2 release of the [MM-IoT-SDK](https://www.github.com/MorseMicro/mm-iot-sdk)
+This alpha module includes drivers and sample applications to add Morse Micro HaLow Wi-Fi to LTS version 3.7 of the [Zephyr RTOS Project](https://www.zephyrproject.org/). The module is based on the 2.9.7 release of the [MM-IoT-SDK](https://www.github.com/MorseMicro/mm-iot-sdk)
 
 ## What is an Alpha Port
 Morse Micro will provide Alpha ports of its software for some platforms. These ports are not part of the standard test and development cycle for a software release and may be incomplete in the set of supported features. They intend to provide a starting point for integrating Morse Micro software to projects based on these platforms.
@@ -61,7 +61,7 @@ west build -p auto -b [board] [--shield morse_mmech08] modules/lib/morsemicro/sa
 west flash
 ```
 If using a Morse Micro MMECH08 hat, add the shield parameter to the build command.
-The porting assistant example application compilation will fail if a node with `compatible = "morse,spi"` is not found
+The porting assistant example application compilation will fail if a node with `compatible = "morse,mm6108"` is not found
 in the compiled device tree.
 
 ## Build and Run HaLow Client Application
@@ -80,8 +80,19 @@ wifi scan
 ```
 To connect to a network run
 ```
-wifi connect -s "<ssid>" -p "<key>" -k 3
+wifi connect -s "<ssid>" -p "<key>" -k 3 -w 2
 ```
+
+## Twister
+We also support a set of tests which can be run using Twister (note the `-W` flag)
+```
+west twister -T samples --build-only -W
+```
+If you have hardware and an appropriate hardware_map available, you can also run
+```
+west twister -T samples --device-testing -W --hardware-map hardware_map.yaml
+```
+
 # Known Issues
 ## Throughput
 Throughput measured on some boards is quite poor. For example, a `nucleo_u575zi_q` board may only see ~3.5 Mbps UDP upload.
@@ -89,6 +100,8 @@ Throughput measured on some boards is quite poor. For example, a `nucleo_u575zi_
 Host device power management hooks are not implemented in the Morse Micro Wi-Fi driver for Zephyr.
 ## Incomplete Information in Status
 The `band` information in the Zephyr Wi-Fi shell will show as `UNKNOWN` for Morse Micro HaLow interfaces.
+## Build Warnings
+The twister tests require the `-W` flag to be passed in as there are warnings in our builds.
 
 ## FAQ
 ## How do I improve performance?
