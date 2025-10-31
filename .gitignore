@@ -1,2 +1,6 @@
 *.mbin
 *.a
+*.cache
+*build/
+twister-out*
+hardware_map.yaml
