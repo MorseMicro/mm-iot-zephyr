@@ -36,15 +36,15 @@ Clone the Zephyr SDK:
 west init -m https://github.com/MorseMicro/mm-iot-zephyr.git --mr main --mf west-zephyr.yaml ./
 ```
 
-Install all of the python dependencies:
-```
-pip install -r zephyr/scripts/requirements.txt
-```
-
 Update west's modules:
 
 ```bash
 west update
+```
+
+Install all of the python dependencies:
+```
+pip install -r zephyr/scripts/requirements.txt
 ```
 
 Fetch the required blobs:
