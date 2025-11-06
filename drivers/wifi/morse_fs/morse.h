@@ -27,7 +27,7 @@
 #define MMAGIC_LLC_MAX_STREAMS (8)
 
 #define LINK_STATE_TIMEOUT_MS 1500
-#define MM_K_STACK_SIZE       2048
+#define MM_K_STACK_SIZE       4096
 
 /*  TODO - decide if we want to leave this hardcoded or allow user
  *  config. Other drivers hard-code
@@ -35,6 +35,11 @@
 #define MM_WLAN_CONNECT_TIMEOUT    12000
 #define MM_SCAN_TIMEOUT            3000
 #define MM_AGENT_ACTION_TIMEOUT_MS 1000
+
+#define MM_TCP_SOCKET_TLS_DISABLED     false
+#define MM_TCP_SOCKET_ASYNC_OP_TIMEOUT 100
+/* MMagic Controller uses buffer1536 for send/rec */
+#define MM_TCP_SOCKET_BUFFER_SIZE      1536
 
 struct morse_data {
 	struct k_work_q workq;
@@ -82,5 +87,37 @@ struct mmagic_controller {
 	/** User argument that will be passed when the agent_start_cb is executed. */
 	void *agent_start_arg;
 };
+
+/* Bit index to track socket state.  */
+enum morse_tcp_socket_state_bits {
+	MM_TCP_SOCKET_IS_CLOSING = 0,
+	MM_TCP_SOCKET_IS_CONNECTED = 1,
+	MM_TCP_SOCKET_IS_RECV = 2,
+};
+
+struct morse_tcp_sockaddr_in {
+	struct string254 url;
+	uint16_t port;
+};
+
+typedef struct morse_socket_descriptor {
+	uint8_t id;
+	uint16_t port;
+
+	/* Bits used to track the state of the socket - refer to morse_tcp_socket_state_bits. */
+	atomic_t state;
+	struct net_context *context;
+
+	struct k_work recv_work;
+	struct k_work send_work;
+
+	struct user_data *recv_user_data;
+	struct user_data *send_user_data;
+
+	net_context_recv_cb_t recv_cb;
+	net_context_send_cb_t send_cb;
+
+	struct net_pkt *send_pkt;
+} morse_sd;
 
 #endif /* ZEPHYR_DRIVERS_NET_MMAGIC_OFFLOAD_H_ */

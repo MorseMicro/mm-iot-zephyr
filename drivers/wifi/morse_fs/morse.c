@@ -8,8 +8,10 @@
 #include "morse.h"
 #include "mmagic_controller.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <stdatomic.h>
 #include <zephyr/posix/fcntl.h>
 
 #include <zephyr/kernel.h>
@@ -194,18 +196,440 @@ static enum offloaded_net_if_types morse_offload_get_type(void)
 	return L2_OFFLOADED_NET_IF_TYPE_WIFI;
 }
 
+static void morse_tcp_offload_recv_work(struct k_work *work);
+static void morse_tcp_offload_send_work(struct k_work *work);
+
+/**
+ * Initialises a Morse socket descriptor pointer.
+ */
+void init_morse_socket_descriptor(morse_sd *socket, uint8_t id, uint16_t port,
+                                  struct net_context *context)
+{
+	MMOSAL_ASSERT(socket);
+
+	socket->id = id;
+	socket->port = port;
+	socket->context = context;
+	socket->state = ATOMIC_INIT(0);
+
+	k_work_init(&socket->recv_work, morse_tcp_offload_recv_work);
+	k_work_init(&socket->send_work, morse_tcp_offload_send_work);
+	return;
+}
+
+/**
+ * Converts Zephyr sockaddr_in to morse_tcp_sockaddr_in and populates m_addr accordingly.
+ *
+ * @param addr Pointer to sockaddr_in to be converted.
+ * @param m_addr Pointer to morse_tcp_sockaddr_in that stores the result.
+ *
+ * @returns 0 on success, -EINVAL otherwise.
+ */
+static int convert_host_socket_address_to_mm(const struct sockaddr_in *addr,
+                                             struct morse_tcp_sockaddr_in *m_addr)
+{
+	MMOSAL_ASSERT(addr);
+	MMOSAL_ASSERT(m_addr);
+
+	char *res =
+		net_addr_ntop(AF_INET, &addr->sin_addr, m_addr->url.data, sizeof(m_addr->url.data));
+
+	if (res == NULL) {
+		return -EINVAL;
+	}
+
+	m_addr->url.len = (uint8_t)strnlen(m_addr->url.data, sizeof(m_addr->url.data));
+	m_addr->port = ntohs(addr->sin_port);
+
+	return 0;
+}
+
+/**
+ * Converts Zephyr pkt to Morse buffer1536 and populates buffer accordingly.
+ *
+ * @param pkt Pointer to net_pkt to be converted.
+ * @param buffer Pointer to raw1536 that stores the result.
+ *
+ * @returns 0 on success, negative errno code otherwise.
+ */
+static int convert_host_pkt_to_mm(struct net_pkt *pkt, struct raw1536 *buffer)
+{
+	MMOSAL_ASSERT(pkt);
+	MMOSAL_ASSERT(buffer);
+
+	net_pkt_cursor_init(pkt);
+
+	size_t pkt_len = net_pkt_get_len(pkt);
+
+	int pkt_read_status = net_pkt_read(pkt, buffer->data, pkt_len);
+
+	buffer->len = (uint16_t)pkt_len;
+	return pkt_read_status;
+}
+
+/**
+ * Converts Morse raw1536 to Zephyr pkt and populates pkt accordingly.
+ *
+ * @param buffer Pointer to raw1536 to be converted.
+ * @param pkt Pointer to net_pkt that stores the result.
+ *
+ * @returns 0 on success, negative errno code otherwise.
+ */
+static int convert_mm_pkt_to_host(struct raw1536 *buffer, struct net_pkt *pkt)
+{
+	MMOSAL_ASSERT(buffer);
+	MMOSAL_ASSERT(pkt);
+
+	net_pkt_cursor_init(pkt);
+	int pkt_write_status = net_pkt_write(pkt, buffer->data, buffer->len);
+
+	return pkt_write_status;
+}
+
+/**
+ * Clean up socket recv states.
+ */
+void morse_tcp_offload_socket_cleanup_recv(morse_sd *socket)
+{
+	MMOSAL_ASSERT(socket);
+
+	atomic_clear_bit(&socket->state, MM_TCP_SOCKET_IS_RECV);
+	socket->recv_cb = NULL;
+	socket->recv_user_data = NULL;
+	return;
+}
+
+/**
+ * Clean up socket send states.
+ */
+void morse_tcp_offload_socket_cleanup_send(morse_sd *socket)
+{
+	MMOSAL_ASSERT(socket);
+
+	socket->send_cb = NULL;
+	socket->send_user_data = NULL;
+	return;
+}
+
+static void morse_tcp_offload_send_work(struct k_work *work)
+{
+	MMOSAL_ASSERT(work);
+
+	morse_sd *socket = CONTAINER_OF(work, morse_sd, send_work);
+	MMOSAL_ASSERT(socket);
+
+	if (atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING)) {
+		goto cleanup;
+	}
+
+	struct mmagic_core_tcp_write_poll_cmd_args write_poll_cmd_args = {
+		.stream_id = socket->id,
+		.timeout = MM_TCP_SOCKET_ASYNC_OP_TIMEOUT,
+	};
+
+	enum mmagic_status write_poll_status =
+		mmagic_controller_tcp_write_poll(mmagic_ctrl, &write_poll_cmd_args);
+
+	if (atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING)) {
+		goto cleanup;
+	} else if (write_poll_status == MMAGIC_STATUS_TIMEOUT) {
+		/* If write_poll timeouts, requeue the work to wait until mmagic is ready. */
+		k_work_submit_to_queue(&morse_data0.workq, &socket->send_work);
+		return;
+	} else if (write_poll_status != MMAGIC_STATUS_OK) {
+		LOG_ERR("TCP Send: mmagic_controller_tcp_write_poll raised %d.", write_poll_status);
+		goto cleanup;
+	}
+
+	struct mmagic_core_tcp_send_cmd_args cmd_args = {0};
+
+	int convert_status = convert_host_pkt_to_mm(socket->send_pkt, &cmd_args.buffer);
+	if (convert_status != 0) {
+		LOG_ERR("TCP Send: Failed to read pkt: %d.", convert_status);
+		goto cleanup;
+	}
+
+	cmd_args.stream_id = socket->id;
+
+	enum mmagic_status send_status = mmagic_controller_tcp_send(mmagic_ctrl, &cmd_args);
+
+	if (atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING)) {
+		goto cleanup;
+	} else if (send_status != MMAGIC_STATUS_OK) {
+		LOG_ERR("TCP Send: mmagic_controller_tcp_write_poll raised %d.", send_status);
+		goto cleanup;
+	}
+
+	socket->send_cb(socket->context, net_pkt_get_len(socket->send_pkt), socket->send_user_data);
+	return;
+
+cleanup:
+	morse_tcp_offload_socket_cleanup_send(socket);
+	return;
+}
+
+static void morse_tcp_offload_recv_work(struct k_work *work)
+{
+	MMOSAL_ASSERT(work);
+
+	morse_sd *socket = CONTAINER_OF(work, morse_sd, recv_work);
+	MMOSAL_ASSERT(socket);
+
+	if (!atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_RECV) ||
+	    atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING)) {
+		goto cleanup;
+	}
+
+	struct mmagic_core_tcp_read_poll_cmd_args read_poll_cmd_args = {
+		.stream_id = socket->id,
+		.timeout = MM_TCP_SOCKET_ASYNC_OP_TIMEOUT,
+	};
+
+	enum mmagic_status read_poll_status =
+		mmagic_controller_tcp_read_poll(mmagic_ctrl, &read_poll_cmd_args);
+
+	if (!atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_RECV) ||
+	    atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING)) {
+		goto cleanup;
+	} else if (read_poll_status == MMAGIC_STATUS_TIMEOUT) {
+		/* If read_poll timeouts, requeue the work to wait until mmagic is ready. */
+		k_work_submit_to_queue(&morse_data0.workq, &socket->recv_work);
+		return;
+	} else if (read_poll_status != MMAGIC_STATUS_OK) {
+		LOG_ERR("TCP Recv: Stopping recv - mmagic_controller_tcp_read_poll raised %d.",
+		        read_poll_status);
+		goto cleanup;
+	}
+
+	struct mmagic_core_tcp_recv_cmd_args recv_cmd_args = {
+		.stream_id = socket->id,
+		.len = MM_TCP_SOCKET_BUFFER_SIZE,
+		.timeout = UINT32_MAX,
+	};
+	struct mmagic_core_tcp_recv_rsp_args recv_rsp = {0};
+
+	enum mmagic_status recv_status =
+		mmagic_controller_tcp_recv(mmagic_ctrl, &recv_cmd_args, &recv_rsp);
+
+	if (!atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_RECV) ||
+	    atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING)) {
+		goto cleanup;
+	} else if (recv_status != MMAGIC_STATUS_OK) {
+		LOG_ERR("TCP Recv: Stopping recv - mmagic_controller_tcp_recv raised %d.",
+		        recv_status);
+		goto cleanup;
+	}
+
+	struct net_pkt *pkt = net_pkt_rx_alloc_with_buffer(morse_iface, recv_rsp.buffer.len,
+	                                                   AF_INET, IPPROTO_TCP, K_FOREVER);
+	if (pkt == NULL) {
+		LOG_ERR("TCP Recv: Stopping recv - failed to alloc pkt.");
+		goto cleanup;
+	}
+
+	int convert_status = convert_mm_pkt_to_host(&recv_rsp.buffer, pkt);
+
+	if (convert_status != 0) {
+		LOG_ERR("TCP Recv: Stopping recv - failed to write pkt: %d.", convert_status);
+		goto cleanup;
+	}
+
+	socket->recv_cb(socket->context, pkt, NULL, NULL, 0, socket->recv_user_data);
+
+	if (!atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_RECV) ||
+	    atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING)) {
+		goto cleanup;
+	}
+
+	int k_work_submit_status = k_work_submit_to_queue(&morse_data0.workq, &socket->recv_work);
+
+	if (k_work_submit_status == -EBUSY) {
+		LOG_ERR("TCP Recv: Failed to requeue: -EBUSY");
+		goto cleanup;
+	} else if (k_work_submit_status == -EINVAL) {
+		LOG_ERR("TCP Recv: Failed to requeue: -EINVAL");
+		goto cleanup;
+	} else if (k_work_submit_status == -ENODEV) {
+		LOG_ERR("TCP Recv: Failed to requeue: -ENODEV");
+		goto cleanup;
+	}
+
+	return;
+
+cleanup:
+	morse_tcp_offload_socket_cleanup_recv(socket);
+	return;
+}
+
+static int morse_tcp_offload_recv(struct net_context *context, net_context_recv_cb_t cb,
+                                  int32_t timeout, void *user_data)
+{
+	MMOSAL_ASSERT(context);
+
+	morse_sd *socket = (morse_sd *)context->offload_context;
+	MMOSAL_ASSERT(socket);
+
+	if (atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_RECV)) {
+		LOG_ERR("TCP Recv: Already receiving.");
+		return -EALREADY;
+	}
+
+	atomic_set_bit(&socket->state, MM_TCP_SOCKET_IS_RECV);
+	socket->recv_cb = cb;
+	socket->recv_user_data = user_data;
+
+	k_work_submit_to_queue(&morse_data0.workq, &socket->recv_work);
+	return 0;
+}
+
+static int morse_tcp_offload_connect(struct net_context *context, const struct sockaddr *addr,
+                                     socklen_t addrlen, net_context_connect_cb_t cb,
+                                     int32_t timeout, void *user_data)
+{
+	MMOSAL_ASSERT(context);
+	MMOSAL_ASSERT(addr);
+
+	ARG_UNUSED(timeout);
+
+	struct morse_tcp_sockaddr_in m_addr = {0};
+	int m_addr_status =
+		convert_host_socket_address_to_mm((const struct sockaddr_in *)addr, &m_addr);
+	if (m_addr_status != 0) {
+		LOG_ERR("TCP Connect: Failed to parse address.");
+		cb(context, -1, user_data);
+		return -EINVAL;
+	}
+
+	morse_sd *socket = k_malloc(sizeof(morse_sd));
+
+	if (socket == NULL) {
+		LOG_ERR("TCP Connect: Failed to k_malloc socket.");
+		cb(context, -1, user_data);
+		return -ENOMEM;
+	}
+
+	struct mmagic_core_tcp_connect_cmd_args cmd_args = {
+		.url = m_addr.url,
+		.port = m_addr.port,
+		.enable_tls = MM_TCP_SOCKET_TLS_DISABLED,
+	};
+
+	LOG_INF("TCP connecting to %s:%d", cmd_args.url.data, cmd_args.port);
+
+	struct mmagic_core_tcp_connect_rsp_args rsp = {0};
+
+	enum mmagic_status status = mmagic_controller_tcp_connect(mmagic_ctrl, &cmd_args, &rsp);
+
+	if (status != MMAGIC_STATUS_OK) {
+		k_free(socket);
+		LOG_ERR("TCP Connect: Connection failed: %d", status);
+		cb(context, -1, user_data);
+		return -ECONNREFUSED;
+	}
+	LOG_INF("TCP Connect: Connection established with stream id: %d", rsp.stream_id);
+
+	init_morse_socket_descriptor(socket, rsp.stream_id, m_addr.port, context);
+	atomic_set_bit(&socket->state, MM_TCP_SOCKET_IS_CONNECTED);
+	context->offload_context = socket;
+
+	cb(context, 0, user_data);
+	return 0;
+}
+
+static int morse_tcp_offload_send(struct net_pkt *pkt, net_context_send_cb_t cb, int32_t timeout,
+                                  void *user_data)
+{
+	MMOSAL_ASSERT(pkt);
+	ARG_UNUSED(timeout);
+
+	struct net_context *context = net_pkt_context(pkt);
+	MMOSAL_ASSERT(context);
+	morse_sd *socket = (morse_sd *)context->offload_context;
+	MMOSAL_ASSERT(socket);
+
+	socket->send_cb = cb;
+	socket->send_user_data = user_data;
+	socket->send_pkt = net_pkt_ref(pkt);
+
+	k_work_submit_to_queue(&morse_data0.workq, &socket->send_work);
+
+	return 0;
+}
+
+static int morse_tcp_offload_put(struct net_context *context)
+{
+	MMOSAL_ASSERT(context);
+	morse_sd *socket = (morse_sd *)context->offload_context;
+
+	if (socket == NULL || !atomic_test_bit(&socket->state, MM_TCP_SOCKET_IS_CONNECTED)) {
+		LOG_ERR("TCP Close: Not connected.");
+		return -ENOTCONN;
+	}
+
+	atomic_set_bit(&socket->state, MM_TCP_SOCKET_IS_CLOSING);
+	morse_tcp_offload_socket_cleanup_recv(socket);
+
+	struct mmagic_core_tcp_close_cmd_args cmd_args = {
+		.stream_id = socket->id,
+	};
+
+	enum mmagic_status status = mmagic_controller_tcp_close(mmagic_ctrl, &cmd_args);
+
+	if (status == MMAGIC_STATUS_OK) {
+		atomic_clear_bit(&socket->state, MM_TCP_SOCKET_IS_CONNECTED);
+		LOG_INF("TCP connection to stream id closed: %d.", cmd_args.stream_id);
+	} else {
+		LOG_ERR("TCP Close: Failed: %d.", status);
+		return status;
+	}
+
+	struct k_work_sync sync;
+	k_work_cancel_sync(&socket->recv_work, &sync);
+
+	k_free(socket);
+	return 0;
+}
+
+/* Unimplemented but required by offload vtable. */
+static int morse_tcp_offload_get(sa_family_t family, enum net_sock_type type,
+                                 enum net_ip_protocol ip_proto, struct net_context **context)
+{
+	ARG_UNUSED(context);
+	ARG_UNUSED(family);
+	ARG_UNUSED(type);
+	ARG_UNUSED(ip_proto);
+	return 0;
+}
+
+/* Unimplemented but required by offload vtable. */
+static int morse_tcp_offload_bind(struct net_context *context, const struct sockaddr *addr,
+                                  socklen_t addrlen)
+{
+	ARG_UNUSED(context);
+	ARG_UNUSED(addr);
+	ARG_UNUSED(addrlen);
+	return 0;
+}
+
+static struct net_offload morse_tcp_offload_vtable = {
+	.get = morse_tcp_offload_get,
+	.bind = morse_tcp_offload_bind,
+	.connect = morse_tcp_offload_connect,
+	.send = morse_tcp_offload_send,
+	.recv = morse_tcp_offload_recv,
+	.put = morse_tcp_offload_put,
+};
+
 static void morse_wifi_iface_init(struct net_if *iface)
 {
-	const struct device *dev = net_if_get_device(iface);
-	struct morse_data *morse = dev->data;
-	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
-
-	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
 	morse_iface = iface;
+
+	iface->if_dev->offload = &morse_tcp_offload_vtable;
 
 	net_if_up(iface);
 	net_if_dormant_on(iface);
 	net_if_carrier_on(iface);
+	return;
 }
 
 static const struct wifi_mgmt_ops morse_mgmt_api = {
@@ -222,9 +646,8 @@ static const struct net_wifi_mgmt_offload morse_api = {
 
 static int morse_fs_init(const struct device *dev);
 
-NET_DEVICE_DT_INST_DEFINE(0, morse_fs_init, NULL, &morse_data0, &morse_config0,
-                          CONFIG_WIFI_INIT_PRIORITY, &morse_api, ETHERNET_L2,
-                          NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
+NET_DEVICE_DT_INST_OFFLOAD_DEFINE(0, morse_fs_init, NULL, &morse_data0, &morse_config0,
+                                  CONFIG_WIFI_INIT_PRIORITY, &morse_api, NET_ETH_MTU);
 
 CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(0)));
 

@@ -107,7 +107,8 @@ static struct mmbuf *controller_rx_buffer(struct mmagic_datalink_controller *con
 	mmosal_mutex_get(controller_dl->spi_mutex, UINT32_MAX);
 	gpio_pin_set_dt(&controller_dl->wake, 1);
 	morse_spi_wait_for_ready_high();
-
+	
+	struct mmbuf *rx_buffer = NULL;
 	const struct spi_buf header_buffer = {payload_header, MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE};
 	uint16_t crc = htons(crc16((uint16_t)MM_CRC_POLY, 0, payload_header,
 	                           MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE));
@@ -131,7 +132,7 @@ static struct mmbuf *controller_rx_buffer(struct mmagic_datalink_controller *con
 
 	payload_len = payload_header[1] << 8 | payload_header[2];
 
-	struct mmbuf *rx_buffer = mmbuf_alloc_on_heap(0, payload_len);
+	rx_buffer = mmbuf_alloc_on_heap(0, payload_len);
 	if (rx_buffer == NULL) {
 		LOG_ERR("Not enough mem to allocate rx_buffer");
 		goto exit;

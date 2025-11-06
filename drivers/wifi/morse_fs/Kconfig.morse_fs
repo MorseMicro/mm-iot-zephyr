@@ -15,7 +15,6 @@ config WIFI_MORSE_FS
 	select HWINFO
 	select CRC
 	select NET_SOCKETS
-	select NET_OFFLOAD
 	select NET_IPV4
 	select NET_TCP
 	select WIFI
