@@ -52,6 +52,23 @@ Fetch the required blobs:
 west blobs fetch morsemicro
 ```
 
+### SDK
+
+Download the appropriate SDK toolchain.
+If your host architecture is 64-bit ARM (for example, M-series MacBooks), download the `macOS-aarch64` SDK.
+
+|       |                                                                x86_64                                                                |                                                                 aarch64                                                                |
+|-------|:------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------:|
+| Linux | [linux-x86_64](https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.9/zephyr-sdk-0.16.9_linux-x86_64_minimal.tar.xz) | [linux-aarch64](https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.9/zephyr-sdk-0.16.9_linux-aarch64_minimal.tar.xz) |
+| macOS | [macOS-x86_64](https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.9/zephyr-sdk-0.16.9_macos-x86_64_minimal.tar.xz) | [macOS-aarch64](https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.9/zephyr-sdk-0.16.9_macos-aarch64_minimal.tar.xz) |
+
+Install the toolchain:
+```
+tar xvf <YOUR SDK>.tar.xz -C $HOME/.local
+cd $HOME/.local/<YOUR SDK>
+./setup.sh
+```
+
 ## Board Support
 
 This repository supports multiple Morse Micro development boards and shields.
