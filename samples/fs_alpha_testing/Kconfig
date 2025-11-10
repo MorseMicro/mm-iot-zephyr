@@ -1,0 +1,8 @@
+# Copyright 2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+source "Kconfig.zephyr"
+
+config TEST_REPEAT_COUNT
+    int "Number of test iterations"
+    default 1

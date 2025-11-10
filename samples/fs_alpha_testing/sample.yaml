@@ -1,0 +1,21 @@
+# Copyright 2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+tests:
+  fullstack_alpha_testing.run:
+    platform_allow:
+      - m2m_u575
+    build_only: false
+    build_on_all: false
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: true
+      regex:
+        - "Wi-Fi scan completed"
+        - "Wi-Fi connected"
+        - "Wi-Fi disconnected"
+    tags:
+      - wifi
+      - morse
+      - fs
