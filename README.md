@@ -136,11 +136,11 @@ wifi connect -s "<ssid>" -p "<key>" -k 3 -w 2
 ## Twister
 We also support a set of tests which can be run using Twister (note the `-W` flag)
 ```
-west twister -T samples --build-only -W
+west twister -T modules/lib/morsemicro/samples --build-only -W
 ```
 If you have hardware and an appropriate hardware_map available, you can also run
 ```
-west twister -T samples --device-testing -W --hardware-map hardware_map.yaml
+west twister -T modules/lib/morsemicro/samples --device-testing -W --hardware-map hardware_map.yaml
 ```
 
 # Known Issues
