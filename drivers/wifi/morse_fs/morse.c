@@ -124,10 +124,15 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 
 static int morse_mgmt_disconnect(const struct device *dev)
 {
+	ARG_UNUSED(dev);
+
 	enum mmagic_status status = mmagic_controller_wlan_disconnect(mmagic_ctrl);
 	if (status != MMAGIC_STATUS_OK) {
 		LOG_ERR("mmagic_controller_wlan_disconnect returned - %d", status);
+		wifi_mgmt_raise_disconnect_result_event(morse_iface, WIFI_REASON_DISCONN_UNSPECIFIED);
+		return status;
 	}
+	wifi_mgmt_raise_disconnect_result_event(morse_iface, WIFI_REASON_DISCONN_SUCCESS);
 	return status;
 }
 
