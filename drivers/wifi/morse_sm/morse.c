@@ -366,20 +366,23 @@ static void mmnetif_link_state(enum mmwlan_link_state link_state, void *arg)
 
 static void morse_iface_init(struct net_if *iface)
 {
-	const struct device *dev = net_if_get_device(iface);
-	struct morse_data *morse = dev->data;
-	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
-
-	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
-	morse->iface = iface;
-
 	enum mmwlan_status status;
 	struct mmwlan_version version;
 	const struct mmwlan_s1g_channel_list *channel_list;
 
-	if (morse->status > WIFI_STATE_DISCONNECTED) {
+	struct mmwlan_boot_args boot_args = MMWLAN_BOOT_ARGS_INIT;
+	const struct device *dev = net_if_get_device(iface);
+	struct morse_data *morse = dev->data;
+	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
+
+	if (morse->iface) {
 		return;
 	}
+
+	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
+	morse->iface = iface;
+
+	morse->status = WIFI_STATE_INTERFACE_DISABLED;
 
 	// mmhal_spi_irq_poll_interval = 300;
 
@@ -391,7 +394,7 @@ static void morse_iface_init(struct net_if *iface)
 	if (channel_list == NULL) {
 		LOG_ERR("Could not find specified regulatory domain matching country code %s\n",
 		        CONFIG_WIFI_MORSE_REGION);
-		NET_ASSERT(false);
+		return;
 	}
 
 	/* Initialize MMWLAN interface */
@@ -401,34 +404,47 @@ static void morse_iface_init(struct net_if *iface)
 	morse->country_code = CONFIG_WIFI_MORSE_REGION;
 
 	/* Boot the transceiver so that we can read the MAC address. */
-	struct mmwlan_boot_args boot_args = MMWLAN_BOOT_ARGS_INIT;
 	status = mmwlan_boot(&boot_args);
 	if (status != MMWLAN_SUCCESS) {
-		LOG_DBG("mmwlan_boot failed with code %d\n", status);
+		LOG_DBG("mmwlan_boot failed with code %d", status);
+		return;
 	}
-	NET_ASSERT(status == MMWLAN_SUCCESS);
 
 	/* Set MAC hardware address */
 	status = mmwlan_get_mac_addr(morse->mac_addr);
-	NET_ASSERT(status == MMWLAN_SUCCESS);
+	if (status != MMWLAN_SUCCESS) {
+		LOG_DBG("mmwlan_get_mac_addr failed with code %d", status);
+		return;
+	}
 
-	/* Assign link local address. */
 	if (net_if_set_link_addr(iface, morse->mac_addr, MMWLAN_MAC_ADDR_LEN, NET_LINK_ETHERNET)) {
-		LOG_ERR("Failed to set link addr");
+		LOG_ERR("Failed to set link address");
 	}
 
 	status = mmwlan_register_rx_cb(mmnetif_rx, morse);
-	NET_ASSERT(status == MMWLAN_SUCCESS);
-	status = mmwlan_register_link_state_cb(mmnetif_link_state, morse);
-	NET_ASSERT(status == MMWLAN_SUCCESS);
+	if (status != MMWLAN_SUCCESS) {
+		LOG_DBG("mmwlan_register_rx_cb failed with code %d", status);
+		return;
+	}
 
-	LOG_ERR("Morse LwIP interface initialised. MAC address %02x:%02x:%02x:%02x:%02x:%02x\n",
-	        morse->mac_addr[0], morse->mac_addr[1], morse->mac_addr[2], morse->mac_addr[3],
-	        morse->mac_addr[4], morse->mac_addr[5]);
+	status = mmwlan_register_link_state_cb(mmnetif_link_state, morse);
+	if (status != MMWLAN_SUCCESS) {
+		LOG_DBG("mmwlan_register_link_state_cb failed with code %d", status);
+		return;
+	}
+
+	LOG_DBG("Morse Micro Wi-Fi HaLow interface initialised.\n"
+	        "MAC address %02x:%02x:%02x:%02x:%02x:%02x",
+	        morse->mac_addr[0], morse->mac_addr[1], morse->mac_addr[2], 
+	        morse->mac_addr[3], morse->mac_addr[4], morse->mac_addr[5]);
 
 	status = mmwlan_get_version(&version);
-	NET_ASSERT(status == MMWLAN_SUCCESS);
-	LOG_ERR("Morse firmware version %s, morselib version %s, Morse chip ID 0x%04x\n\n",
+	if (status != MMWLAN_SUCCESS) {
+		LOG_DBG("mmwlan_get_version failed with code %d", status);
+		return;
+	}
+
+	LOG_DBG("Morse firmware version %s, morselib version %s, Morse chip ID 0x%04x\n",
 	        version.morse_fw_version, version.morselib_version, version.morse_chip_id);
 
 	/* Initialize Ethernet L2 stack */
