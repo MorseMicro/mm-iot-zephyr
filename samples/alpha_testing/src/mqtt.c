@@ -1,3 +1,9 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "mqtt.h"
 
 LOG_MODULE_REGISTER(alpha_testing_NETWORKING);

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef __MQTT_H__
 #define __MQTT_H__
 #include <zephyr/net/socket.h>

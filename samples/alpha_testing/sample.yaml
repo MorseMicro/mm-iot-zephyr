@@ -1,3 +1,6 @@
+# Copyright 2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
 tests:
   alpha_testing.run:
     platform_allow:

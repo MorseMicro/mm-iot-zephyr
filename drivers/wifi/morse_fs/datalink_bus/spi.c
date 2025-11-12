@@ -1,3 +1,9 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <mmagic_datalink_controller.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/drivers/gpio.h>

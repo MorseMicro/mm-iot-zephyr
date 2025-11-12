@@ -1,3 +1,9 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <zephyr/kernel.h>
 #include <zephyr/net/net_core.h>
 #include <zephyr/net/net_if.h>

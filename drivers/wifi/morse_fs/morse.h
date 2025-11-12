@@ -1,3 +1,9 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef ZEPHYR_DRIVERS_NET_MMAGIC_OFFLOAD_H_
 #define ZEPHYR_DRIVERS_NET_MMAGIC_OFFLOAD_H_
 
