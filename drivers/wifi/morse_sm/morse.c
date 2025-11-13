@@ -145,7 +145,7 @@ scan_cb_end:
 static void scan_complete_callback(enum mmwlan_scan_state state, void *arg)
 {
 	struct morse_data *morse = arg;
-	morse->scanning = false;
+	morse->status = morse->scan_prev_state;
 	LOG_DBG("Scanning completed.");
 	morse->scan_cb(morse->iface, 0, NULL);
 }
@@ -168,7 +168,8 @@ static int morse_mgmt_scan(const struct device *dev, struct wifi_scan_params *pa
 		return -EIO;
 	}
 
-	morse->scanning = true;
+	morse->scan_prev_state = morse->status;
+	morse->status = WIFI_STATE_SCANNING;
 	LOG_DBG("Scan started, waiting for results...");
 	return 0;
 }
@@ -225,9 +226,6 @@ static int morse_mgmt_iface_status(const struct device *dev, struct wifi_iface_s
 	struct morse_data *morse = dev->data;
 
 	status->state = morse->status;
-	if (morse->scanning) {
-		status->state = WIFI_STATE_SCANNING;
-	}
 
 	strncpy(status->ssid, morse->sta_args.ssid, WIFI_SSID_MAX_LEN);
 	status->ssid_len = morse->sta_args.ssid_len;

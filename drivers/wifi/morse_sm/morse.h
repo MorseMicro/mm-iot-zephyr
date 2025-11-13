@@ -24,23 +24,24 @@ struct morse_config {
 	struct gpio_dt_spec wakeup;
 	struct gpio_dt_spec busy;
 	struct gpio_dt_spec spi_irq;
-	struct gpio_dt_spec test;
 };
 
 struct morse_data {
 	struct net_if *iface;
-	struct mmwlan_version version;
-	uint8_t frame_buf[NET_ETH_MAX_FRAME_SIZE];
-	uint8_t mac_addr[6];
+	enum wifi_iface_state status;
+	enum wifi_iface_state scan_prev_state;
+
+	const char *country_code;
+	const struct mmwlan_s1g_channel_list *channel_list;
+
+	scan_result_cb_t scan_cb;
 	struct gpio_callback busy_cb;
 	struct gpio_callback spi_irq_cb;
-	scan_result_cb_t scan_cb;
-	const struct mmwlan_s1g_channel_list *channel_list;
-	const char *country_code;
+
+	uint8_t mac_addr[6];
+	struct mmwlan_version version;
 	struct mmwlan_sta_args sta_args;
-	struct mmosal_semb *status_sem;
-	enum wifi_iface_state status;
-	bool scanning;
+	uint8_t frame_buf[NET_ETH_MAX_FRAME_SIZE];
 };
 
 #define RSN_MFPR 1 << 6
