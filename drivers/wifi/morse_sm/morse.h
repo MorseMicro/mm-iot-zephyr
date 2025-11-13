@@ -29,6 +29,7 @@ struct morse_config {
 
 struct morse_data {
 	struct net_if *iface;
+	struct mmwlan_version version;
 	uint8_t frame_buf[NET_ETH_MAX_FRAME_SIZE];
 	uint8_t mac_addr[6];
 	struct gpio_callback busy_cb;

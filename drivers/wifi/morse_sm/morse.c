@@ -281,6 +281,19 @@ static int morse_mgmt_iface_status(const struct device *dev, struct wifi_iface_s
 	return 0;
 }
 
+static int morse_mgmt_get_version(const struct device *dev, struct wifi_version *params)
+{
+	struct morse_data *morse = dev->data;
+
+	if (morse->status == WIFI_STATE_INTERFACE_DISABLED) {
+		return -ENODEV;
+	}
+
+	params->drv_version = morse->version.morselib_version;
+	params->fw_version = morse->version.morse_fw_version;
+	return 0;
+}
+
 static int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 {
 	struct morse_data *morse = dev->data;
@@ -367,7 +380,6 @@ static void mmnetif_link_state(enum mmwlan_link_state link_state, void *arg)
 static void morse_iface_init(struct net_if *iface)
 {
 	enum mmwlan_status status;
-	struct mmwlan_version version;
 	const struct mmwlan_s1g_channel_list *channel_list;
 
 	struct mmwlan_boot_args boot_args = MMWLAN_BOOT_ARGS_INIT;
@@ -438,14 +450,15 @@ static void morse_iface_init(struct net_if *iface)
 	        morse->mac_addr[0], morse->mac_addr[1], morse->mac_addr[2], 
 	        morse->mac_addr[3], morse->mac_addr[4], morse->mac_addr[5]);
 
-	status = mmwlan_get_version(&version);
+	status = mmwlan_get_version(&morse->version);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_DBG("mmwlan_get_version failed with code %d", status);
 		return;
 	}
 
 	LOG_DBG("Morse firmware version %s, morselib version %s, Morse chip ID 0x%04x\n",
-	        version.morse_fw_version, version.morselib_version, version.morse_chip_id);
+	        morse->version.morse_fw_version, morse->version.morselib_version,
+	        morse->version.morse_chip_id);
 
 	/* Initialize Ethernet L2 stack */
 	ethernet_init(morse->iface);
@@ -516,6 +529,7 @@ static const struct wifi_mgmt_ops morse_mgmt_api = {
 	.connect = morse_mgmt_connect,
 	.disconnect = morse_mgmt_disconnect,
 	.iface_status = morse_mgmt_iface_status,
+	.get_version = morse_mgmt_get_version,
 };
 
 static const struct net_wifi_mgmt_offload morse_api = {
