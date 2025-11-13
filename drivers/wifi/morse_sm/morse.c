@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Morse Micro
+ * Copyright 2024-2025 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -28,7 +28,6 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 	#define DT_DRV_COMPAT morse_mm6108
 #endif
 
-/* 8-bit frames */
 #define SPI_FRAME_BITS 8
 
 struct morse_data morse_data0;
@@ -37,12 +36,6 @@ extern void morse_busy_cb(const struct device *dev, struct gpio_callback *cb, ui
 extern void morse_spi_irq_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 extern volatile uint32_t mmhal_spi_irq_poll_interval;
 
-/**
- * Scan rx callback.
- *
- * @param result        Pointer to the scan result.
- * @param arg           Opaque argument.
- */
 static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 {
 	struct morse_data *morse = arg;
@@ -149,12 +142,6 @@ scan_cb_end:
 	return;
 }
 
-/**
- * Scan complete callback.
- *
- * @param state         Scan complete status.
- * @param arg           Opaque argument.
- */
 static void scan_complete_callback(enum mmwlan_scan_state state, void *arg)
 {
 	struct morse_data *morse = arg;
@@ -170,10 +157,6 @@ static int morse_mgmt_scan(const struct device *dev, struct wifi_scan_params *pa
 
 	enum mmwlan_status status;
 	struct mmwlan_scan_req scan_req = MMWLAN_SCAN_REQ_INIT;
-
-	if (params) {
-		LOG_ERR("wifi_scan_params not supported");
-	}
 
 	morse->scan_cb = cb;
 	scan_req.scan_rx_cb = scan_callback;
@@ -272,8 +255,7 @@ static int morse_mgmt_iface_status(const struct device *dev, struct wifi_iface_s
 		}
 		status->link_mode = WIFI_LINK_MODE_UNKNOWN;
 
-		// Currently no simple way to get this information from the mmwlan
-		// APIs.
+		/* Currently no simple way to get this information from the mmwlan APIs. */
 		status->channel = 0;
 		status->beacon_interval = 0;
 	}
@@ -312,7 +294,7 @@ static int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 
 	LOG_DBG("Packet sent");
 
-	return 0; // pkt_len;
+	return 0;
 };
 
 static void mmnetif_rx(uint8_t *header, unsigned header_len, uint8_t *payload, unsigned payload_len,
@@ -396,8 +378,6 @@ static void morse_iface_init(struct net_if *iface)
 
 	morse->status = WIFI_STATE_INTERFACE_DISABLED;
 
-	// mmhal_spi_irq_poll_interval = 300;
-
 	LOG_DBG("%s: initialising morse interface\n", __func__);
 
 	channel_list =
@@ -409,13 +389,11 @@ static void morse_iface_init(struct net_if *iface)
 		return;
 	}
 
-	/* Initialize MMWLAN interface */
 	mmwlan_init();
 	mmwlan_set_channel_list(channel_list);
 	morse->channel_list = channel_list;
 	morse->country_code = CONFIG_WIFI_MORSE_REGION;
 
-	/* Boot the transceiver so that we can read the MAC address. */
 	status = mmwlan_boot(&boot_args);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_DBG("mmwlan_boot failed with code %d", status);
