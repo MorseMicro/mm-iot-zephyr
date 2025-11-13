@@ -18,20 +18,15 @@
 #include <inttypes.h>
 
 /* MQTT definitions */
-#define BROKER_ADDR    "192.168.12.1"
-#define BROKER_PORT    1883
+#define BROKER_ADDR    CONFIG_MQTT_BROKER_ADDR
+#define BROKER_PORT    CONFIG_MQTT_BROKER_PORT
 #define MQTT_CLIENTID  CONFIG_BOARD "_client"
 #define MQTT_TOPIC     "twister/input"
 #define MQTT_SUB_TOPIC "twister/output"
 
 /* WiFi definitions */
-#ifndef WIFI_SSID
-#define WIFI_SSID "MorseMicro"
-#endif
-
-#ifndef WIFI_PSK
-#define WIFI_PSK "12345678"
-#endif
+#define WIFI_SSID CONFIG_WIFI_SSID
+#define WIFI_PSK CONFIG_WIFI_PSK
 
 #define WIFI_SECURITY   WIFI_SECURITY_TYPE_SAE
 #define WIFI_TIMEOUT_MS 15000
