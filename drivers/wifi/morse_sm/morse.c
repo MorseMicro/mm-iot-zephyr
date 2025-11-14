@@ -86,15 +86,6 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 		}
 	}
 
-	switch (scan.mfp) {
-	case WIFI_MFP_REQUIRED:
-		morse->sta_args.pmf_mode = MMWLAN_PMF_REQUIRED;
-		break;
-	default:
-		morse->sta_args.pmf_mode = MMWLAN_PMF_DISABLED;
-		break;
-	}
-
 	scan.security = WIFI_SECURITY_TYPE_NONE;
 	if (ret == -1 || rsn_info.num_akm_suites == 0) {
 		goto scan_cb_end;
@@ -192,6 +183,21 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 	} else {
 		LOG_ERR("Authentication method not supported");
 		return -EIO;
+	}
+
+	switch (params->mfp) {
+	case WIFI_MFP_DISABLE: {
+		sta_args->pmf_mode = MMWLAN_PMF_DISABLED;
+		break;
+	}
+	case WIFI_MFP_OPTIONAL:
+	case WIFI_MFP_REQUIRED: {
+		sta_args->pmf_mode = MMWLAN_PMF_REQUIRED;
+		break;
+	}
+	default: {
+		LOG_WRN("Invalid MFP option");
+	}
 	}
 
 	LOG_DBG("Attempting to connect to %s with passphrase %s", sta_args->ssid,
