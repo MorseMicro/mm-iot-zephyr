@@ -284,8 +284,12 @@ static int morse_mgmt_get_version(const struct device *dev, struct wifi_version 
 static int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 {
 	struct morse_data *morse = dev->data;
-	const int pkt_len = net_pkt_get_len(pkt);
 
+	if (net_pkt_get_len(pkt) > NET_ETH_MAX_FRAME_SIZE) {
+		return -ENOMEM;
+	}
+
+	const int pkt_len = net_pkt_get_len(pkt);
 	if (net_pkt_read(pkt, morse->frame_buf, pkt_len) < 0) {
 		LOG_ERR("Failed to read packet buffer");
 		return -EIO;
@@ -430,7 +434,7 @@ static void morse_iface_init(struct net_if *iface)
 
 	LOG_DBG("Morse Micro Wi-Fi HaLow interface initialised.\n"
 	        "MAC address %02x:%02x:%02x:%02x:%02x:%02x",
-	        morse->mac_addr[0], morse->mac_addr[1], morse->mac_addr[2], 
+	        morse->mac_addr[0], morse->mac_addr[1], morse->mac_addr[2],
 	        morse->mac_addr[3], morse->mac_addr[4], morse->mac_addr[5]);
 
 	status = mmwlan_get_version(&morse->version);
