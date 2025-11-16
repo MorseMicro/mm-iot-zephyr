@@ -54,7 +54,6 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 
 	scan.ssid_length = result->ssid_len < (WIFI_SSID_MAX_LEN - 1) ? result->ssid_len
 	                                                              : WIFI_SSID_MAX_LEN - 1;
-
 	memcpy(scan.ssid, result->ssid, scan.ssid_length);
 	scan.ssid[WIFI_SSID_MAX_LEN - 1] = '\0';
 
@@ -171,11 +170,13 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 	struct mmwlan_sta_args *sta_args = &morse->sta_args;
 	enum mmwlan_status status;
 
-	memcpy((char *)sta_args->ssid, params->ssid, params->ssid_length);
-	sta_args->ssid_len = params->ssid_length;
+	size_t ssid_len = MIN(sizeof(sta_args->ssid), params->ssid_length);
+	memcpy((char *)sta_args->ssid, params->ssid, ssid_len);
+	sta_args->ssid_len = ssid_len;
 
 	if (params->security == WIFI_SECURITY_TYPE_SAE) {
-		memcpy(sta_args->passphrase, params->psk, params->psk_length);
+		size_t psk_len = MIN(sizeof(sta_args->passphrase), params->psk_length);
+		memcpy(sta_args->passphrase, params->psk, psk_len);
 		sta_args->passphrase_len = params->psk_length;
 		sta_args->security_type = MMWLAN_SAE;
 	} else if (params->security == WIFI_SECURITY_TYPE_NONE) {
