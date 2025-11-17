@@ -50,4 +50,37 @@ struct morse_data {
 extern const struct morse_config *morse_config0;
 extern struct morse_data morse_data0;
 
+/**
+ * @brief Create a mapping between mmwlan_status to generic error codes.
+ *
+ * @param[in] status: mmwlan_status we want to map.
+ *
+ * @return 0 on success, mapped error code otherwise.
+ */
+static inline int mmwlan_err_to_errno(enum mmwlan_status status)
+{
+	switch (status) {
+	case MMWLAN_SUCCESS:
+		return 0;
+	case MMWLAN_INVALID_ARGUMENT:
+		return -EINVAL;
+	case MMWLAN_UNAVAILABLE:
+		return -EAGAIN;
+	case MMWLAN_CHANNEL_LIST_NOT_SET:
+	case MMWLAN_CHANNEL_INVALID:
+		return -ECHRNG;
+	case MMWLAN_NO_MEM:
+		return -ENOMEM;
+	case MMWLAN_TIMED_OUT:
+		return -ETIMEDOUT;
+	case MMWLAN_NOT_FOUND:
+	case MMWLAN_NOT_RUNNING:
+		return -ENODEV;
+	case MMWLAN_ERROR:
+	case MMWLAN_SHUTDOWN_BLOCKED:
+	default:
+		return -EIO;
+	}
+}
+
 #endif /* ZEPHYR_DRIVERS_WIFI_MORSE_MORSE_H_ */

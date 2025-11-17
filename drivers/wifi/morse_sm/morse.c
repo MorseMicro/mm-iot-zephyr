@@ -63,7 +63,6 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 	scan.channel = 0;
 	scan.rssi = (int8_t)result->rssi;
 
-
 	int ret = mm_parse_s1g_operation(result->ies, result->ies_len, &s1g_operation);
 	if (ret != 0) {
 		LOG_ERR("Failed to parse S1G Operation Element");
@@ -155,7 +154,7 @@ static int morse_mgmt_scan(const struct device *dev, struct wifi_scan_params *pa
 	status = mmwlan_scan_request(&scan_req);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_ERR("Failed to start scanning");
-		return -EIO;
+		return mmwlan_err_to_errno(status);
 	}
 
 	morse->scan_prev_state = morse->status;
@@ -183,7 +182,7 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 		sta_args->security_type = MMWLAN_OPEN;
 	} else {
 		LOG_ERR("Authentication method not supported");
-		return -EIO;
+		return -EINVAL;
 	}
 
 	switch (params->mfp) {
@@ -208,7 +207,7 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 	status = mmwlan_sta_enable(sta_args, NULL);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_ERR("%s: mmwlan_sta_enable returned %d", __func__, status);
-		return -EAGAIN;
+		return mmwlan_err_to_errno(status);
 	}
 
 	return 0;
@@ -217,11 +216,11 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 static int morse_mgmt_disconnect(const struct device *dev)
 {
 	struct morse_data *morse = dev->data;
-	int ret = mmwlan_sta_disable();
+	enum mmwlan_status status = mmwlan_sta_disable();
 
-	if (ret != MMWLAN_SUCCESS && ret != MMWLAN_SHUTDOWN_BLOCKED) {
+	if (status != MMWLAN_SUCCESS && status != MMWLAN_SHUTDOWN_BLOCKED) {
 		LOG_ERR("Failed to disconnect from AP");
-		return -EAGAIN;
+		return mmwlan_err_to_errno(status);
 	}
 
 	wifi_mgmt_raise_disconnect_result_event(morse->iface, WIFI_REASON_DISCONN_SUCCESS);
@@ -290,15 +289,16 @@ static int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 	}
 
 	const int pkt_len = net_pkt_get_len(pkt);
-	if (net_pkt_read(pkt, morse->frame_buf, pkt_len) < 0) {
+	int ret = net_pkt_read(pkt, morse->frame_buf, pkt_len);
+	if (ret < 0) {
 		LOG_ERR("Failed to read packet buffer");
-		return -EIO;
+		return ret;
 	}
 
 	enum mmwlan_status status = mmwlan_tx(morse->frame_buf, pkt_len);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_ERR("Failed to send packet - %d", status);
-		return -EIO;
+		return mmwlan_err_to_errno(status);
 	}
 
 	LOG_DBG("Packet sent");
