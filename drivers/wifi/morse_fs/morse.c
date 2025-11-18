@@ -63,8 +63,24 @@ static void morse_wifi_connect_work(struct k_work *work)
 		.timeout = MM_WLAN_CONNECT_TIMEOUT,
 	};
 	enum mmagic_status status = mmagic_controller_wlan_connect(mmagic_ctrl, &connect_args);
+
 	if (status != MMAGIC_STATUS_OK) {
 		LOG_ERR("mmagic_controller_wlan_connect: %d", status);
+	}
+
+	switch (status) {
+	case MMAGIC_STATUS_OK:
+		break;
+	case MMAGIC_STATUS_TIMEOUT:
+		wifi_mgmt_raise_connect_result_event(morse_iface, WIFI_STATUS_CONN_TIMEOUT);
+		goto finish;
+
+		/*
+		 * The default error is just be CONN_FAIL. MMAGIC does not have enough error codes
+		 * to accurately report back WRONG_PASSWORD/AP_NOT_FOUND etc.
+		 */
+	default:
+		wifi_mgmt_raise_connect_result_event(morse_iface, WIFI_STATUS_CONN_FAIL);
 		goto finish;
 	}
 
@@ -135,7 +151,8 @@ static int morse_mgmt_disconnect(const struct device *dev)
 	enum mmagic_status status = mmagic_controller_wlan_disconnect(mmagic_ctrl);
 	if (status != MMAGIC_STATUS_OK) {
 		LOG_ERR("mmagic_controller_wlan_disconnect returned - %d", status);
-		wifi_mgmt_raise_disconnect_result_event(morse_iface, WIFI_REASON_DISCONN_UNSPECIFIED);
+		wifi_mgmt_raise_disconnect_result_event(morse_iface,
+		                                        WIFI_REASON_DISCONN_UNSPECIFIED);
 		return status;
 	}
 	wifi_mgmt_raise_disconnect_result_event(morse_iface, WIFI_REASON_DISCONN_SUCCESS);

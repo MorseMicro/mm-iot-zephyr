@@ -44,3 +44,7 @@ config MAIN_STACK_SIZE
 config NET_MGMT_EVENT_QUEUE_SIZE
 	int
 	default 10
+
+config NET_MGMT_EVENT_STACK_SIZE
+	int
+	default 2048
