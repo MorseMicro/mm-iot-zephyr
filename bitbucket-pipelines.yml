@@ -1,0 +1,27 @@
+image: ubuntu:24.04
+
+pipelines:
+  pull-requests:
+   "**":
+      - step:
+          name: clang-format check
+          script:
+            # Install git-clang-format (if not in image)
+            - apt-get update && apt-get install -y clang-format-20 git
+
+            # Compute against merge base
+            - BASE=$(git merge-base HEAD origin/${BITBUCKET_PR_DESTINATION_BRANCH})
+
+            # Detect changed *.c and *.h files under subdirectory (example: drivers/)
+            - FILES=$(git diff --name-only "$BASE" HEAD -- 'drivers/**/*.c' 'drivers/**/*.h')
+
+            - |
+              if [ -z "$FILES" ]; then
+                echo "No C/H file changes in target directory."
+                exit 0
+              fi
+
+            # Run git-clang-format in diff mode
+            - echo $FILES
+            - echo $BASE
+            - git-clang-format-20 --binary clang-format-20 --diff "$BASE" HEAD -- $FILES
