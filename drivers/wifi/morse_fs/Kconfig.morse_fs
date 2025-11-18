@@ -33,6 +33,8 @@ config WIFI_MORSE_FS
 
 endmenu
 
+if WIFI_MORSE_FS
+
 config HEAP_MEM_POOL_SIZE
 	int
 	default 16384
@@ -48,3 +50,5 @@ config NET_MGMT_EVENT_QUEUE_SIZE
 config NET_MGMT_EVENT_STACK_SIZE
 	int
 	default 2048
+
+endif
