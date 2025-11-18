@@ -45,7 +45,7 @@ struct morse_data morse_data0;
 static struct mmosal_semb *agent_started_semb = NULL;
 
 static void morse_apply_dhcp_lease(struct net_if *iface, struct in_addr *ip,
-                                   const struct in_addr *netmask, const struct in_addr *gw)
+				   const struct in_addr *netmask, const struct in_addr *gw)
 {
 	/* Add IP + netmask */
 	net_if_ipv4_addr_add(iface, ip, NET_ADDR_DHCP, 0);
@@ -92,8 +92,8 @@ static void morse_wifi_connect_work(struct k_work *work)
 		    (ip_status_rsp_args.status.link_state == MMAGIC_IP_LINK_STATE_UP)) {
 			LOG_INF("Link Up");
 			LOG_INF("Link is up %s. Time: %u ms, ",
-			        ip_status_rsp_args.status.dhcp_enabled ? "(DHCP)" : "(Static)",
-			        mmosal_get_time_ms());
+				ip_status_rsp_args.status.dhcp_enabled ? "(DHCP)" : "(Static)",
+				mmosal_get_time_ms());
 			LOG_INF("IP: %s, ", ip_status_rsp_args.status.ip_addr.addr);
 			LOG_INF("Netmask: %s, ", ip_status_rsp_args.status.netmask.addr);
 			LOG_INF("Gateway: %s", ip_status_rsp_args.status.gateway.addr);
@@ -152,7 +152,7 @@ static int morse_mgmt_disconnect(const struct device *dev)
 	if (status != MMAGIC_STATUS_OK) {
 		LOG_ERR("mmagic_controller_wlan_disconnect returned - %d", status);
 		wifi_mgmt_raise_disconnect_result_event(morse_iface,
-		                                        WIFI_REASON_DISCONN_UNSPECIFIED);
+							WIFI_REASON_DISCONN_UNSPECIFIED);
 		return status;
 	}
 	wifi_mgmt_raise_disconnect_result_event(morse_iface, WIFI_REASON_DISCONN_SUCCESS);
@@ -168,7 +168,7 @@ void morse_agent_start_handler(struct mmagic_controller *controller, void *arg)
 }
 
 static int morse_mgmt_scan(const struct device *dev, struct wifi_scan_params *params,
-                           scan_result_cb_t cb)
+			   scan_result_cb_t cb)
 {
 	struct morse_data *data = dev->data;
 	ARG_UNUSED(params);
@@ -231,7 +231,7 @@ static void morse_tcp_offload_send_work(struct k_work *work);
  * Initialises a Morse socket descriptor pointer.
  */
 void init_morse_socket_descriptor(morse_sd *socket, uint8_t id, uint16_t port,
-                                  struct net_context *context)
+				  struct net_context *context)
 {
 	MMOSAL_ASSERT(socket);
 
@@ -254,7 +254,7 @@ void init_morse_socket_descriptor(morse_sd *socket, uint8_t id, uint16_t port,
  * @returns 0 on success, -EINVAL otherwise.
  */
 static int convert_host_socket_address_to_mm(const struct sockaddr_in *addr,
-                                             struct morse_tcp_sockaddr_in *m_addr)
+					     struct morse_tcp_sockaddr_in *m_addr)
 {
 	MMOSAL_ASSERT(addr);
 	MMOSAL_ASSERT(m_addr);
@@ -425,7 +425,7 @@ static void morse_tcp_offload_recv_work(struct k_work *work)
 		return;
 	} else if (read_poll_status != MMAGIC_STATUS_OK) {
 		LOG_ERR("TCP Recv: Stopping recv - mmagic_controller_tcp_read_poll raised %d.",
-		        read_poll_status);
+			read_poll_status);
 		goto cleanup;
 	}
 
@@ -444,12 +444,12 @@ static void morse_tcp_offload_recv_work(struct k_work *work)
 		goto cleanup;
 	} else if (recv_status != MMAGIC_STATUS_OK) {
 		LOG_ERR("TCP Recv: Stopping recv - mmagic_controller_tcp_recv raised %d.",
-		        recv_status);
+			recv_status);
 		goto cleanup;
 	}
 
 	struct net_pkt *pkt = net_pkt_rx_alloc_with_buffer(morse_iface, recv_rsp.buffer.len,
-	                                                   AF_INET, IPPROTO_TCP, K_FOREVER);
+							   AF_INET, IPPROTO_TCP, K_FOREVER);
 	if (pkt == NULL) {
 		LOG_ERR("TCP Recv: Stopping recv - failed to alloc pkt.");
 		goto cleanup;
@@ -490,7 +490,7 @@ cleanup:
 }
 
 static int morse_tcp_offload_recv(struct net_context *context, net_context_recv_cb_t cb,
-                                  int32_t timeout, void *user_data)
+				  int32_t timeout, void *user_data)
 {
 	MMOSAL_ASSERT(context);
 
@@ -511,8 +511,8 @@ static int morse_tcp_offload_recv(struct net_context *context, net_context_recv_
 }
 
 static int morse_tcp_offload_connect(struct net_context *context, const struct sockaddr *addr,
-                                     socklen_t addrlen, net_context_connect_cb_t cb,
-                                     int32_t timeout, void *user_data)
+				     socklen_t addrlen, net_context_connect_cb_t cb,
+				     int32_t timeout, void *user_data)
 {
 	MMOSAL_ASSERT(context);
 	MMOSAL_ASSERT(addr);
@@ -565,7 +565,7 @@ static int morse_tcp_offload_connect(struct net_context *context, const struct s
 }
 
 static int morse_tcp_offload_send(struct net_pkt *pkt, net_context_send_cb_t cb, int32_t timeout,
-                                  void *user_data)
+				  void *user_data)
 {
 	MMOSAL_ASSERT(pkt);
 	ARG_UNUSED(timeout);
@@ -620,7 +620,7 @@ static int morse_tcp_offload_put(struct net_context *context)
 
 /* Unimplemented but required by offload vtable. */
 static int morse_tcp_offload_get(sa_family_t family, enum net_sock_type type,
-                                 enum net_ip_protocol ip_proto, struct net_context **context)
+				 enum net_ip_protocol ip_proto, struct net_context **context)
 {
 	ARG_UNUSED(context);
 	ARG_UNUSED(family);
@@ -631,7 +631,7 @@ static int morse_tcp_offload_get(sa_family_t family, enum net_sock_type type,
 
 /* Unimplemented but required by offload vtable. */
 static int morse_tcp_offload_bind(struct net_context *context, const struct sockaddr *addr,
-                                  socklen_t addrlen)
+				  socklen_t addrlen)
 {
 	ARG_UNUSED(context);
 	ARG_UNUSED(addr);
@@ -675,7 +675,7 @@ static const struct net_wifi_mgmt_offload morse_api = {
 static int morse_fs_init(const struct device *dev);
 
 NET_DEVICE_DT_INST_OFFLOAD_DEFINE(0, morse_fs_init, NULL, &morse_data0, &morse_config0,
-                                  CONFIG_WIFI_INIT_PRIORITY, &morse_api, NET_ETH_MTU);
+				  CONFIG_WIFI_INIT_PRIORITY, &morse_api, NET_ETH_MTU);
 
 CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(0)));
 
@@ -715,7 +715,7 @@ register_work_items:
 	k_work_init(&morse_data0.scan_work, morse_scan_work);
 	k_work_init(&morse_data0.connect_work, morse_wifi_connect_work);
 	k_work_queue_start(&morse_data0.workq, morse_workq_stack,
-	                   K_KERNEL_STACK_SIZEOF(morse_workq_stack), K_PRIO_COOP(7), NULL);
+			   K_KERNEL_STACK_SIZEOF(morse_workq_stack), K_PRIO_COOP(7), NULL);
 
 	k_thread_name_set(&morse_data0.workq.thread, "morse_workq");
 	LOG_INF("Morse fs driver initialized");

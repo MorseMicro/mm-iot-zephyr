@@ -23,9 +23,9 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "mmutils.h"
 
 #if CONFIG_DT_HAS_MORSE_MM8108_ENABLED
-	#define DT_DRV_COMPAT morse_mm8108
+#define DT_DRV_COMPAT morse_mm8108
 #else
-	#define DT_DRV_COMPAT morse_mm6108
+#define DT_DRV_COMPAT morse_mm6108
 #endif
 
 #define SPI_FRAME_BITS 8
@@ -53,7 +53,7 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 	}
 
 	scan.ssid_length = result->ssid_len < (WIFI_SSID_MAX_LEN - 1) ? result->ssid_len
-	                                                              : WIFI_SSID_MAX_LEN - 1;
+								      : WIFI_SSID_MAX_LEN - 1;
 	memcpy(scan.ssid, result->ssid, scan.ssid_length);
 	scan.ssid[WIFI_SSID_MAX_LEN - 1] = '\0';
 
@@ -112,8 +112,8 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 
 		case MM_AKM_SUITE_OWE:
 			LOG_DBG("ssid: %s has cipher suite WPA3-OWE -"
-			        " currently unsupported by Zephyr",
-			        scan.ssid);
+				" currently unsupported by Zephyr",
+				scan.ssid);
 			scan.security = MM_MAX(scan.security, WIFI_SECURITY_TYPE_SAE);
 			break;
 
@@ -140,7 +140,7 @@ static void scan_complete_callback(enum mmwlan_scan_state state, void *arg)
 }
 
 static int morse_mgmt_scan(const struct device *dev, struct wifi_scan_params *params,
-                           scan_result_cb_t cb)
+			   scan_result_cb_t cb)
 {
 	struct morse_data *morse = dev->data;
 
@@ -201,7 +201,7 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 	}
 
 	LOG_DBG("Attempting to connect to %s with passphrase %s", sta_args->ssid,
-	        sta_args->passphrase);
+		sta_args->passphrase);
 	LOG_DBG("This may take some time (~30 seconds)");
 
 	status = mmwlan_sta_enable(sta_args, NULL);
@@ -239,7 +239,7 @@ static int morse_mgmt_iface_status(const struct device *dev, struct wifi_iface_s
 	status->band = WIFI_FREQ_BAND_UNKNOWN;
 	status->link_mode = WIFI_LINK_MODE_UNKNOWN;
 	status->mfp = morse->sta_args.pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
-	                                                              : WIFI_MFP_REQUIRED;
+								      : WIFI_MFP_REQUIRED;
 
 	switch (morse->sta_args.security_type) {
 	case MMWLAN_OPEN:
@@ -307,7 +307,7 @@ static int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 };
 
 static void mmnetif_rx(uint8_t *header, unsigned header_len, uint8_t *payload, unsigned payload_len,
-                       void *arg)
+		       void *arg)
 {
 	struct morse_data *morse = (struct morse_data *)arg;
 	struct net_pkt *pkt;
@@ -319,7 +319,7 @@ static void mmnetif_rx(uint8_t *header, unsigned header_len, uint8_t *payload, u
 	}
 
 	pkt = net_pkt_rx_alloc_with_buffer(morse->iface, header_len + payload_len, AF_UNSPEC, 0,
-	                                   K_MSEC(200));
+					   K_MSEC(200));
 	if (!pkt) {
 		LOG_ERR("Failed to allocate packet buffer");
 		return;
@@ -394,7 +394,7 @@ static void morse_iface_init(struct net_if *iface)
 
 	if (channel_list == NULL) {
 		LOG_ERR("Could not find specified regulatory domain matching country code %s\n",
-		        CONFIG_WIFI_MORSE_REGION);
+			CONFIG_WIFI_MORSE_REGION);
 		return;
 	}
 
@@ -433,9 +433,9 @@ static void morse_iface_init(struct net_if *iface)
 	}
 
 	LOG_DBG("Morse Micro Wi-Fi HaLow interface initialised.\n"
-	        "MAC address %02x:%02x:%02x:%02x:%02x:%02x",
-	        morse->mac_addr[0], morse->mac_addr[1], morse->mac_addr[2],
-	        morse->mac_addr[3], morse->mac_addr[4], morse->mac_addr[5]);
+		"MAC address %02x:%02x:%02x:%02x:%02x:%02x",
+		morse->mac_addr[0], morse->mac_addr[1], morse->mac_addr[2], morse->mac_addr[3],
+		morse->mac_addr[4], morse->mac_addr[5]);
 
 	status = mmwlan_get_version(&morse->version);
 	if (status != MMWLAN_SUCCESS) {
@@ -444,8 +444,8 @@ static void morse_iface_init(struct net_if *iface)
 	}
 
 	LOG_DBG("Morse firmware version %s, morselib version %s, Morse chip ID 0x%04x\n",
-	        morse->version.morse_fw_version, morse->version.morselib_version,
-	        morse->version.morse_chip_id);
+		morse->version.morse_fw_version, morse->version.morselib_version,
+		morse->version.morse_chip_id);
 
 	/* Initialize Ethernet L2 stack */
 	ethernet_init(morse->iface);
@@ -527,9 +527,9 @@ static const struct net_wifi_mgmt_offload morse_api = {
 
 const struct morse_config conf = {
 	.spi = SPI_DT_SPEC_INST_GET(0,
-                                    (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
-                                     SPI_WORD_SET(SPI_FRAME_BITS)),
-                                    0),
+				    (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
+				     SPI_WORD_SET(SPI_FRAME_BITS)),
+				    0),
 	.resetn = GPIO_DT_SPEC_INST_GET(0, resetn_gpios),
 	.wakeup = GPIO_DT_SPEC_INST_GET(0, wakeup_gpios),
 	.busy = GPIO_DT_SPEC_INST_GET(0, busy_gpios),
@@ -539,14 +539,14 @@ const struct morse_config conf = {
 #ifndef CONFIG_WIFI_MORSE_TEST
 
 NET_DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, CONFIG_WIFI_INIT_PRIORITY,
-                          &morse_api, ETHERNET_L2, NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
+			  &morse_api, ETHERNET_L2, NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
 
 CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(0)));
 
 #else
 
 DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, POST_KERNEL,
-                      CONFIG_WIFI_INIT_PRIORITY, NULL);
+		      CONFIG_WIFI_INIT_PRIORITY, NULL);
 
 #endif /* CONFIG_WIFI_MORSE_TEST */
 

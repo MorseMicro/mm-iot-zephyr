@@ -50,9 +50,9 @@ struct mmagic_datalink_controller {
 
 struct mmagic_datalink_controller controller = {
 	.spi = SPI_DT_SPEC_GET(SPI_DEV,
-                               (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
-                                SPI_WORD_SET(SPI_FRAME_BITS)),
-                               0),
+			       (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
+				SPI_WORD_SET(SPI_FRAME_BITS)),
+			       0),
 	.wake = GPIO_DT_SPEC_GET(SPI_DEV, wake_gpios),
 	.irq = GPIO_DT_SPEC_GET(SPI_DEV, irq_gpios),
 };
@@ -83,7 +83,7 @@ void morse_spi_irq_cb(const struct device *dev, struct gpio_callback *cb, uint32
 }
 
 static int morse_spi_read(struct mmagic_datalink_controller *controller_dl,
-                          const struct spi_buf *data, const struct spi_buf *crc_buf)
+			  const struct spi_buf *data, const struct spi_buf *crc_buf)
 {
 	struct spi_buf_set buffers = {data, 1};
 	int ret = spi_read_dt(&controller_dl->spi, &buffers);
@@ -93,7 +93,7 @@ static int morse_spi_read(struct mmagic_datalink_controller *controller_dl,
 }
 
 static int morse_spi_write(struct mmagic_datalink_controller *controller_dl,
-                           const struct spi_buf *data, const struct spi_buf *crc_buf)
+			   const struct spi_buf *data, const struct spi_buf *crc_buf)
 {
 	struct spi_buf_set buffers = {data, 1};
 	int ret = spi_write_dt(&controller_dl->spi, &buffers);
@@ -104,7 +104,7 @@ static int morse_spi_write(struct mmagic_datalink_controller *controller_dl,
 }
 
 static struct mmbuf *controller_rx_buffer(struct mmagic_datalink_controller *controller_dl,
-                                          enum mmagic_datalink_payload_type read_type)
+					  enum mmagic_datalink_payload_type read_type)
 {
 	uint8_t *data = NULL;
 	uint16_t payload_len = 0;
@@ -113,11 +113,11 @@ static struct mmbuf *controller_rx_buffer(struct mmagic_datalink_controller *con
 	mmosal_mutex_get(controller_dl->spi_mutex, UINT32_MAX);
 	gpio_pin_set_dt(&controller_dl->wake, 1);
 	morse_spi_wait_for_ready_high();
-	
+
 	struct mmbuf *rx_buffer = NULL;
 	const struct spi_buf header_buffer = {payload_header, MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE};
 	uint16_t crc = htons(crc16((uint16_t)MM_CRC_POLY, 0, payload_header,
-	                           MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE));
+				   MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE));
 	struct spi_buf crc_buf = {&crc, sizeof(crc)};
 
 	int ret = morse_spi_write(controller_dl, &header_buffer, &crc_buf);
@@ -187,7 +187,7 @@ static void mmagic_datalink_controller_rx_task(void *arg)
 		struct mmbuf *rx_buf = mmagic_datalink_controller_rx_buffer(controller_dl);
 		if (rx_buf != NULL) {
 			controller_dl->rx_buffer_callback(controller_dl,
-			                                  controller_dl->rx_buffer_cb_arg, rx_buf);
+							  controller_dl->rx_buffer_cb_arg, rx_buf);
 		} else {
 			LOG_ERR("Error with controller rx buffer");
 		}
@@ -250,13 +250,13 @@ void mmagic_datalink_controller_deinit(struct mmagic_datalink_controller *contro
 
 struct mmbuf *
 mmagic_datalink_controller_alloc_buffer_for_tx(struct mmagic_datalink_controller *controller_dl,
-                                               size_t header_size, size_t payload_size)
+					       size_t header_size, size_t payload_size)
 {
 	return mmbuf_alloc_on_heap(header_size + MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE, payload_size);
 }
 
 int mmagic_datalink_controller_tx_buffer(struct mmagic_datalink_controller *controller_dl,
-                                         struct mmbuf *buf)
+					 struct mmbuf *buf)
 {
 	mmosal_mutex_get(controller_dl->spi_mutex, UINT32_MAX);
 	gpio_pin_set_dt(&controller.wake, 1);
@@ -267,7 +267,7 @@ int mmagic_datalink_controller_tx_buffer(struct mmagic_datalink_controller *cont
 	payload_header[2] = (uint8_t)payload_len;
 
 	uint16_t crc = htons(crc16((uint16_t)MM_CRC_POLY, 0, payload_header,
-	                           MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE));
+				   MMAGIC_DATALINK_PAYLOAD_HEADER_SIZE));
 
 	uint8_t ack = MMAGIC_DATALINK_NACK;
 

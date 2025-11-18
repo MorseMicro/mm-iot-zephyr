@@ -155,8 +155,8 @@ void thread_abort_hook(struct k_thread *thread)
 }
 
 struct mmosal_task *mmosal_task_create(mmosal_task_fn_t task_fn, void *argument,
-                                       enum mmosal_task_priority priority, unsigned stack_size_u32,
-                                       const char *name)
+				       enum mmosal_task_priority priority, unsigned stack_size_u32,
+				       const char *name)
 {
 	k_tid_t tid;
 	struct mmosal_task_data *data = mmosal_task_metadata_create();
@@ -170,8 +170,8 @@ struct mmosal_task *mmosal_task_create(mmosal_task_fn_t task_fn, void *argument,
 	}
 
 	tid = k_thread_create(&data->tid, data->stack, sizeof(uint32_t) * stack_size_u32,
-	                      mmosal_task_fn, task_fn, argument, data,
-	                      mmosal_task_priorities[priority], 0, K_FOREVER);
+			      mmosal_task_fn, task_fn, argument, data,
+			      mmosal_task_priorities[priority], 0, K_FOREVER);
 
 	/* This needs to be set before the thread starts otherwise we could notify too early */
 	tid->custom_data = data;
@@ -515,7 +515,7 @@ static bool mmosal_queue_pop_impl(struct mmosal_queue *queue, void *item, k_time
 }
 
 static bool mmosal_queue_push_impl(struct mmosal_queue *queue, const void *item,
-                                   k_timeout_t timeout)
+				   k_timeout_t timeout)
 {
 	if (queue == NULL) {
 		return false;
@@ -581,7 +581,7 @@ static void mmosal_timer_expiry_fn(struct k_timer *timer_id)
 }
 
 struct mmosal_timer *mmosal_timer_create(const char *name, uint32_t timer_period_ms,
-                                         bool auto_reload, void *arg, timer_callback_t callback)
+					 bool auto_reload, void *arg, timer_callback_t callback)
 {
 	struct mmosal_timer *timer = k_malloc(sizeof(struct mmosal_timer));
 	if (timer == NULL) {
@@ -616,7 +616,7 @@ bool mmosal_timer_start(struct mmosal_timer *timer)
 	}
 
 	k_timer_start(&timer->timer, K_MSEC(timer->period),
-	              timer->reload ? K_MSEC(timer->period) : K_FOREVER);
+		      timer->reload ? K_MSEC(timer->period) : K_FOREVER);
 
 	return true;
 }
