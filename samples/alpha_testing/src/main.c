@@ -26,6 +26,10 @@ extern struct mqtt_client client;
 
 bool done = false;
 
+#if CONFIG_PM
+#define PM_SLEEP_DURATION 15
+#endif /* CONFIG_PM */
+
 int main(void)
 {
 	int rc = wifi_connect_blocking();
@@ -66,6 +70,10 @@ int main(void)
 		(void)mqtt_live(&client);
 		k_sleep(K_MSEC(1000));
 	}
+
+#if CONFIG_PM
+	k_sleep(K_SECONDS(PM_SLEEP_DURATION));
+#endif /* CONFIG_PM */
 	rc = wifi_disconnect_blocking();
 	if (rc) {
 		LOG_ERR("Could not disconnect");

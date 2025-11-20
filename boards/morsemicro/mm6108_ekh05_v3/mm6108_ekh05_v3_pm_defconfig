@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Enable MPU
+CONFIG_ARM_MPU=y
+
+# Enable hardware stack protection
+CONFIG_HW_STACK_PROTECTION=y
+
+# enable GPIO
+CONFIG_GPIO=y
+CONFIG_GPIO_HOGS=y
+
+# Enable Clocks
+CONFIG_CLOCK_CONTROL=y
+
+CONFIG_PM=y
+CONFIG_PM_DEVICE=y
+
+CONFIG_DEBUG=n
+
+CONFIG_SERIAL=n
+CONFIG_UART_CONSOLE=n
+CONFIG_LOG=n
+CONFIG_NET_LOG=n
+
+# enable pin controller
+CONFIG_PINCTRL=y
+
+CONFIG_WIFI_MORSE_BCF="bcf_aw_hm593.mbin"

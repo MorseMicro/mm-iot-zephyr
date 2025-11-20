@@ -143,11 +143,15 @@ If you have hardware and an appropriate hardware_map available, you can also run
 west twister -T modules/lib/morsemicro/samples --device-testing -W --hardware-map hardware_map.yaml
 ```
 
+## Device Power Management
+We have basic powersave hooks implemented on the mm6108_ekh05_v3 platform.
+You can compile for this by setting the correct board target with:
+
+``` west build -b mm6108_ekh05_v3/stm32u585xx/pm . ```
+
 # Known Issues
 ## Throughput
 Throughput measured on some boards is quite poor. For example, a `nucleo_u575zi_q` board may only see ~3.5 Mbps UDP upload.
-## Device Power Management
-Host device power management hooks are not implemented in the Morse Micro Wi-Fi driver for Zephyr.
 ## Incomplete Information in Status
 The `band` information in the Zephyr Wi-Fi shell will show as `UNKNOWN` for Morse Micro HaLow interfaces.
 ## Build Warnings

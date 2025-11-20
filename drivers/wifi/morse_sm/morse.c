@@ -15,12 +15,14 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <zephyr/drivers/spi.h>
 #include <zephyr/net/conn_mgr/connectivity_wifi_mgmt.h>
 #include <zephyr/net/wifi_mgmt.h>
+#include <zephyr/pm/device.h>
 
 #include "morse.h"
 #include "mmosal.h"
 #include "mmwlan.h"
 #include "regdb.h"
 #include "mmutils.h"
+#include "mmhal.h"
 
 #if CONFIG_DT_HAS_MORSE_MM8108_ENABLED
 #define DT_DRV_COMPAT morse_mm8108
@@ -31,9 +33,11 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #define SPI_FRAME_BITS 8
 
 struct morse_data morse_data0;
+const struct device *morse_dev;
 
 extern void morse_busy_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 extern void morse_spi_irq_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
+extern uint32_t mmhal_get_deep_sleep_veto(void);
 extern volatile uint32_t mmhal_spi_irq_poll_interval;
 
 static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
@@ -461,10 +465,29 @@ static void morse_iface_init(struct net_if *iface)
 	memcpy(&morse->sta_args, &init_args, sizeof(struct mmwlan_sta_args));
 }
 
+static int morse_pm_action(const struct device *dev, enum pm_device_action action)
+{
+	ARG_UNUSED(dev);
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		if (mmhal_get_deep_sleep_veto() != 0) {
+			return -EBUSY;
+		}
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+	case PM_DEVICE_ACTION_TURN_OFF:
+	case PM_DEVICE_ACTION_TURN_ON:
+		break;
+	}
+	return 0;
+}
+
 static int morse_init(const struct device *dev)
 {
 	struct morse_data *morse = dev->data;
 	const struct morse_config *cfg = dev->config;
+
+	morse_dev = dev;
 
 	morse->status = WIFI_STATE_DISCONNECTED;
 	LOG_DBG("");
@@ -538,8 +561,10 @@ const struct morse_config conf = {
 
 #ifndef CONFIG_WIFI_MORSE_TEST
 
-NET_DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, CONFIG_WIFI_INIT_PRIORITY,
-			  &morse_api, ETHERNET_L2, NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
+PM_DEVICE_DT_INST_DEFINE(0, morse_pm_action);
+NET_DEVICE_DT_INST_DEFINE(0, morse_init, PM_DEVICE_DT_INST_GET(0), &morse_data0, &conf,
+			  CONFIG_WIFI_INIT_PRIORITY, &morse_api, ETHERNET_L2,
+			  NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
 
 CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(0)));
 

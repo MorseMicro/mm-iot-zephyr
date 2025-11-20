@@ -1,0 +1,40 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include "mm6108_ekh05_v3.dts"
+
+&lpuart1 {
+	status = "disabled";
+};
+
+&spi3 {
+	status = "disabled";
+};
+
+&i2c1 {
+	status = "disabled";
+};
+
+&aes {
+	status = "disabled";
+};
+
+&rng {
+	status = "disabled";
+};
+
+&iwdg {
+	status = "disabled";
+};
+
+&vbat4 {
+	status = "disabled";
+};
+
+&gpdma1 {
+	status = "disabled";
+};
