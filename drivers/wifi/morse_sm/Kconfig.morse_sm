@@ -48,13 +48,13 @@ config WIFI_MORSE_BCF
 menu "Morse Micro Packet Memory Configuration"
 	config MMPKTMEM_TX_POOL_N_BLOCKS
 		int "TX queue blocks"
-		default 20
+		default 32
 		help
 			Number of blocks allocated for the transmit queue
 
 	config MMPKTMEM_RX_POOL_N_BLOCKS
 		int "RX queue blocks"
-		default 23
+		default 32
 		help
 			Number of blocks allocated for the receive queue
 endmenu
@@ -78,5 +78,9 @@ config WIFI_MORSE_EXT_XTAL_INIT
 	 For modules which drive the MM6108 with an external crystal, extra
 	 initialisation is required. This configuration implements the necessary
 	 hook to support this initialisation.
+
+config NET_MGMT_EVENT_STACK_SIZE
+	int
+	default 2048
 
 endif
