@@ -23,18 +23,33 @@
 		zephyr,bt-hci = &hci_spi;
 	};
 
-	leds {
+	rgb_led {
+		compatible = "pwm-leds";
+
+		// From pwm-leds.yaml, it recommends PWM period of 10 or 20 milliseconds.
+		rgb_led_red: red_pwm_led {
+			pwms = <&pwm4 1 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+		};
+		rgb_led_green: green_pwm_led {
+			pwms = <&pwm4 2 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+		};
+		rgb_led_blue: blue_pwm_led {
+			pwms = <&pwm4 3 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+		};
+	};
+
+	status_leds {
 		compatible = "gpio-leds";
-		red_led: led_r {
-			gpios = <&gpiod 12 GPIO_ACTIVE_LOW>;
+		status_led_red: led_r {
+			gpios = <&gpioe 11 GPIO_ACTIVE_HIGH>;
 			label = "RED";
 		};
-		green_led: led_g {
-			gpios = <&gpiod 13 GPIO_ACTIVE_LOW>;
+		status_led_green: led_g {
+			gpios = <&gpioe 7 GPIO_ACTIVE_HIGH>;
 			label = "GREEN";
 		};
-		blue_led: led_b {
-			gpios = <&gpiod 14 GPIO_ACTIVE_LOW>;
+		status_led_blue: led_b {
+			gpios = <&gpioe 8 GPIO_ACTIVE_HIGH>;
 			label = "BLUE";
 		};
 	};
@@ -49,10 +64,16 @@
 	};
 
 	aliases {
-		led0 = &red_led;
-		led1 = &green_led;
-		led2 = &blue_led;
+		led0 = &status_led_red;
+		led1 = &status_led_green;
+		led2 = &status_led_blue;
 		sw0 = &user_button;
+
+		// These aliases add kebab-case names for the rgb_led example
+		red-pwm-led = &rgb_led_red;
+		green-pwm-led = &rgb_led_green;
+		blue-pwm-led = &rgb_led_blue;
+
 		watchdog0 = &iwdg;
 		die-temp0 = &die_temp;
 		volt-sensor0 = &vref1;
@@ -245,5 +266,15 @@ stm32_lp_tick_source: &lptim1 {
 			label = "storage";
 			reg = <0x180000 0x00008000>;
 		};
+	};
+};
+
+&timers4 {
+	status = "okay";
+	st,prescaler = <10000>;
+	pwm4: pwm {
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&tim4_ch1_pd12 &tim4_ch2_pd13 &tim4_ch3_pd14>;
 	};
 };
