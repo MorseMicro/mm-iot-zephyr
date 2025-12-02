@@ -8,7 +8,7 @@
  #include <st/u5/stm32u585Xi.dtsi>
  #include <st/u5/stm32u585vitxq-pinctrl.dtsi>
  #include <zephyr/dt-bindings/input/input-event-codes.h>
-
+#include <zephyr/dt-bindings/dma/stm32_dma.h>
 / {
 	model = "Morse Micro EKH05 V3 Evaluation Kit";
 	compatible = "morsemicro,mm6108-ekh05-v3";
@@ -200,6 +200,11 @@ stm32_lp_tick_source: &lptim1 {
 	pinctrl-0 = <&spi2_sck_pd1 &spi2_miso_pd3 &spi2_mosi_pd4>;
 	pinctrl-names = "default";
 	cs-gpios = <&gpiob 4 GPIO_ACTIVE_LOW>;
+
+    //         channel slot channel-config (st,stm32-dma_v2.yaml)
+    dmas = <&gpdma1 15 9 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_VERY_HIGH)>,
+           <&gpdma1 14 8 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_VERY_HIGH)>;
+    dma-names = "tx", "rx";
 
 	morse_wifi_spi: morse@0 {
 		status = "okay";

@@ -5,11 +5,11 @@
 
 if BOARD_MM6108_EKH05_V3
 
-if BT
 
 config SPI
 	default y
 
+if BT
 config BT_SPI
 	default y
 
@@ -23,6 +23,11 @@ config BT_HCI_ACL_FLOW_CONTROL
 endif # BT
 
 config SPI_STM32_INTERRUPT
+	default y
+	depends on SPI
+
+config SPI_STM32_DMA
+	# Enable DMA for SPI
 	default y
 	depends on SPI
 
