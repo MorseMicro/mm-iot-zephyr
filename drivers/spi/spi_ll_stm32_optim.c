@@ -1098,8 +1098,20 @@ static int spi_stm32_transceive(const struct device *dev, const struct spi_confi
 {
 #ifdef CONFIG_SPI_STM32_DMA
 	struct spi_stm32_data *data = dev->data;
-
-	if ((data->dma_tx.dma_dev != NULL) && (data->dma_rx.dma_dev != NULL)) {
+	bool large_found = false;
+	for (size_t i = 0; tx_bufs != NULL && i < tx_bufs->count; i++) {
+		if (tx_bufs->buffers[i].len > CONFIG_SPI_STM32_OPTIM_DMA_THRESHOLD) {
+			large_found = true;
+			break;
+		}
+	}
+	for (size_t i = 0; !large_found && rx_bufs != NULL && i < rx_bufs->count; i++) {
+		if (rx_bufs->buffers[i].len > CONFIG_SPI_STM32_OPTIM_DMA_THRESHOLD) {
+			large_found = true;
+			break;
+		}
+	}
+	if (large_found && (data->dma_tx.dma_dev != NULL) && (data->dma_rx.dma_dev != NULL)) {
 		return transceive_dma(dev, config, tx_bufs, rx_bufs, false, NULL, NULL);
 	}
 #endif /* CONFIG_SPI_STM32_DMA */

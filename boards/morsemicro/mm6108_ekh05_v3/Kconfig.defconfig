@@ -31,6 +31,11 @@ config SPI_STM32_DMA
 	default y
 	depends on SPI
 
+config SPI_STM32_OPTIM
+	# Enable Optimised SPI driver
+	default y
+	depends on SPI
+
 DT_CHOSEN_ZEPHYR_CONSOLE := zephyr,console
 
 config UART_CONSOLE

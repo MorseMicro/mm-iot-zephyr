@@ -5,3 +5,13 @@ menuconfig SPI_STM32_OPTIM
 	default y
 	help
 	  Enables the optimised STM32 SPI driver.
+
+if SPI_STM32_OPTIM
+
+config SPI_STM32_OPTIM_DMA_THRESHOLD
+	int "Threshold to use DMA for SPI transactions"
+	default 16
+	help
+    Threshold to use DMA for SPI transactions
+
+endif # SPI_STM32_OPTIM

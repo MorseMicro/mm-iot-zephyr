@@ -196,6 +196,7 @@ stm32_lp_tick_source: &lptim1 {
 };
 
 &spi2 {
+    compatible = "st,stm32h7-spi", "st,stm32-spi-fifo", "st,stm32-spi-optim";
 	status = "okay";
 	pinctrl-0 = <&spi2_sck_pd1 &spi2_miso_pd3 &spi2_mosi_pd4>;
 	pinctrl-names = "default";
