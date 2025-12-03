@@ -1,0 +1,10 @@
+# Copyright (c) 2018, I-SENSE group of ICCS
+# Copyright 2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: STM32 SPI controller
+
+compatible: "st,stm32-spi-optim"
+
+include: st,stm32-spi-common.yaml
+

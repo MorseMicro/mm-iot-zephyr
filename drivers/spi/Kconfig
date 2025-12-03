@@ -1,2 +1,5 @@
 # Copyright 2025 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
+if SPI
+rsource "Kconfig.stm32-optim"
+endif # SPI

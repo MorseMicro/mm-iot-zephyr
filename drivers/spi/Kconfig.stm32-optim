@@ -1,0 +1,7 @@
+# Copyright 2025 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+menuconfig SPI_STM32_OPTIM
+	bool "Optimised STM32 SPI driver"
+	default y
+	help
+	  Enables the optimised STM32 SPI driver.
