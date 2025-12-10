@@ -144,10 +144,17 @@ west twister -T modules/lib/morsemicro/samples --device-testing -W --hardware-ma
 ```
 
 ## Device Power Management
-We have basic powersave hooks implemented on the mm6108_ekh05_v3 platform.
-You can compile for this by setting the correct board target with:
+Host device power management can be validated with the mm6108_ekh05_v3 and mm8108_ekh05 platforms. Projects requiring device power management can leverage these hooks by compiling against the `pm` variant:
 
-``` west build -b mm6108_ekh05_v3/stm32u585xx/pm . ```
+```
+west build -b mm6108_ekh05_v3/stm32u585xx/pm .
+```
+
+or
+
+```
+west build -b mm8108_ekh05/stm32u585xx/pm .
+```
 
 # Known Issues
 ## Throughput

@@ -1,0 +1,68 @@
+/*
+ * Copyright 2025 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include "mm8108_ekh05.dts"
+
+&lpuart1 {
+	status = "disabled";
+};
+
+&spi3 {
+	status = "disabled";
+};
+
+&gpiod {
+	ble_reset_hog {
+		gpio-hog;
+		gpios = <2 GPIO_ACTIVE_LOW>;
+		output-high;
+	};
+};
+
+&gpioa {
+	qspi_reset_hog {
+        gpio-hog;
+        gpios = <2 GPIO_ACTIVE_HIGH>;
+        output-high;
+    };
+};
+
+&gpioe {
+	cam_pwdn_hog {
+		gpio-hog;
+		gpios = <3 GPIO_ACTIVE_HIGH>;
+		output-high;
+	};
+};
+
+&hci_spi {
+	status = "disabled";
+};
+
+&i2c1 {
+	status = "disabled";
+};
+
+&iis328 {
+	status = "disabled";
+};
+
+&sht40 {
+	status = "disabled";
+};
+
+&aes {
+	status = "disabled";
+};
+
+&iwdg {
+	status = "disabled";
+};
+
+&vbat4 {
+	status = "disabled";
+};
