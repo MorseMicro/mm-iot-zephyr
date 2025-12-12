@@ -15,15 +15,47 @@
 	status = "disabled";
 };
 
+&gpiod {
+	ble_reset_hog {
+		gpio-hog;
+		gpios = <2 GPIO_ACTIVE_LOW>;
+		output-high;
+	};
+};
+
+&gpioa {
+	qspi_reset_hog {
+        gpio-hog;
+        gpios = <2 GPIO_ACTIVE_HIGH>;
+        output-high;
+    };
+};
+
+&gpioe {
+	cam_pwdn_hog {
+		gpio-hog;
+		gpios = <3 GPIO_ACTIVE_HIGH>;
+		output-high;
+	};
+};
+
+&hci_spi {
+	status = "disabled";
+};
+
 &i2c1 {
 	status = "disabled";
 };
 
-&aes {
+&iis328 {
 	status = "disabled";
 };
 
-&rng {
+&sht40 {
+	status = "disabled";
+};
+
+&aes {
 	status = "disabled";
 };
 
@@ -32,9 +64,5 @@
 };
 
 &vbat4 {
-	status = "disabled";
-};
-
-&gpdma1 {
 	status = "disabled";
 };
