@@ -153,30 +153,48 @@ stm32_lp_tick_source: &lptim1 {
 
 /* MM Module SPI connecters */
 
+&pinctrl {
+	spi2_cs_pb4: spi2_cs_pb4 {
+		pinmux = <STM32_PINMUX('B', 4, GPIO)>;
+		bias-pull-down;
+		drive-push-pull;
+		slew-rate = "low-speed";
+	};
+
+	mm8108_busy_pb5: mm8108_busy_pb5 {
+		pinmux = <STM32_PINMUX('B', 5, GPIO)>;
+		bias-pull-down;
+		slew-rate = "low-speed";
+	};
+
+	mm8108_int_pb15: mm8108_int_pb15 {
+		pinmux = <STM32_PINMUX('B', 15, GPIO)>;
+		bias-pull-up;
+		slew-rate = "low-speed";
+	};
+};
+
 &spi2_miso_pd3 {
 	drive-push-pull;
-	bias-disable;
-	/delete-property/ bias-pull-down;
+	bias-pull-down;
 	slew-rate = "very-high-speed";
 };
 
 &spi2_sck_pd1 {
 	drive-push-pull;
-	bias-disable;
-	/delete-property/ bias-pull-down;
+	bias-pull-down;
 	slew-rate = "very-high-speed";
 };
 
 &spi2_mosi_pd4 {
 	drive-push-pull;
-	bias-disable;
-	/delete-property/ bias-pull-down;
+	bias-pull-down;
 	slew-rate = "very-high-speed";
 };
 
 &spi2 {
 	status = "okay";
-	pinctrl-0 = <&spi2_sck_pd1 &spi2_miso_pd3 &spi2_mosi_pd4>;
+	pinctrl-0 = <&spi2_sck_pd1 &spi2_miso_pd3 &spi2_mosi_pd4 &spi2_cs_pb4 &mm8108_busy_pb5 &mm8108_int_pb15>;
 	pinctrl-names = "default";
 	cs-gpios = <&gpiob 4 GPIO_ACTIVE_LOW>;
 
