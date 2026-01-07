@@ -212,6 +212,7 @@ stm32_lp_tick_source: &lptim1 {
 		compatible = "morse,mm6108";
 		spi-max-frequency = <50000000>;
 		reg = <0>;
+		spi-hold-cs;
 
 		busy-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
 		wakeup-gpios = <&gpiod 0 GPIO_ACTIVE_HIGH>;
