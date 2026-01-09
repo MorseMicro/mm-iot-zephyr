@@ -29,3 +29,6 @@ The steps for this process are:
 1.  Update the `DT_DRV_COMPAT` and `LOG_MODULE_REGISTER` name to ensure you avoid conflicts.
 1.  Add and/or update the copyright header in each file edited.
 1.  Commit and push the change **prior** to continuing any improvements/changes, so future developers can trace the origin of the file and the subsequent edits. This is important if they want to rebase the edits onto an updated upstream driver.
+
+## STM32 interrupt configuration
+This platform sets `CONFIG_SPI_STM32_INTERRUPT=n` on the `mm6108_ekh05_v3`, to force the STM32 SPI driver to use polling-based transfers, rather than the default interrupt driven transfers. This avoids the interrupt overhead, thus increasing Morse Wi-Fi SPI throughput by ~20%. Developers should be aware that this is a global driver setting and therefore applies to all STM32 SPI controllers on the system, including any user SPI buses where additional peripherals may be attached.
