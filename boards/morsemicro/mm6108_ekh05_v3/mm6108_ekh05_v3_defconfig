@@ -21,3 +21,6 @@ CONFIG_CONSOLE=y
 CONFIG_PINCTRL=y
 
 CONFIG_WIFI_MORSE_BCF="bcf_aw_hm593.mbin"
+
+# Enable compiler optimisation -O2
+CONFIG_SPEED_OPTIMIZATIONS=y
