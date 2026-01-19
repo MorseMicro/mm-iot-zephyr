@@ -1,0 +1,21 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+config WIFI_SSID
+    string "Wi-Fi SSID of the AP we want to connect to"
+    default "MorseMicro"
+
+config WIFI_PSK
+    string "Password of the AP we want to connect to"
+    default "12345678"
+
+config SERVER_PORT_1
+	int "Open UDP port on the remote server"
+	default 4242
+
+config SERVER_PORT_2
+	int "Open UDP port on the remote server"
+	default 4243
+
+source "Kconfig.zephyr"
+
