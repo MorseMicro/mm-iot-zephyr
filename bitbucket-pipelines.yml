@@ -12,8 +12,8 @@ pipelines:
             # Compute against merge base
             - BASE=$(git merge-base HEAD origin/${BITBUCKET_PR_DESTINATION_BRANCH})
 
-            # Detect changed *.c and *.h files under subdirectory (example: drivers/)
-            - FILES=$(git diff --name-only "$BASE" HEAD -- 'drivers/**/*.c' 'drivers/**/*.h')
+            # Detect changed *.c and *.h files under subdirectory (drivers/ and samples/)
+            - FILES=$(git diff --name-only "$BASE" HEAD -- 'drivers/**/*.c' 'drivers/**/*.h' 'samples/**/*.c' 'samples/**/*.h')
 
             - |
               if [ -z "$FILES" ]; then
