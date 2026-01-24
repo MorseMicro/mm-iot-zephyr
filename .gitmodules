@@ -1,0 +1,3 @@
+[submodule "submodules/mm-iot-sdk"]
+	path = submodules/mm-iot-sdk
+	url = ../mm-iot-sdk

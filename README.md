@@ -49,7 +49,7 @@ pip install -r zephyr/scripts/requirements.txt
 
 Fetch the required blobs:
 ```bash
-west blobs fetch morsemicro
+git -C modules/lib/morsemicro submodule update --init --recursive
 ```
 
 ### SDK
