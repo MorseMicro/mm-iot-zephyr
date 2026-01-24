@@ -24,7 +24,7 @@ function(add_mbin library fw section)
   get_filename_component(ftype ${fw} LAST_EXT)
 
   if(${ftype} STREQUAL ".bin")
-    set(mbin_tool ${ZEPHYR_MORSEMICRO_MODULE_DIR}/tools/convert-bin-to-mbin.py)
+    set(mbin_tool ${ZEPHYR_CURRENT_MODULE_DIR}/tools/convert-bin-to-mbin.py)
     set(bin ${fw})
     get_filename_component(base_file ${bin} NAME)
     set(fw ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.mbin)
