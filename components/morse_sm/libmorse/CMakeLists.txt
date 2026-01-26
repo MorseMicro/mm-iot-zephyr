@@ -9,13 +9,7 @@ elseif(CONFIG_CPU_CORTEX_M4)
   set(MORSE_CPU_ARCH     arm-cortex-m4f)
 endif()
 
-if(CONFIG_DT_HAS_MORSE_MM8108_ENABLED)
-  set(CHIP_VARIANT       mm8108)
-else()
-  set(CHIP_VARIANT       mm6108)
-endif()
-
-find_library(LIBMORSE_FOUND "morse" HINTS "${BLOB_DIR}/lib/${CHIP_VARIANT}/${MORSE_CPU_ARCH}")
+find_library(LIBMORSE_FOUND "morse" HINTS "${MMIOT_ROOT}/framework/morselib/lib/${MORSE_CPU_ARCH}/")
 
 if(NOT LIBMORSE_FOUND)
   message(FATAL_ERROR
@@ -25,9 +19,11 @@ if(NOT LIBMORSE_FOUND)
   return()
 endif()
 
+
+list(APPEND LIBMORSE_INCLUDES "${MMIOT_ROOT}/framework/morselib/include" "${CMAKE_CURRENT_SOURCE_DIR}/include")
 add_library(libmorse STATIC IMPORTED GLOBAL)
-set_target_properties(libmorse PROPERTIES IMPORTED_LOCATION             ${BLOB_DIR}/lib/${CHIP_VARIANT}/${MORSE_CPU_ARCH}/libmorse.a)
-set_target_properties(libmorse PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(libmorse PROPERTIES IMPORTED_LOCATION             ${MMIOT_ROOT}/framework/morselib/lib/${MORSE_CPU_ARCH}/libmorse.a)
+set_target_properties(libmorse PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LIBMORSE_INCLUDES}")
 
 target_compile_definitions(libmorse INTERFACE
   MMOSAL_NOASSERT

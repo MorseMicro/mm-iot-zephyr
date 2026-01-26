@@ -64,18 +64,20 @@ endfunction()
 
 
 set(bcf     ${CONFIG_WIFI_MORSE_BCF})
-if(NOT EXISTS ${BLOB_DIR}/firmware/${bcf})
+if(NOT EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm6108/bcfs/${bcf} AND
+   NOT EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf})
   message(FATAL_ERROR
   "Invalid BCF specified\n"
-  "File must be present in ${BLOB_DIR}/firmware/")
+  "File must be present in ${MMIOT_ROOT}/framework/morsefirmware/")
   return()
 endif()
 
 
 add_library(firmware INTERFACE)
-add_mbin(firmware ${BLOB_DIR}/firmware/${bcf} bcf)
 if(CONFIG_DT_HAS_MORSE_MM8108_ENABLED)
-  add_mbin(firmware ${BLOB_DIR}/firmware/mm8108b2-rl.mbin firmware)
+  add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108b2-rl.mbin firmware)
+  add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf} bcf)
 else()
-  add_mbin(firmware ${BLOB_DIR}/firmware/mm6108.mbin firmware)
+  add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm6108.mbin firmware)
+  add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm6108/bcfs/${bcf} bcf)
 endif()

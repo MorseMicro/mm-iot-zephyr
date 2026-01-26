@@ -1,6 +1,7 @@
 # Copyright 2024 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 set(BLOB_DIR ${ZEPHYR_CURRENT_MODULE_DIR}/zephyr/blobs)
+set(MMIOT_ROOT ${ZEPHYR_CURRENT_MODULE_DIR}/submodules/mm-iot-sdk)
 
 add_subdirectory_ifdef(CONFIG_SPI_STM32        drivers/spi)
 

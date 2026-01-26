@@ -12,6 +12,16 @@ if(CONFIG_WIFI_MORSE_SM)
     return()
   endif()
 
+  if(CONFIG_DT_HAS_MORSE_MM8108_ENABLED)
+    zephyr_compile_definitions(
+      -DMMHAL_CHIP_TYPE=mmhal_mm8108
+    )
+  else()
+    zephyr_compile_definitions(
+      -DMMHAL_CHIP_TYPE=mmhal_mm6108
+    )
+  endif()
+
   zephyr_library_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
   )

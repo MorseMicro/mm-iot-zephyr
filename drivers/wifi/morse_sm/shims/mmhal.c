@@ -99,3 +99,11 @@ uint32_t mmhal_get_deep_sleep_veto(void)
 {
 	return deep_sleep_vetos;
 }
+
+const struct mmhal_chip *mmhal_get_chip(void)
+{
+	/* This is a define that is set by the build system in the platform-xxx.mk file to select
+	 * the Morse chip type. See the API documentation for mmhal_get_chip() for more information.
+	 */
+	return &MMHAL_CHIP_TYPE;
+}
