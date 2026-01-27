@@ -18,6 +18,7 @@ menuconfig WIFI_MORSE_SM
 	select CRC
 	select FPU if CPU_CORTEX_M33 || CPU_CORTEX_M7
 	select THREAD_ABORT_HOOK
+	select ENTROPY_GENERATOR
 
 if WIFI_MORSE_SM
 
@@ -62,5 +63,9 @@ config HEAP_MEM_POOL_ADD_SIZE_MORSE
 config NET_MGMT_EVENT_STACK_SIZE
 	int
 	default 2048
+
+config NET_SOCKETS
+	bool
+	default y
 
 endif

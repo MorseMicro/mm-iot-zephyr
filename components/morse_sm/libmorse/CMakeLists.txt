@@ -1,31 +1,119 @@
 # Copyright 2024 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-if(CONFIG_CPU_CORTEX_M33)
-  set(MORSE_CPU_ARCH     arm-cortex-m33f)
-elseif(CONFIG_CPU_CORTEX_M7)
-  set(MORSE_CPU_ARCH     arm-cortex-m7f)
-elseif(CONFIG_CPU_CORTEX_M4)
-  set(MORSE_CPU_ARCH     arm-cortex-m4f)
-endif()
-
-find_library(LIBMORSE_FOUND "morse" HINTS "${MMIOT_ROOT}/framework/morselib/lib/${MORSE_CPU_ARCH}/")
-
-if(NOT LIBMORSE_FOUND)
-  message(FATAL_ERROR
-  "Morse Micro driver library not found.\n"
-  "Run the command below to download the necessary files:\n"
-  "> west blobs fetch morsemicro")
-  return()
-endif()
-
+zephyr_library_named(libmorse)
+zephyr_library_sources(
+  ${MMIOT_ROOT}/framework/morselib/mmrc/src/core/mmrc.c
+  ${MMIOT_ROOT}/framework/morselib/src/common/mac_address.c
+  ${MMIOT_ROOT}/framework/morselib/src/common/mmpkt.c
+  ${MMIOT_ROOT}/framework/morselib/src/common/mmpkt_list.c
+  ${MMIOT_ROOT}/framework/morselib/src/dot11/dot11_utils.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ap/umac_ap.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ate/umac_ate.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ba/umac_ba.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/connection/umac_connection.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/config/umac_config.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/core/umac_core.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/core/umac_evtloop.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/core/umac_evtq.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/core/umac_timeout.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/data/umac_data.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/data/umac_sta_data.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/datapath/datapath_defrag.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/datapath/umac_datapath.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/datapath/umac_datapath_ap.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/action.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/association.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/authentication.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/deauthentication.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/disassociation.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/frame_constructor.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/probe_request.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/probe_response.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/utils.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/aid_request.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/twt_ie.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/s1g_capabilities.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/s1g_operation.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/s1g_tim.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/ies_common.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/wmm.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/morse_ie.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/interface/umac_interface.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/keys/connection_keys.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/keys/umac_keys.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ps/umac_ps.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/rc/mmrc_osal/mmrc_osal.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/rc/umac_rc.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/regdb/umac_regdb.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/scan/umac_scan.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/scan/hw_scan.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/stats/umac_stats.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/bip.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/ccmp.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/config.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/driver.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/driver_ap.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/eloop.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/morse_dpp_event.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/random.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/supplicant_core.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/supplicant_core_ap.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/twt/umac_twt.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/umac.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/umac_mmdrv_shim.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/wnm_sleep/umac_wnm_sleep.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/offload/umac_offload.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm6108/mm6108.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm6108/pager_if_hw.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm6108/pager_if.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm6108/pageset.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm8108/mm8108.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm8108/yaps-hw.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm8108/yaps.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/beacon/beacon.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/driver.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/driver_task.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/health/driver_health.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/puff/puff.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_crc/morse_crc.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/command.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/event.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/ext_host_table.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/firmware.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/firmware_mbin.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/hw.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/ps.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/skbq.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/transport/sdio.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/transport/sdio_spi.c
+  ${MMIOT_ROOT}/framework/morselib/src/emmet/emmet_stubs.c
+)
 
 list(APPEND LIBMORSE_INCLUDES "${MMIOT_ROOT}/framework/morselib/include" "${CMAKE_CURRENT_SOURCE_DIR}/include")
-add_library(libmorse STATIC IMPORTED GLOBAL)
-set_target_properties(libmorse PROPERTIES IMPORTED_LOCATION             ${MMIOT_ROOT}/framework/morselib/lib/${MORSE_CPU_ARCH}/libmorse.a)
+zephyr_include_directories(
+  ${LIBMORSE_INCLUDES}
+  ${MMIOT_ROOT}/framework/morselib/src/
+  ${MMIOT_ROOT}/framework/morselib/src/internal
+  ${MMIOT_ROOT}/framework/morselib/src/emmet
+  ${MMIOT_ROOT}/framework/morselib/src/umac/rc/mmrc_osal
+  ${MMIOT_ROOT}/framework/morselib/mmrc/src/core
+)
+
+zephyr_library_compile_definitions(
+  LOOKAROUND_FAIL_MAX=50
+  MMOSAL_ASSERT\(...\)
+  MMOSAL_ASSERT_LOG_DATA\(...\)
+  MMOSAL_NO_DEBUGLOG
+)
+
 set_target_properties(libmorse PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LIBMORSE_INCLUDES}")
 
-target_compile_definitions(libmorse INTERFACE
+target_compile_definitions(
+  ${ZEPHYR_CURRENT_LIBRARY} INTERFACE
   MMOSAL_NOASSERT
   MMOSAL_NO_DEBUGLOG
 )
+
+zephyr_library_add_dependencies(mmhostap)
+zephyr_library_link_libraries(mmhostap)
