@@ -9,13 +9,17 @@ config WIFI_PSK
     string "Password of the AP we want to connect to"
     default "12345678"
 
-config SERVER_PORT_1
-	int "Open UDP port on the remote server"
+config SERVER_PORT_BASE
+	int "Open UDP port number on the remote server"
 	default 4242
 
-config SERVER_PORT_2
-	int "Open UDP port on the remote server"
-	default 4243
+config N_SERVERS
+	int "Number of open UDP ports on the server. Increments SERVER_PORT_BASE (e.g. 4242, 4243, 4244, ..., 4251)"
+	default 10
+
+config NUM_PKTS
+	int "Number of UDP packets to send"
+	default 32
 
 source "Kconfig.zephyr"
 

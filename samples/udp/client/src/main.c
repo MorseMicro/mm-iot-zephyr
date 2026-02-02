@@ -9,8 +9,6 @@ int main(void)
 {
 	int sock = 0;
 	struct sockaddr_in servers[N_SERVERS];
-	uint16_t ports[N_SERVERS] = {SERVER_PORT_1, SERVER_PORT_2};
-	int attempts = 0;
 	int rc = 0;
 
 	init_net_mgmt();
@@ -34,15 +32,25 @@ int main(void)
 
 	for (int i = 0; i < N_SERVERS; i++) {
 		servers[i].sin_family = AF_INET;
-		servers[i].sin_port = htons(ports[i]);
+		servers[i].sin_port = htons(SERVER_PORT_BASE + i);
 		inet_pton(AF_INET, SERVER_ADDR, &servers[i].sin_addr);
 	}
 
-	while (attempts++ < 10) {
+	for (int i = 0; i < NUM_PKTS; i++) {
 		const char *msg = "Hello from Zephyr\n";
 		int ret = sendto(sock, msg, strlen(msg), 0,
-				 (struct sockaddr *)&servers[attempts % N_SERVERS],
-				 sizeof(servers[attempts % N_SERVERS]));
+				 (struct sockaddr *)&servers[i % (N_SERVERS)],
+				 sizeof(servers[i % (N_SERVERS)]));
+
+		if (ret < 0) {
+			LOG_ERR("sendto failed (%d)", errno);
+		} else {
+			LOG_INF("Sent UDP packet");
+		}
+
+		/* Constantly send to connection 0 to keep it in LRU cache */
+		ret = sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&servers[0],
+			     sizeof(servers[0]));
 
 		if (ret < 0) {
 			LOG_ERR("sendto failed (%d)", errno);
