@@ -1,0 +1,20 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: mm6108_ekh05/stm32u585xx/sdio
+name: Morse Micro MM6108-EKH05 Evaluation Kit (SDIO)
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 786
+flash: 2048
+supported:
+  - counter
+  - gpio
+  - pwm
+  - watchdog
+  - ble
+  - wifi
+vendor: morsemicro

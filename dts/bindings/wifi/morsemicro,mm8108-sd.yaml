@@ -1,0 +1,11 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: Morse Micro Wi-Fi HaLow SoftMAC peripheral via an MM8108 on a SDIO bus
+
+compatible: morsemicro,mm8108
+
+on-bus: sd
+
+include:
+  - morsemicro,sm-sd.yaml

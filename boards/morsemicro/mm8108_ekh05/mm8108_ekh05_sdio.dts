@@ -1,0 +1,31 @@
+/*
+ * Copyright 2025-2026 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include "mm8108_ekh05_common.dtsi"
+
+&sdmmc2 {
+	status = "okay";
+	compatible = "st,stm32-sdio";
+	pinctrl-0 = <&sdmmc2_cmd_pd7 &sdmmc2_ck_pd6
+		     &sdmmc2_d0_pb14 &sdmmc2_d1_pb15
+		     &sdmmc2_d2_pb3 &sdmmc2_d3_pb4
+		     &mm8108_busy_pb5>;
+	pinctrl-names = "default";
+	bus-width = <4>;
+	max-bus-freq = <DT_FREQ_M(50)>;
+	interrupt-names = "event";
+
+	morsemicro_wifi_sdio: wifi {
+		status = "okay";
+		compatible = "morsemicro,mm8108";
+
+		bcf = "bcf_mf15457.mbin";
+		busy-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
+		wakeup-gpios = <&gpiod 0 GPIO_ACTIVE_HIGH>;
+		resetn-gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;
+	};
+};
