@@ -32,6 +32,7 @@
 };
 
 &spi2 {
+	compatible = "st,stm32-stm32h7-spi", "st,stm32-fifo-spi", "st,stm32-spi";
 	status = "okay";
 	pinctrl-0 = <&spi2_sck_pd1 &spi2_miso_pd3 &spi2_mosi_pd4>;
 	pinctrl-names = "default";

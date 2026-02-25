@@ -23,6 +23,9 @@ union morsemicro_bus_config {
 		struct spi_dt_spec spi;
 		struct gpio_dt_spec spi_irq;
 	};
+	struct {
+		const struct device *sdio;
+	};
 };
 
 struct morsemicro_bus_ops {
@@ -78,6 +81,7 @@ struct morsemicro_data {
 
 extern struct morsemicro_config *morsemicro_config0;
 extern const struct morsemicro_bus_ops morsemicro_bus_ops_spi;
+extern const struct morsemicro_bus_ops morsemicro_bus_ops_sdio;
 
 /**
  * @brief net_if callback for the netif init.
@@ -213,6 +217,11 @@ static inline int mmwlan_err_to_errno(enum mmwlan_status status)
 		.spi_irq = GPIO_DT_SPEC_INST_GET(inst, spi_irq_gpios),                             \
 	}
 
+#define MORSEMICRO_SDIO_BUS_CONFIG(inst)                                                           \
+	{                                                                                          \
+		.sdio = DEVICE_DT_GET(DT_INST_PARENT(inst)),                                       \
+	}
+
 #define MORSEMICRO_NETIF(inst, chip)                                                               \
 	NET_DEVICE_DT_INST_DEFINE(inst, morsemicro_init, PM_DEVICE_DT_INST_GET(inst),              \
 				  &chip##_data##inst, &chip##_config##inst,                        \
@@ -240,15 +249,20 @@ static inline int mmwlan_err_to_errno(enum mmwlan_status status)
 		 MORSEMICRO_AP_NETIF(inst, chip)))
 
 #define MORSEMICRO_BUS_CONFIG(inst)                                                                \
-	{COND_CODE_1(DT_INST_ON_BUS(inst, spi),                                                    \
+	COND_CODE_1(DT_INST_ON_BUS(inst, spi),                                                     \
 				(MORSEMICRO_SPI_BUS_CONFIG(inst)),                                 \
-				({})                                                               \
-		    ) }
+				(COND_CODE_1(DT_INST_ON_BUS(inst, sd),                             \
+					(MORSEMICRO_SDIO_BUS_CONFIG(inst)),                        \
+					({})                                                       \
+				)))
 
 #define MORSEMICRO_BUS_OPS(inst)                                                                   \
 	COND_CODE_1(DT_INST_ON_BUS(inst, spi),                                                     \
 				(&morsemicro_bus_ops_spi),                                         \
-				(NULL))
+				(COND_CODE_1(DT_INST_ON_BUS(inst, sd),                             \
+					(&morsemicro_bus_ops_sdio),                                \
+					(NULL)                                                     \
+				)))
 
 #define MORSEMICRO_GPIO_ASSERT(inst, chip)                                                         \
 	BUILD_ASSERT(!DT_INST_NODE_HAS_PROP(inst, wakeup_gpios) ==                                 \

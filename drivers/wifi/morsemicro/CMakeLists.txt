@@ -14,11 +14,18 @@ zephyr_library_sources(
   ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal_wlan_binaries.c
   ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmosal.c
   ${CMAKE_CURRENT_SOURCE_DIR}/common.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_spi.c
   ${CMAKE_CURRENT_SOURCE_DIR}/net_mgmt.c
   ${CMAKE_CURRENT_SOURCE_DIR}/wifi_mgmt.c
   ${CMAKE_CURRENT_SOURCE_DIR}/mm6108.c
   ${CMAKE_CURRENT_SOURCE_DIR}/mm8108.c
+)
+
+zephyr_library_sources_ifdef(
+  CONFIG_WIFI_MORSEMICRO_BUS_SPI ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_spi.c
+)
+
+zephyr_library_sources_ifdef(
+  CONFIG_WIFI_MORSEMICRO_BUS_SDIO ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_sdio.c
 )
 
 zephyr_library_sources_ifdef(

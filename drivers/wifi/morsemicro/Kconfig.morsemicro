@@ -28,14 +28,23 @@ menu "Components"
 	rsource "../../../components/morsemicro/mmpktmem/Kconfig"
 endmenu
 
-choice WIFI_MORSEMICRO
-	bool "Select BUS interface"
-	default WIFI_MORSEMICRO_BUS_SPI
-
+# Need these invisible KConfigs because on_bus functions aren't available from the CMake context
 config WIFI_MORSEMICRO_BUS_SPI
-	bool "SPI Bus interface"
+	bool
+	default $(dt_compat_on_bus,$(DT_COMPAT_MORSEMICRO_MM6108),spi) || \
+		$(dt_compat_on_bus,$(DT_COMPAT_MORSEMICRO_MM8108),spi)
 	select SPI
-endchoice
+
+config WIFI_MORSEMICRO_BUS_SDIO
+	bool
+	default $(dt_compat_on_bus,$(DT_COMPAT_MORSEMICRO_MM6108),sd) || \
+		$(dt_compat_on_bus,$(DT_COMPAT_MORSEMICRO_MM8108),sd)
+	select SDIO_STACK
+
+# The Morse device sits as a child of the SDHC controller on the SDIO bus, so it must
+# initialize after it (SDHC_INIT_PRIORITY defaults to 85).
+config WIFI_INIT_PRIORITY
+	default 86 if WIFI_MORSEMICRO_BUS_SDIO
 
 config WIFI_MORSEMICRO_POWERSAVE
 	bool
