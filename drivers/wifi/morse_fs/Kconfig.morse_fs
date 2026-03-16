@@ -1,10 +1,8 @@
 # Copyright 2025 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-menu "Network Drivers / Morse FS Offload"
-
-config WIFI_MORSE_FS
-	bool "Morse FS Network Offload Driver"
+menuconfig WIFI_MORSE_FS
+	bool "Morse Micro HaLow Wi-Fi support"
 	select NETWORKING
 	select NET_OFFLOAD
 	select THREAD_STACK_INFO
@@ -30,8 +28,6 @@ config WIFI_MORSE_FS
       Enable FS networking offload via the Morse FS hardware/firmware.
 
 	depends on DT_HAS_MORSEMICRO_FS_ENABLED
-
-endmenu
 
 if WIFI_MORSE_FS
 
