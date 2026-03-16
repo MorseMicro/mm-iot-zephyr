@@ -1,4 +1,9 @@
 # Copyright 2024,2025 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
-rsource "spi/Kconfig"
-rsource "wifi/Kconfig"
+menu "Wi-Fi Drivers"
+	rsource "wifi/Kconfig"
+endmenu
+
+menu "Bus Drivers"
+	rsource "spi/Kconfig"
+endmenu
