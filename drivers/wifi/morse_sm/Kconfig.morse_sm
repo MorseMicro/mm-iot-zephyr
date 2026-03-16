@@ -67,17 +67,18 @@ config WIFI_MORSE_TEST
 	  the hardware configuration, this configuration will disable the
 	  registration of the Morse Micro device as a Zephyr network interface.
 
-config HEAP_MEM_POOL_ADD_SIZE_MORSE
-	int
-	default 65536
-
 config WIFI_MORSE_EXT_XTAL_INIT
 	bool "Enable external crystal initialisation"
 	default n
+	depends on DT_HAS_MORSE_MM6108_ENABLED
 	help
 	 For modules which drive the MM6108 with an external crystal, extra
 	 initialisation is required. This configuration implements the necessary
 	 hook to support this initialisation.
+
+config HEAP_MEM_POOL_ADD_SIZE_MORSE
+	int
+	default 65536
 
 config NET_MGMT_EVENT_STACK_SIZE
 	int
