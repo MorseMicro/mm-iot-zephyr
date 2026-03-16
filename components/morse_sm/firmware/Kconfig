@@ -1,0 +1,13 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Firmware"
+
+config WIFI_MORSE_BCF
+	string "Board Configuration File"
+	default "bcf_mf08651_us.mbin"
+	help
+	  Specifies the filename for the bcf. This file must be present
+	  in the MM-IoT-SDK firmware directory: submodules/mm-iot-sdk/framework/morsefirmware/{MM_CHIP}/bcf
+
+endmenu

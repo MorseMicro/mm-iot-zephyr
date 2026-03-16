@@ -21,6 +21,13 @@ menuconfig WIFI_MORSE_SM
 
 if WIFI_MORSE_SM
 
+menu "Components"
+	rsource "../../../components/morse_sm/firmware/Kconfig"
+	rsource "../../../components/morse_sm/regdb/Kconfig"
+	rsource "../../../components/morse_sm/mmpktmem/Kconfig"
+	rsource "../../../components/morse_sm/hostap/Kconfig"
+endmenu
+
 choice WIFI_MORSE_BUS
 	bool "Select BUS interface"
 	default WIFI_MORSE_BUS_SPI
@@ -30,34 +37,6 @@ config WIFI_MORSE_BUS_SPI
 	select SPI
 
 endchoice
-
-config WIFI_MORSE_REGION
-	string "Device regulatory domain"
-	default "AU"
-	help
-	  Specifies the regulatory domain for which to operate the device.
-	  Must be one of AU, EU, IN, JP, KR, NZ, SG, US.
-
-config WIFI_MORSE_BCF
-	string "Board Calibration File"
-	default "bcf_mf08651_us.mbin"
-	help
-	  Specifies the filename for the bcf. This file must be present
-	  in the Morse Micro firmware blobs directory: zephyr/blobs/firmware/
-
-menu "Morse Micro Packet Memory Configuration"
-	config MMPKTMEM_TX_POOL_N_BLOCKS
-		int "TX queue blocks"
-		default 32
-		help
-			Number of blocks allocated for the transmit queue
-
-	config MMPKTMEM_RX_POOL_N_BLOCKS
-		int "RX queue blocks"
-		default 32
-		help
-			Number of blocks allocated for the receive queue
-endmenu
 
 config WIFI_MORSE_TEST
 	bool "Morse Micro device test driver"

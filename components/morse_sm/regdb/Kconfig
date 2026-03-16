@@ -1,0 +1,29 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Regulatory Database"
+
+config WIFI_MORSE_REGION
+	string "Device regulatory domain"
+	default "AU"
+	help
+	  Specifies the regulatory domain for which to operate the device.
+	  Must be one of AU, EU, IN, JP, KR, NZ, SG, US.
+
+choice WIFI_MORSE_AU_CHANNELISATION
+	prompt "Australian channelisation configuration"
+	default WIFI_MORSE_AU_CHANNELISATION_REVMF
+	help
+		Australia's channelisation rules for 802.11ah changed in the 2024
+		version of the 802.11 standard. Additionally, there is a proposal for
+		2028 which includes better positioned 8 MHz channels.
+
+	config WIFI_MORSE_AU_CHANNELISATION_2020
+		bool "802.11-2020"
+	config WIFI_MORSE_AU_CHANNELISATION_2024
+		bool "802.11-2024"
+	config WIFI_MORSE_AU_CHANNELISATION_REVMF
+		bool "802.11-revmf"
+endchoice
+
+endmenu

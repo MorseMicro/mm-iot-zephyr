@@ -1,0 +1,16 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Packet Memory Configuration"
+	config MMPKTMEM_TX_POOL_N_BLOCKS
+		int "TX queue blocks"
+		default 32
+		help
+			Number of blocks allocated for the transmit queue
+
+	config MMPKTMEM_RX_POOL_N_BLOCKS
+		int "RX queue blocks"
+		default 32
+		help
+			Number of blocks allocated for the receive queue
+endmenu

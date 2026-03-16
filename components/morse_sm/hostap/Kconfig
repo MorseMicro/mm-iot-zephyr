@@ -1,0 +1,15 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+config MBEDTLS
+	bool
+	default y
+
+config CUSTOM_MBEDTLS_CFG_FILE
+	default y
+
+config MBEDTLS_CFG_FILE
+	default "morse_mbedtls_config.h"
+
+config MBEDTLS_ZEPHYR_ENTROPY
+	default y
