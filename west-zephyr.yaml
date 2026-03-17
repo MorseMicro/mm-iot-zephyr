@@ -5,6 +5,7 @@ manifest:
       url: https://github.com/zephyrproject-rtos/zephyr
       west-commands: scripts/west-commands.yml
       import: true
+      submodules: true
 
   self:
     path: modules/lib/morsemicro
