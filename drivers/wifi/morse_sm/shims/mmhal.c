@@ -8,6 +8,7 @@
 #include <zephyr/random/random.h>
 #include <zephyr/drivers/hwinfo.h>
 #include <zephyr/sys/crc.h>
+#include <zephyr/net/ethernet.h>
 #include <stdatomic.h>
 #include <zephyr/sys/reboot.h>
 #include <zephyr/pm/device.h>
@@ -62,6 +63,9 @@ static uint32_t mmhal_read_device_uid(void)
 void mmhal_read_mac_addr(uint8_t *mac_addr)
 {
 	uint32_t uid = mmhal_read_device_uid();
+
+	if(net_eth_is_addr_valid((struct net_addr *) mac_addr))
+		return;
 
 	mac_addr[0] = 0x02;
 	mac_addr[1] = 0x00;
