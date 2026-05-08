@@ -4,6 +4,7 @@
 zephyr_library_named(mmhostap) # to avoid namespacing conflicts with zephyrs hostap
 zephyr_library_sources(
   ${MMIOT_ROOT}/framework/src/hostap/drivers_morse.c
+  ${MMIOT_ROOT}/framework/src/hostap/morse_stubs.c
   ${MMIOT_ROOT}/framework/src/hostap/os_mmosal.c
   ${MMIOT_ROOT}/framework/src/hostap/src/common/dragonfly.c
   ${MMIOT_ROOT}/framework/src/hostap/src/common/hw_features_common.c
@@ -11,6 +12,8 @@ zephyr_library_sources(
   ${MMIOT_ROOT}/framework/src/hostap/src/common/ptksa_cache.c
   ${MMIOT_ROOT}/framework/src/hostap/src/common/sae.c
   ${MMIOT_ROOT}/framework/src/hostap/src/common/wpa_common.c
+  ${MMIOT_ROOT}/framework/src/hostap/src/crypto/aes-ctr.c
+  ${MMIOT_ROOT}/framework/src/hostap/src/crypto/aes-siv.c
   ${MMIOT_ROOT}/framework/src/hostap/src/crypto/aes-unwrap.c
   ${MMIOT_ROOT}/framework/src/hostap/src/crypto/dh_groups.c
   ${MMIOT_ROOT}/framework/src/hostap/src/crypto/sha256-kdf.c
@@ -83,6 +86,7 @@ set(BUILD_DEFINES
   CONFIG_NO_VLAN=1
   CONFIG_WNM=1
   CONFIG_IEEE80211AH=1
+  CONFIG_DRIVER_NL80211_MORSE=1
   CONFIG_NO_CONFIG_WRITE=1
   OS_NO_C_LIB_DEFINES=1
   CONFIG_BGSCAN=1

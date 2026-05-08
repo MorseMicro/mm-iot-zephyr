@@ -4,6 +4,8 @@
 zephyr_library_named(libmorse)
 zephyr_library_sources(
   ${MMIOT_ROOT}/framework/morselib/mmrc/src/core/mmrc.c
+  ${MMIOT_ROOT}/framework/morselib/src/common/common.c
+  ${MMIOT_ROOT}/framework/morselib/src/common/consbuf.c
   ${MMIOT_ROOT}/framework/morselib/src/common/mac_address.c
   ${MMIOT_ROOT}/framework/morselib/src/common/mmpkt.c
   ${MMIOT_ROOT}/framework/morselib/src/common/mmpkt_list.c
@@ -22,7 +24,9 @@ zephyr_library_sources(
   ${MMIOT_ROOT}/framework/morselib/src/umac/datapath/datapath_defrag.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/datapath/umac_datapath.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/datapath/umac_datapath_ap.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/datapath/umac_datapath_sta.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/frames/action.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/frames/s1g_action.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/frames/association.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/frames/authentication.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/frames/deauthentication.c
@@ -31,7 +35,9 @@ zephyr_library_sources(
   ${MMIOT_ROOT}/framework/morselib/src/umac/frames/probe_request.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/frames/probe_response.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/frames/utils.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/health_check/umac_health_check.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/ies/aid_request.c
+  ${MMIOT_ROOT}/framework/morselib/src/umac/ies/reachable_address.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/ies/twt_ie.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/ies/s1g_capabilities.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/ies/s1g_operation.c
@@ -63,7 +69,6 @@ zephyr_library_sources(
   ${MMIOT_ROOT}/framework/morselib/src/umac/umac.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/umac_mmdrv_shim.c
   ${MMIOT_ROOT}/framework/morselib/src/umac/wnm_sleep/umac_wnm_sleep.c
-  ${MMIOT_ROOT}/framework/morselib/src/umac/offload/umac_offload.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm6108/mm6108.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm6108/pager_if_hw.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/mm6108/pager_if.c
@@ -74,10 +79,10 @@ zephyr_library_sources(
   ${MMIOT_ROOT}/framework/morselib/src/driver/beacon/beacon.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/driver.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/driver_task.c
-  ${MMIOT_ROOT}/framework/morselib/src/driver/health/driver_health.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/puff/puff.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_crc/morse_crc.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/command.c
+  ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/coredump.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/event.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/ext_host_table.c
   ${MMIOT_ROOT}/framework/morselib/src/driver/morse_driver/firmware.c
