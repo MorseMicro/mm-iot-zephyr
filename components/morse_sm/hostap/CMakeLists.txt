@@ -111,5 +111,5 @@ target_compile_definitions(
 
 zephyr_library_compile_options(-w)
 
-zephyr_library_add_dependencies(mbedTLS)
-zephyr_library_link_libraries(mbedTLS)
+zephyr_library_add_dependencies(mmmbedtls)
+target_link_libraries(${ZEPHYR_CURRENT_LIBRARY} PRIVATE mmmbedtls)

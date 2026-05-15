@@ -26,7 +26,6 @@ menu "Components"
 	rsource "../../../components/morse_sm/firmware/Kconfig"
 	rsource "../../../components/morse_sm/regdb/Kconfig"
 	rsource "../../../components/morse_sm/mmpktmem/Kconfig"
-	rsource "../../../components/morse_sm/hostap/Kconfig"
 endmenu
 
 choice WIFI_MORSE_BUS
