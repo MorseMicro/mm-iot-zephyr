@@ -109,5 +109,7 @@ target_compile_definitions(
   ${BUILD_DEFINES}
 )
 
+zephyr_library_compile_options(-w)
+
 zephyr_library_add_dependencies(mbedTLS)
 zephyr_library_link_libraries(mbedTLS)

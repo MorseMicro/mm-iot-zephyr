@@ -120,5 +120,7 @@ target_compile_definitions(
   MMOSAL_NO_DEBUGLOG
 )
 
+zephyr_library_compile_options(-w)
+
 zephyr_library_add_dependencies(mmhostap)
 zephyr_library_link_libraries(mmhostap)
