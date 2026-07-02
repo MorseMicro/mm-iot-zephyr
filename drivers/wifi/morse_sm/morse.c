@@ -465,6 +465,8 @@ static void morse_iface_init(struct net_if *iface)
 	memcpy(&morse->sta_args, &init_args, sizeof(struct mmwlan_sta_args));
 }
 
+#ifdef CONFIG_PM
+
 static int morse_pm_action(const struct device *dev, enum pm_device_action action)
 {
 	ARG_UNUSED(dev);
@@ -481,6 +483,8 @@ static int morse_pm_action(const struct device *dev, enum pm_device_action actio
 	}
 	return 0;
 }
+
+#endif
 
 static int morse_init(const struct device *dev)
 {
@@ -561,7 +565,10 @@ struct morse_config conf = {
 
 #ifndef CONFIG_WIFI_MORSE_TEST
 
+#ifdef CONFIG_PM_DEVICE
 PM_DEVICE_DT_INST_DEFINE(0, morse_pm_action);
+#endif
+
 NET_DEVICE_DT_INST_DEFINE(0, morse_init, PM_DEVICE_DT_INST_GET(0), &morse_data0, &conf,
 			  CONFIG_WIFI_INIT_PRIORITY, &morse_api, ETHERNET_L2,
 			  NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
