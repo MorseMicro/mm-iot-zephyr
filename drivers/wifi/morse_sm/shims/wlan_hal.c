@@ -121,7 +121,7 @@ void mmhal_wlan_spi_write_buf(const uint8_t *buf, unsigned len)
 
 void mmhal_wlan_send_training_seq(void)
 {
-	const struct morse_config *cfg = morse_config0;
+	struct morse_config *cfg = morse_config0;
 	const struct device *spi = cfg->spi.bus;
 	struct gpio_dt_spec *cs_gpio = &cfg->spi.config.cs.gpio;
 	struct spi_config spi_cfg = cfg->spi.config;

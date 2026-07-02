@@ -548,7 +548,7 @@ static const struct net_wifi_mgmt_offload morse_api = {
 	.wifi_mgmt_api = &morse_mgmt_api,
 };
 
-const struct morse_config conf = {
+struct morse_config conf = {
 	.spi = SPI_DT_SPEC_INST_GET(0,
 				    (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
 				     SPI_WORD_SET(SPI_FRAME_BITS)),
@@ -575,4 +575,4 @@ DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, POST_KERNEL,
 
 #endif /* CONFIG_WIFI_MORSE_TEST */
 
-const struct morse_config *morse_config0 = &conf;
+struct morse_config *morse_config0 = &conf;
