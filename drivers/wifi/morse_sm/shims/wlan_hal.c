@@ -107,7 +107,7 @@ void mmhal_wlan_spi_write_buf(const uint8_t *buf, unsigned len)
 	const struct spi_config *spi_cfg = &cfg->spi.config;
 	int ret = 0;
 
-	struct spi_buf tx_bufs[] = {{.buf = buf, .len = len}};
+	struct spi_buf tx_bufs[] = {{.buf = (void *)buf, .len = len}};
 
 	const struct spi_buf_set tx = {
 		.buffers = tx_bufs,
