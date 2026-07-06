@@ -42,8 +42,8 @@ static struct mqtt_subscription_list sub_list = {
 	.message_id = 1,
 };
 
-static void wifi_mgmt_event(struct net_mgmt_event_callback *cb, uint32_t mgmt_event,
-                            struct net_if *iface)
+static void wifi_mgmt_event(struct net_mgmt_event_callback *cb, uint64_t mgmt_event,
+			    struct net_if *iface)
 {
 	if (mgmt_event == NET_EVENT_WIFI_CONNECT_RESULT) {
 		const struct wifi_status *status = (const struct wifi_status *)cb->info;
@@ -113,8 +113,8 @@ int wifi_disconnect_blocking(void)
 	return rc;
 }
 
-static void ipv4_event_handler(struct net_mgmt_event_callback *cb, uint32_t mgmt_event,
-                               struct net_if *iface)
+static void ipv4_event_handler(struct net_mgmt_event_callback *cb, uint64_t mgmt_event,
+			       struct net_if *iface)
 {
 	ARG_UNUSED(cb);
 	ARG_UNUSED(iface);
@@ -259,7 +259,7 @@ int init_mqtt()
 
 	if (!atomic_get(&mqtt_is_connected)) {
 		LOG_ERR("MQTT connect timeout");
-		(void)mqtt_disconnect(&client);
+		(void)mqtt_disconnect(&client, NULL);
 		return rc;
 	}
 	return 0;
