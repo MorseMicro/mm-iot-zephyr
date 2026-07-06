@@ -1,5 +1,0 @@
-board:
-  name: m2m_u575
-  vendor: morsemicro
-  socs:
-    - name: stm32u575xx
