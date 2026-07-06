@@ -85,15 +85,6 @@ We also support the following Morse Micro shields:
 - `morse_mmech08`
 - `morse_mmech18`
 
-## Driver Architecture
-
-The drivers and their components are organized in separate trees:
-
-- `morse_sm`: SoftMAC driver
-- `morse_fs`: FS driver (3-chip mockup)
-
-This separation allows independent development and integration of SoftMAC and FS features.
-
 ## Build and Run Porting Assistant Test Application
 
 Build and execute `porting_assistant`

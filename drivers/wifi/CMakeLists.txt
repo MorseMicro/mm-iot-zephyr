@@ -2,4 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_subdirectory(morse_sm)
-add_subdirectory(morse_fs)
