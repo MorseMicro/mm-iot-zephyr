@@ -120,7 +120,16 @@ target_compile_definitions(
   MMOSAL_NO_DEBUGLOG
 )
 
-zephyr_library_compile_options(-w)
+if(CONFIG_PICOLIBC)
+	target_compile_options(libmorse PRIVATE
+	  -include ${CMAKE_CURRENT_SOURCE_DIR}/ffs_compat.h
+	)
+endif()
+
+
+zephyr_library_compile_options(
+	-w
+)
 
 zephyr_library_add_dependencies(mmhostap)
 zephyr_library_link_libraries(mmhostap)
