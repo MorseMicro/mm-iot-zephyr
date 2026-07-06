@@ -10,8 +10,8 @@
  #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/dt-bindings/dma/stm32_dma.h>
 / {
-	model = "Morse Micro EKH05 V3 Evaluation Kit";
-	compatible = "morsemicro,mm6108-ekh05-v3";
+	model = "Morse Micro MM6108-EKH05 Evaluation Kit";
+	compatible = "morsemicro,mm6108-ekh05";
 
 	chosen {
 		zephyr,console = &lpuart1;

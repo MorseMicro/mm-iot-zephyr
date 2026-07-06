@@ -1,9 +1,9 @@
-# Morse Micro MM6108 EKH05 V3 Evaluation Kit
+# Morse Micro MM6108-EKH05 Evaluation Kit
 
 # Copyright 2025 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-if BOARD_MM6108_EKH05_V3
+if BOARD_MM6108_EKH05
 
 
 config SPI
@@ -42,4 +42,4 @@ config WIFI_MORSE_SM
 	select NETWORKING
 
 
-endif # BOARD_MM6108_EKH05_V3
+endif # BOARD_MM6108_EKH05

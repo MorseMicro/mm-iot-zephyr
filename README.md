@@ -76,7 +76,7 @@ This repository supports multiple Morse Micro development boards and shields.
 ### Development Boards
 We currently support the following Morse Micro development boards:
 
-- `mm6108_ekh05_v3`
+- `mm6108_ekh05`
 - `mm8108_ekh05`
 
 ### Shields
@@ -127,10 +127,10 @@ west twister -T modules/lib/morsemicro/samples --device-testing -W --hardware-ma
 ```
 
 ## Device Power Management
-Host device power management can be validated with the mm6108_ekh05_v3 and mm8108_ekh05 platforms. Projects requiring device power management can leverage these hooks by compiling against the `pm` variant:
+Host device power management can be validated with the mm6108_ekh05 and mm8108_ekh05 platforms. Projects requiring device power management can leverage these hooks by compiling against the `pm` variant:
 
 ```
-west build -b mm6108_ekh05_v3/stm32u585xx/pm .
+west build -b mm6108_ekh05/stm32u585xx/pm .
 ```
 
 or

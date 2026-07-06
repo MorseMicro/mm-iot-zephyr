@@ -1,0 +1,13 @@
+board:
+  name: mm6108_ekh05
+  full_name: Morse Micro MM6108-EKH05
+  vendor: morsemicro
+  revision:
+    format: custom
+    default: "v3"
+    revisions:
+      - name: "v3"
+  socs:
+    - name: stm32u585xx
+      variants:
+        - name: 'pm'

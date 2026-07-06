@@ -1,5 +1,5 @@
-identifier: mm6108_ekh05_v3
-name: Morse Micro MM6108 EKH05 V3 Evaluation Kit
+identifier: mm6108_ekh05
+name: Morse Micro MM6108-EKH05 Evaluation Kit
 type: mcu
 arch: arm
 toolchain:

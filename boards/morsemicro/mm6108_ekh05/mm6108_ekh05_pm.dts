@@ -5,7 +5,7 @@
  */
 
 /dts-v1/;
-#include "mm6108_ekh05_v3.dts"
+#include "mm6108_ekh05.dts"
 
 &lpuart1 {
 	status = "disabled";

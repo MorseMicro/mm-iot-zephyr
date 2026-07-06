@@ -1,7 +1,7 @@
 tests:
   porting_assistant.run:
     platform_allow:
-      - mm6108_ekh05_v3
+      - mm6108_ekh05
       - mm8108_ekh05
     build_only: false
     build_on_all: false
