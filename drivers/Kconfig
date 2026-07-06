@@ -3,7 +3,3 @@
 menu "Wi-Fi Drivers"
 	rsource "wifi/Kconfig"
 endmenu
-
-menu "Bus Drivers"
-	rsource "spi/Kconfig"
-endmenu
