@@ -1,5 +1,6 @@
 board:
   name: mm8108_ekh05
+  full_name: Morse Micro MM8108-EKH05
   vendor: morsemicro
   socs:
     - name: stm32u585xx

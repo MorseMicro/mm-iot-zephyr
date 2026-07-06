@@ -1,5 +1,6 @@
 board:
   name: mm6108_ekh05_v3
+  full_name: Morse Micro 6108 EKH 05 V3
   vendor: morsemicro
   socs:
     - name: stm32u585xx
