@@ -227,7 +227,7 @@ stm32_lp_tick_source: &lptim1 {
 
 	morse_wifi_spi: morse@0 {
 		status = "okay";
-		compatible = "morse,mm8108";
+		compatible = "morsemicro,mm8108";
 		spi-max-frequency = <50000000>;
 		reg = <0>;
 

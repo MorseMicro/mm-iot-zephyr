@@ -74,7 +74,7 @@ endif()
 
 
 add_library(firmware INTERFACE)
-if(CONFIG_DT_HAS_MORSE_MM8108_ENABLED)
+if(CONFIG_DT_HAS_MORSEMICRO_MM8108_SM_ENABLED)
   add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108b2-rl.mbin firmware)
   add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf} bcf)
 else()

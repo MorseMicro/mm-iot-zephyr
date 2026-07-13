@@ -5,7 +5,7 @@ if(CONFIG_WIFI_MORSE_SM)
 
   list(APPEND REGIONS "AU" "EU" "IN" "JP" "KR" "NZ" "SG" "US")
 
-  if(CONFIG_DT_HAS_MORSE_MM8108_ENABLED)
+  if(CONFIG_DT_HAS_MORSEMICRO_MM8108_SM_ENABLED)
     zephyr_compile_definitions(
       -DMMHAL_CHIP_TYPE=mmhal_mm8108
     )

@@ -1,8 +1,0 @@
-# Copyright 2025 Morse Micro
-# SPDX-License-Identifier: Apache-2.0
-
-description: Morse Micro MM8108 module
-
-compatible: "morse,mm8108"
-
-include: morse,spi.yaml

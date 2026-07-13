@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Morse Micro
+ * Copyright 2024-2026 Morse Micro
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,7 +11,7 @@
 
 	morse_wifi_arduino_spi: morse@0 {
 		status = "okay";
-		compatible = "morse,mm6108";
+		compatible = "morsemicro,mm6108";
 		spi-max-frequency = <50000000>;
 		reg = <0>;
 

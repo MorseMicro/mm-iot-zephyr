@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Morse Micro
+ * Copyright 2024-2026 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -24,10 +24,10 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "mmutils.h"
 #include "mmhal.h"
 
-#if CONFIG_DT_HAS_MORSE_MM8108_ENABLED
-#define DT_DRV_COMPAT morse_mm8108
+#if CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED
+#define DT_DRV_COMPAT morsemicro_mm8108
 #else
-#define DT_DRV_COMPAT morse_mm6108
+#define DT_DRV_COMPAT morsemicro_mm6108
 #endif
 
 #define SPI_FRAME_BITS 8
