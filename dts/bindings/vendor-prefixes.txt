@@ -1,1 +1,1 @@
-morse	Morse Micro Pty. Ltd.
+morsemicro	Morse Micro Pty. Ltd.

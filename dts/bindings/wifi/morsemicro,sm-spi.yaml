@@ -1,0 +1,15 @@
+# Copyright 2024-2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: Morse Micro Wi-Fi HaLow Soft MAC peripheral on a SPI bus
+
+include:
+  - morsemicro,sm.yaml
+  - spi-device.yaml
+
+properties:
+
+  spi-irq-gpios:
+    type: phandle-array
+    required: true
+    description: Additional IRQ line for the SPI bus.

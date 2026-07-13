@@ -1,0 +1,18 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: Morse Micro Wi-Fi HaLow Soft MAC peripheral
+
+properties:
+
+  resetn-gpios:
+    type: phandle-array
+    description: Logic low pin for resetting the chip.
+
+  wakeup-gpios:
+    type: phandle-array
+    description: Line for communicating when the host has data for the chip.
+
+  busy-gpios:
+    type: phandle-array
+    description: Line for communicating when chip has data for the host.

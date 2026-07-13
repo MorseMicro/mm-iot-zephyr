@@ -1,0 +1,11 @@
+# Copyright 2024-2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: Morse Micro Wi-Fi HaLow Soft MAC peripheral via an MM6108 on a SPI bus
+
+compatible: morsemicro,mm6108
+
+on-bus: spi
+
+include:
+  - morsemicro,sm-spi.yaml
