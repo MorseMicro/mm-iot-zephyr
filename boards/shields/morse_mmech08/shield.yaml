@@ -1,0 +1,9 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+shield:
+  name: morsemicro_mmech08
+  full_name: Morse Micro MM6108 SM via the Arduino pin matrix
+  vendor: morsemicro
+  supported_features:
+    - wifi
