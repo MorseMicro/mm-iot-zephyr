@@ -5,6 +5,11 @@ description: Morse Micro Wi-Fi HaLow SoftMAC peripheral
 
 properties:
 
+  bcf:
+    type: string
+    required: true
+    description: String representing the name of a BCF in mm-iot-sdk/framework/morsefirmware
+
   resetn-gpios:
     type: phandle-array
     required: true

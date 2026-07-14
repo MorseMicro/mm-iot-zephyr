@@ -3,6 +3,3 @@
 
 config WIFI_MORSE_SM
 	default y if SHIELD_MORSE_MMECH18
-
-config WIFI_MORSE_BCF
-	default "bcf_mf15457.mbin" if SHIELD_MORSE_MMECH18

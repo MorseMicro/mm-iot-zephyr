@@ -231,6 +231,7 @@ stm32_lp_tick_source: &lptim1 {
 		spi-max-frequency = <50000000>;
 		reg = <0>;
 
+		bcf = "bcf_mf15457.mbin";
 		busy-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
 		wakeup-gpios = <&gpiod 0 GPIO_ACTIVE_HIGH>;
 		resetn-gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;

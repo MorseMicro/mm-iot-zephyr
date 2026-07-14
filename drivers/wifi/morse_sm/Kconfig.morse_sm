@@ -23,7 +23,6 @@ menuconfig WIFI_MORSE_SM
 if WIFI_MORSE_SM
 
 menu "Components"
-	rsource "../../../components/morse_sm/firmware/Kconfig"
 	rsource "../../../components/morse_sm/regdb/Kconfig"
 	rsource "../../../components/morse_sm/mmpktmem/Kconfig"
 endmenu

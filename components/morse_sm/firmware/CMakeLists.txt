@@ -63,7 +63,13 @@ function(add_mbin library fw section)
 endfunction()
 
 
-set(bcf     ${CONFIG_WIFI_MORSE_BCF})
+if(CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED)
+  dt_comp_path(morse_sm_path COMPATIBLE "morsemicro,mm8108" INDEX 0)
+else()
+  dt_comp_path(morse_sm_path COMPATIBLE "morsemicro,mm6108" INDEX 0)
+endif()
+dt_prop(bcf PATH "${morse_sm_path}" PROPERTY "bcf" REQUIRED)
+
 if(NOT EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm6108/bcfs/${bcf} AND
    NOT EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf})
   message(FATAL_ERROR
@@ -74,7 +80,7 @@ endif()
 
 
 add_library(firmware INTERFACE)
-if(CONFIG_DT_HAS_MORSEMICRO_MM8108_SM_ENABLED)
+if(CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED)
   add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108b2-rl.mbin firmware)
   add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf} bcf)
 else()

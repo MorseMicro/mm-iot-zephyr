@@ -15,6 +15,7 @@
 		spi-max-frequency = <50000000>;
 		reg = <0>;
 
+		bcf = "bcf_mf15457.mbin";
 		busy-gpios = <&arduino_header 2 GPIO_ACTIVE_HIGH>;
 		wakeup-gpios = <&arduino_header 1 GPIO_ACTIVE_HIGH>;
 		resetn-gpios = <&arduino_header 0 GPIO_ACTIVE_LOW>;

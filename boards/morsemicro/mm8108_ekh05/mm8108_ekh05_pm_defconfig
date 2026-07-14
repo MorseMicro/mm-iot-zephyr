@@ -25,5 +25,3 @@ CONFIG_NET_LOG=n
 
 # enable pin controller
 CONFIG_PINCTRL=y
-
-CONFIG_WIFI_MORSE_BCF="bcf_mf15457.mbin"
