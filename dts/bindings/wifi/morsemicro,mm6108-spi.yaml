@@ -9,3 +9,4 @@ on-bus: spi
 
 include:
   - morsemicro,sm-spi.yaml
+  - morsemicro,mm6108.yaml

@@ -1,0 +1,11 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+description: Morse Micro Wi-Fi HaLow MM6108 chip
+
+properties:
+
+  external-crystal-init:
+    type: boolean
+    required: false
+    description: Flag for when the board/module has an external crystal requiring special initialzation

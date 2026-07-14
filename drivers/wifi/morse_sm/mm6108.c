@@ -9,7 +9,7 @@
 #include "morse.h"
 #include "mmhal.h"
 
-#if defined(CONFIG_WIFI_MORSE_EXT_XTAL_INIT) && CONFIG_WIFI_MORSE_EXT_XTAL_INIT
+#if DT_INST_PROP(0, external_crystal_init)
 bool mmhal_wlan_ext_xtal_init_is_required(void)
 {
 	return true;
