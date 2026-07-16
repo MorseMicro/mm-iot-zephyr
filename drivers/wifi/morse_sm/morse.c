@@ -233,7 +233,7 @@ static int morse_mgmt_disconnect(const struct device *dev)
 		return mmwlan_err_to_errno(status);
 	}
 
-	wifi_mgmt_raise_disconnect_result_event(morse->iface, WIFI_REASON_DISCONN_SUCCESS);
+	wifi_mgmt_raise_disconnect_result_event(morse->iface, WIFI_REASON_DISCONN_USER_REQUEST);
 	return 0;
 }
 
@@ -365,7 +365,8 @@ static void mmnetif_link_state(enum mmwlan_link_state link_state, void *arg)
 	if (link_state == MMWLAN_LINK_DOWN) {
 		net_if_dormant_on(morse->iface);
 		if (morse->status == WIFI_STATE_INACTIVE) {
-			wifi_mgmt_raise_connect_result_event(morse->iface, WIFI_STATUS_CONN_FAIL);
+			wifi_mgmt_raise_disconnect_result_event(morse->iface,
+								WIFI_REASON_DISCONN_UNSPECIFIED);
 		}
 		morse->status = WIFI_STATE_INACTIVE;
 	} else {
