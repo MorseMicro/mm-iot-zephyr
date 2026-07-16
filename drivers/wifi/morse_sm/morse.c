@@ -178,9 +178,15 @@ static int morse_mgmt_connect(const struct device *dev, struct wifi_connect_req_
 	sta_args->ssid_len = ssid_len;
 
 	if (params->security == WIFI_SECURITY_TYPE_SAE) {
-		size_t psk_len = MIN(sizeof(sta_args->passphrase), params->psk_length);
-		memcpy(sta_args->passphrase, params->psk, psk_len);
-		sta_args->passphrase_len = params->psk_length;
+		const uint8_t *psk = params->sae_password ? params->sae_password : params->psk;
+		uint8_t psk_len = psk == params->sae_password ? params->sae_password_length
+							      : params->psk_length;
+		if (psk == params->psk) {
+			LOG_WRN("WPA2 PSK is not supported. Upgrading to WPA3 SAE.");
+		}
+		psk_len = MIN(sizeof(sta_args->passphrase), psk_len);
+		memcpy(sta_args->passphrase, psk, psk_len);
+		sta_args->passphrase_len = psk_len;
 		sta_args->security_type = MMWLAN_SAE;
 	} else if (params->security == WIFI_SECURITY_TYPE_NONE) {
 		sta_args->security_type = MMWLAN_OPEN;
