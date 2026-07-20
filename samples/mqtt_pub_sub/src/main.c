@@ -20,7 +20,7 @@
 
 #include "mqtt.h"
 
-LOG_MODULE_REGISTER(alpha_testing, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(mqtt_pub_sub, LOG_LEVEL_INF);
 
 extern struct mqtt_client client;
 

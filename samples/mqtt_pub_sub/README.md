@@ -1,8 +1,6 @@
-# Alpha Testing
+# MQTT Pub/Sub
 
-This sample application tests the minimum basic requirements for the Alpha port
-of the SoftMAC driver.
-It tests:
+This sample application that tests:
 * Wi-Fi Connect
 * Wi-Fi Disconnect
 * TCP ops via:

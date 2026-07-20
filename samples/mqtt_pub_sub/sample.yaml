@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 tests:
-  alpha_testing.run:
+  mqtt_pub_sub.run:
     platform_allow:
       - mm6108_ekh05
       - mm8108_ekh05
@@ -22,7 +22,7 @@ tests:
     tags:
       - wifi
       - morse
-  alpha_testing.run.shield:
+  mqtt_pub_sub.run.shield:
     platform_allow:
       - nucleo_u575zi_q
     build_only: false

@@ -6,7 +6,7 @@
 
 #include "mqtt.h"
 
-LOG_MODULE_REGISTER(alpha_testing_NETWORKING);
+LOG_MODULE_REGISTER(mqtt_pub_sub_NETWORKING);
 
 static K_SEM_DEFINE(wifi_conn_sem, 0, 1);
 static K_SEM_DEFINE(wifi_disconn_sem, 0, 1);
@@ -69,8 +69,8 @@ int wifi_connect_blocking(void)
 	}
 
 	net_mgmt_init_event_callback(&wifi_cb, wifi_mgmt_event,
-	                             NET_EVENT_WIFI_CONNECT_RESULT |
-	                                     NET_EVENT_WIFI_DISCONNECT_RESULT);
+				     NET_EVENT_WIFI_CONNECT_RESULT |
+					     NET_EVENT_WIFI_DISCONNECT_RESULT);
 	net_mgmt_add_event_callback(&wifi_cb);
 
 	struct wifi_connect_req_params cp = {0};
@@ -149,7 +149,7 @@ static void process_resp(struct mqtt_client *const c, const struct mqtt_evt *evt
 {
 	const struct mqtt_publish_param *p = &evt->param.publish;
 	LOG_INF("Received message on topic %.*s", evt->param.publish.message.topic.topic.size,
-	        evt->param.publish.message.topic.topic.utf8);
+		evt->param.publish.message.topic.topic.utf8);
 	if (p->message.payload.len > BUFFER_SIZE) {
 		LOG_WRN("Payload too big, truncating");
 	}
