@@ -12,7 +12,6 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <string.h>
 #include <errno.h>
 #include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/spi.h>
 #include <zephyr/net/conn_mgr/connectivity_wifi_mgmt.h>
 #include <zephyr/net/wifi_mgmt.h>
 #include <zephyr/pm/device.h>
@@ -36,7 +35,6 @@ struct morse_data morse_data0;
 const struct device *morse_dev;
 
 extern void morse_busy_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
-extern void morse_spi_irq_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 extern uint32_t mmhal_get_deep_sleep_veto(void);
 extern volatile uint32_t mmhal_spi_irq_poll_interval;
 
@@ -71,11 +69,6 @@ static int morse_init(const struct device *dev)
 	morse->status = WIFI_STATE_DISCONNECTED;
 	LOG_DBG("");
 
-	if (!spi_is_ready_dt(&cfg->spi)) {
-		LOG_ERR("SPI bus %s not ready", cfg->spi.bus->name);
-		return -ENODEV;
-	}
-
 	if (!gpio_is_ready_dt(&cfg->resetn)) {
 		LOG_ERR("%s: device %s is not ready", dev->name, cfg->resetn.port->name);
 		return -ENODEV;
@@ -94,23 +87,12 @@ static int morse_init(const struct device *dev)
 	}
 	gpio_pin_configure_dt(&cfg->busy, GPIO_INPUT);
 
-	if (!gpio_is_ready_dt(&cfg->spi_irq)) {
-		LOG_ERR("%s: device %s is not ready", dev->name, cfg->spi_irq.port->name);
-		return -ENODEV;
-	}
-	gpio_pin_configure_dt(&cfg->spi_irq, GPIO_INPUT | GPIO_PULL_UP);
-
 	gpio_pin_interrupt_configure_dt(&cfg->busy, GPIO_INT_DISABLE);
 
 	gpio_init_callback(&morse->busy_cb, morse_busy_cb, BIT(cfg->busy.pin));
 	gpio_add_callback(cfg->busy.port, &morse->busy_cb);
 
-	gpio_pin_interrupt_configure_dt(&cfg->spi_irq, GPIO_INT_DISABLE);
-
-	gpio_init_callback(&morse->spi_irq_cb, morse_spi_irq_cb, BIT(cfg->spi_irq.pin));
-	gpio_add_callback(cfg->spi_irq.port, &morse->spi_irq_cb);
-
-	return 0;
+	return morsemicro_bus_ops_spi.init(dev);
 }
 
 struct morse_config conf = {

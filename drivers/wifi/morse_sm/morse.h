@@ -34,7 +34,6 @@ struct morse_data {
 
 	scan_result_cb_t scan_cb;
 	struct gpio_callback busy_cb;
-	struct gpio_callback spi_irq_cb;
 
 	uint8_t mac_addr[6];
 	struct mmwlan_version version;
@@ -47,6 +46,11 @@ struct morse_data {
 
 extern struct morse_config *morse_config0;
 extern struct morse_data morse_data0;
+extern const struct morsemicro_bus_ops morsemicro_bus_ops_spi;
+
+struct morsemicro_bus_ops {
+	const int (*init)(const struct device *dev);
+};
 
 extern const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops;
 extern const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ops;

@@ -35,6 +35,7 @@ if(CONFIG_WIFI_MORSE_SM)
     ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmosal_shim_zephyr.c
     ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/morse.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_spi.c
     ${CMAKE_CURRENT_SOURCE_DIR}/net_mgmt.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wifi_mgmt.c
   )
