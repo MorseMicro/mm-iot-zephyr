@@ -20,6 +20,8 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 static struct gpio_callback spi_irq_gpio_cb;
 static mmhal_irq_handler_t spi_irq_handler = NULL;
 
+static union morsemicro_bus_config bus_config;
+
 static const uint8_t training_sequence[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 					    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -43,9 +45,8 @@ void mmhal_wlan_spi_cs_deassert(void)
 
 uint8_t mmhal_wlan_spi_rw(uint8_t data)
 {
-	const struct morse_config *cfg = morse_config0;
-	const struct device *spi = cfg->spi.bus;
-	const struct spi_config *spi_cfg = &cfg->spi.config;
+	const struct device *spi = bus_config.spi.bus;
+	const struct spi_config *spi_cfg = &bus_config.spi.config;
 	int ret = 0;
 	uint8_t read_val = 0;
 
@@ -72,9 +73,8 @@ uint8_t mmhal_wlan_spi_rw(uint8_t data)
 
 void mmhal_wlan_spi_read_buf(uint8_t *buf, unsigned len)
 {
-	const struct morse_config *cfg = morse_config0;
-	const struct device *spi = cfg->spi.bus;
-	const struct spi_config *spi_cfg = &cfg->spi.config;
+	const struct device *spi = bus_config.spi.bus;
+	const struct spi_config *spi_cfg = &bus_config.spi.config;
 	int ret = 0;
 
 	struct spi_buf rx_bufs[] = {{.buf = buf, .len = len}};
@@ -91,9 +91,8 @@ void mmhal_wlan_spi_read_buf(uint8_t *buf, unsigned len)
 
 void mmhal_wlan_spi_write_buf(const uint8_t *buf, unsigned len)
 {
-	const struct morse_config *cfg = morse_config0;
-	const struct device *spi = cfg->spi.bus;
-	const struct spi_config *spi_cfg = &cfg->spi.config;
+	const struct device *spi = bus_config.spi.bus;
+	const struct spi_config *spi_cfg = &bus_config.spi.config;
 	int ret = 0;
 
 	struct spi_buf tx_bufs[] = {{.buf = (void *)buf, .len = len}};
@@ -110,10 +109,9 @@ void mmhal_wlan_spi_write_buf(const uint8_t *buf, unsigned len)
 
 void mmhal_wlan_send_training_seq(void)
 {
-	struct morse_config *cfg = morse_config0;
-	const struct device *spi = cfg->spi.bus;
-	struct gpio_dt_spec *cs_gpio = &cfg->spi.config.cs.gpio;
-	struct spi_config spi_cfg = cfg->spi.config;
+	const struct device *spi = bus_config.spi.bus;
+	struct gpio_dt_spec *cs_gpio = &bus_config.spi.config.cs.gpio;
+	struct spi_config spi_cfg = bus_config.spi.config;
 	gpio_flags_t flags = GPIO_OUTPUT_INACTIVE;
 	int ret = 0;
 
@@ -161,10 +159,8 @@ void mmhal_wlan_register_spi_irq_handler(mmhal_irq_handler_t handler)
 
 bool mmhal_wlan_spi_irq_is_asserted(void)
 {
-	const struct morse_config *cfg = morse_config0;
-	const struct gpio_dt_spec *gpio_dt = &cfg->spi_irq;
 	int ret = 0;
-	if ((ret = gpio_pin_get_dt(gpio_dt)) < 0) {
+	if ((ret = gpio_pin_get_dt(&bus_config.spi_irq)) < 0) {
 		LOG_ERR("Unhandled exception %d in %s\n", ret, __func__);
 		return false;
 	}
@@ -173,8 +169,6 @@ bool mmhal_wlan_spi_irq_is_asserted(void)
 
 void mmhal_wlan_set_spi_irq_enabled(bool enabled)
 {
-	const struct morse_config *cfg = morse_config0;
-
 	if (enabled) {
 		/* The transiver will hold the IRQ line low if there is additional information
 		 * to be retrived. Ideally the interrupt pin would be configured as a low level
@@ -185,30 +179,30 @@ void mmhal_wlan_set_spi_irq_enabled(bool enabled)
 				spi_irq_handler();
 			}
 		}
-		gpio_pin_interrupt_configure_dt(&cfg->spi_irq, GPIO_INT_EDGE_TO_ACTIVE);
+		gpio_pin_interrupt_configure_dt(&bus_config.spi_irq, GPIO_INT_EDGE_TO_ACTIVE);
 	} else {
-		gpio_pin_interrupt_configure_dt(&cfg->spi_irq, GPIO_INT_DISABLE);
+		gpio_pin_interrupt_configure_dt(&bus_config.spi_irq, GPIO_INT_DISABLE);
 	}
 }
 
 int morse_bus_init(const struct device *dev)
 {
-	const struct morse_config *cfg = dev->config;
+	bus_config = ((const struct morse_config *)dev->config)->bus_config;
 
-	if (!spi_is_ready_dt(&cfg->spi)) {
-		LOG_ERR("SPI bus %s not ready", cfg->spi.bus->name);
+	if (!spi_is_ready_dt(&bus_config.spi)) {
+		LOG_ERR("SPI bus %s not ready", bus_config.spi.bus->name);
 		return -ENODEV;
 	}
 
-	if (!gpio_is_ready_dt(&cfg->spi_irq)) {
-		LOG_ERR("%s: device %s is not ready", dev->name, cfg->spi_irq.port->name);
+	if (!gpio_is_ready_dt(&bus_config.spi_irq)) {
+		LOG_ERR("%s: device %s is not ready", dev->name, bus_config.spi_irq.port->name);
 		return -ENODEV;
 	}
-	gpio_pin_configure_dt(&cfg->spi_irq, GPIO_INPUT | GPIO_PULL_UP);
-	gpio_pin_interrupt_configure_dt(&cfg->spi_irq, GPIO_INT_DISABLE);
+	gpio_pin_configure_dt(&bus_config.spi_irq, GPIO_INPUT | GPIO_PULL_UP);
+	gpio_pin_interrupt_configure_dt(&bus_config.spi_irq, GPIO_INT_DISABLE);
 
-	gpio_init_callback(&spi_irq_gpio_cb, morse_spi_irq_cb, BIT(cfg->spi_irq.pin));
-	gpio_add_callback(cfg->spi_irq.port, &spi_irq_gpio_cb);
+	gpio_init_callback(&spi_irq_gpio_cb, morse_spi_irq_cb, BIT(bus_config.spi_irq.pin));
+	gpio_add_callback(bus_config.spi_irq.port, &spi_irq_gpio_cb);
 
 	return 0;
 }

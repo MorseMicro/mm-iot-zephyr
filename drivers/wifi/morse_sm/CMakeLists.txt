@@ -5,15 +5,8 @@ if(CONFIG_WIFI_MORSE_SM)
 
   list(APPEND REGIONS "AU" "EU" "IN" "JP" "KR" "NZ" "SG" "US")
 
-  if(CONFIG_DT_HAS_MORSEMICRO_MM8108_SM_ENABLED)
-    zephyr_compile_definitions(
-      -DMMHAL_CHIP_TYPE=mmhal_mm8108
-    )
+  if(CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED)
     list(APPEND REGIONS "GB")
-  else()
-    zephyr_compile_definitions(
-      -DMMHAL_CHIP_TYPE=mmhal_mm6108
-    )
   endif()
 
   if(NOT CONFIG_WIFI_MORSE_REGION IN_LIST REGIONS)
@@ -38,7 +31,52 @@ if(CONFIG_WIFI_MORSE_SM)
     ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_spi.c
     ${CMAKE_CURRENT_SOURCE_DIR}/net_mgmt.c
     ${CMAKE_CURRENT_SOURCE_DIR}/wifi_mgmt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mm6108.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/mm8108.c
   )
+
+function(dt_count_compats output_var compatible)
+    dt_comp_path(nodes COMPATIBLE "${compatible}")
+
+    set(count 0)
+
+    foreach(node IN LISTS nodes)
+        dt_node_has_status(
+            node_is_okay
+            PATH "${node}"
+            STATUS "okay"
+        )
+
+        if(node_is_okay)
+            math(EXPR count "${count} + 1")
+        endif()
+    endforeach()
+
+    set(${output_var} "${count}" PARENT_SCOPE)
+endfunction()
+
+  dt_count_compats(MM6108 "morsemicro,mm6108")
+  dt_count_compats(MM8108 "morsemicro,mm8108")
+
+  if(MM6108 GREATER 1)
+      message(FATAL_ERROR
+          "morsemicro,mm6108: only one status-okay instance is supported; "
+          "found ${MM6108}"
+      )
+  endif()
+
+  if(MM8108 GREATER 1)
+      message(FATAL_ERROR
+          "morsemicro,mm8108: only one status-okay instance is supported; "
+          "found ${MM8108}"
+      )
+  endif()
+
+  if(MM6108 GREATER 0 AND MM8108 GREATER 0)
+      message(FATAL_ERROR
+          "morsemicro,mm6108 and morsemicro,mm8108 cannot both have status-okay instances"
+      )
+  endif()
 
   zephyr_library_add_dependencies(
     subsys__net

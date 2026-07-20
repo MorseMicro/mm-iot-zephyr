@@ -23,14 +23,6 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "mmutils.h"
 #include "mmhal.h"
 
-#if CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED
-#define DT_DRV_COMPAT morsemicro_mm8108
-#else
-#define DT_DRV_COMPAT morsemicro_mm6108
-#endif
-
-#define SPI_FRAME_BITS 8
-
 struct morse_data morse_data0;
 const struct device *morse_dev;
 
@@ -38,9 +30,7 @@ extern void morse_busy_cb(const struct device *dev, struct gpio_callback *cb, ui
 extern uint32_t mmhal_get_deep_sleep_veto(void);
 extern volatile uint32_t mmhal_spi_irq_poll_interval;
 
-#ifdef CONFIG_PM
-
-static int morse_pm_action(const struct device *dev, enum pm_device_action action)
+int morse_pm_action(const struct device *dev, enum pm_device_action action)
 {
 	ARG_UNUSED(dev);
 	switch (action) {
@@ -57,9 +47,7 @@ static int morse_pm_action(const struct device *dev, enum pm_device_action actio
 	return 0;
 }
 
-#endif
-
-static int morse_init(const struct device *dev)
+int morse_init(const struct device *dev)
 {
 	struct morse_data *morse = dev->data;
 	const struct morse_config *cfg = dev->config;
@@ -92,37 +80,10 @@ static int morse_init(const struct device *dev)
 	gpio_init_callback(&morse->busy_cb, morse_busy_cb, BIT(cfg->busy.pin));
 	gpio_add_callback(cfg->busy.port, &morse->busy_cb);
 
-	return morsemicro_bus_ops_spi.init(dev);
+	if (!cfg->bus_ops || !cfg->bus_ops->init) {
+		LOG_ERR("%s: no bus_init callback configured", dev->name);
+		return -ENOTSUP;
+	}
+
+	return cfg->bus_ops->init(dev);
 }
-
-struct morse_config conf = {
-	.spi = SPI_DT_SPEC_INST_GET(0,
-				    (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |
-				     SPI_WORD_SET(SPI_FRAME_BITS)),
-				    0),
-	.resetn = GPIO_DT_SPEC_INST_GET(0, resetn_gpios),
-	.wakeup = GPIO_DT_SPEC_INST_GET(0, wakeup_gpios),
-	.busy = GPIO_DT_SPEC_INST_GET(0, busy_gpios),
-	.spi_irq = GPIO_DT_SPEC_INST_GET(0, spi_irq_gpios),
-};
-
-#ifndef CONFIG_WIFI_MORSE_TEST
-
-#ifdef CONFIG_PM_DEVICE
-PM_DEVICE_DT_INST_DEFINE(0, morse_pm_action);
-#endif
-
-NET_DEVICE_DT_INST_DEFINE(0, morse_init, PM_DEVICE_DT_INST_GET(0), &morse_data0, &conf,
-			  CONFIG_WIFI_INIT_PRIORITY, &morsemicro_net_mgmt_ops, ETHERNET_L2,
-			  NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
-
-CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(0)));
-
-#else
-
-DEVICE_DT_INST_DEFINE(0, morse_init, NULL, &morse_data0, &conf, POST_KERNEL,
-		      CONFIG_WIFI_INIT_PRIORITY, NULL);
-
-#endif /* CONFIG_WIFI_MORSE_TEST */
-
-struct morse_config *morse_config0 = &conf;
