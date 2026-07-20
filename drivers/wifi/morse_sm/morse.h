@@ -1,11 +1,9 @@
 /*
- * Copyright 2024-2025 Morse Micro
+ * Copyright 2024-2026 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#ifndef ZEPHYR_DRIVERS_WIFI_MORSE_MORSE_H_
-#define ZEPHYR_DRIVERS_WIFI_MORSE_MORSE_H_
+#pragma once
 
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
@@ -50,6 +48,9 @@ struct morse_data {
 extern struct morse_config *morse_config0;
 extern struct morse_data morse_data0;
 
+extern const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops;
+extern const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ops;
+
 /**
  * @brief Create a mapping between mmwlan_status to generic error codes.
  *
@@ -82,5 +83,3 @@ static inline int mmwlan_err_to_errno(enum mmwlan_status status)
 		return -EIO;
 	}
 }
-
-#endif /* ZEPHYR_DRIVERS_WIFI_MORSE_MORSE_H_ */

@@ -1,4 +1,4 @@
-# Copyright 2024 Morse Micro
+# Copyright 2024-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
 if(CONFIG_WIFI_MORSE_SM)
@@ -35,6 +35,8 @@ if(CONFIG_WIFI_MORSE_SM)
     ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmosal_shim_zephyr.c
     ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/morse.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/net_mgmt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/wifi_mgmt.c
   )
 
   zephyr_library_add_dependencies(
