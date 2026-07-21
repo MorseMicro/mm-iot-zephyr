@@ -1,0 +1,33 @@
+# Copyright 2025-2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+config WIFI_SSID
+    string "Wi-Fi SSID of the AP we want to connect to"
+    default "MorseMicro"
+
+config WIFI_PSK
+    string "Password of the AP we want to connect to"
+    default "12345678"
+
+config TCP_SERVER_IP
+    string "TCP server IP address"
+    default "192.168.12.1"
+    help
+        IP of the TCP server receiving the 17-byte payloads.
+        Start a listener with: nc -lk <port>
+
+config TCP_SERVER_PORT
+    int "TCP server port"
+    default 9999
+    range 1 65535
+
+config TEST_DURATION
+    int "How long the test will run for (in milliseconds)"
+    default 600000 # 10 minutes
+    range 1000 2147483647 # 1 second -> 24 days
+
+config PAYLOAD_SIZE
+    int "How large TX payload is (in bytes)"
+    default 32
+
+source "Kconfig.zephyr"
