@@ -1,27 +1,43 @@
 image: ubuntu:24.04
 
+definitions:
+  steps:
+    - step: &check-todos
+        name: Check TODO Format
+        script:
+          - apt-get update -qq && apt-get install -y -qq python3 git
+
+          # Compute against merge base
+          - BASE=$(git merge-base HEAD origin/${BITBUCKET_PR_DESTINATION_BRANCH})
+
+          # Detect changed *.c and *.h files under subdirectory (drivers/ and samples/)
+          - git diff "$BASE" HEAD -- 'drivers/**/*.c' 'drivers/**/*.h' 'samples/**/*.c' 'samples/**/*.h' > todo.diff
+
+          - python3 scripts/ci/todo-checker.py -f todo.diff
+
+    - step: &clang-format-check
+        name: clang-format check
+        script:
+          - apt-get update -qq && apt-get install -y -qq clang-format-20 git
+
+          # Compute against merge base
+          - BASE=$(git merge-base HEAD origin/${BITBUCKET_PR_DESTINATION_BRANCH})
+
+          # Detect changed *.c and *.h files under subdirectory (drivers/ and samples/)
+          - FILES=$(git diff --name-only "$BASE" HEAD -- 'drivers/**/*.c' 'drivers/**/*.h' 'samples/**/*.c' 'samples/**/*.h')
+
+          - |
+            if [ -z "$FILES" ]; then
+              echo "No C/H file changes in target directories."
+              exit 0
+            fi
+
+          # Run git-clang-format in diff mode
+          - echo "Files to check:" && echo "$FILES"
+          - git-clang-format-20 --binary clang-format-20 --diff "$BASE" HEAD -- $FILES
+
 pipelines:
   pull-requests:
-   "**":
-      - step:
-          name: clang-format check
-          script:
-            # Install git-clang-format (if not in image)
-            - apt-get update && apt-get install -y clang-format-20 git
-
-            # Compute against merge base
-            - BASE=$(git merge-base HEAD origin/${BITBUCKET_PR_DESTINATION_BRANCH})
-
-            # Detect changed *.c and *.h files under subdirectory (drivers/ and samples/)
-            - FILES=$(git diff --name-only "$BASE" HEAD -- 'drivers/**/*.c' 'drivers/**/*.h' 'samples/**/*.c' 'samples/**/*.h')
-
-            - |
-              if [ -z "$FILES" ]; then
-                echo "No C/H file changes in target directory."
-                exit 0
-              fi
-
-            # Run git-clang-format in diff mode
-            - echo $FILES
-            - echo $BASE
-            - git-clang-format-20 --binary clang-format-20 --diff "$BASE" HEAD -- $FILES
+    "**":
+      - step: *check-todos
+      - step: *clang-format-check
