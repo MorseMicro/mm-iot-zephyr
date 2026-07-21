@@ -8,7 +8,7 @@ config WIFI_MORSE_REGION
 	default "AU"
 	help
 	  Specifies the regulatory domain for which to operate the device.
-	  Must be one of AU, EU, IN, JP, KR, NZ, SG, US.
+	  Must be one of AU, EU, GB (MM8108 ONLY), IN, JP, KR, NZ, SG, US.
 
 choice WIFI_MORSE_AU_CHANNELISATION
 	prompt "Australian channelisation configuration"

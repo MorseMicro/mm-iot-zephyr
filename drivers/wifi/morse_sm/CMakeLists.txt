@@ -4,23 +4,26 @@
 if(CONFIG_WIFI_MORSE_SM)
 
   list(APPEND REGIONS "AU" "EU" "IN" "JP" "KR" "NZ" "SG" "US")
-  if(NOT CONFIG_WIFI_MORSE_REGION IN_LIST REGIONS)
-    message(FATAL_ERROR
-    "Invalid region specified for regulatory domain\n"
-    "CONFIG_WIFI_MORSE_REGION must be one of:\n"
-    "AU, EU, IN, JP, KR, NZ, SG, US")
-    return()
-  endif()
 
   if(CONFIG_DT_HAS_MORSE_MM8108_ENABLED)
     zephyr_compile_definitions(
       -DMMHAL_CHIP_TYPE=mmhal_mm8108
     )
+    list(APPEND REGIONS "GB")
   else()
     zephyr_compile_definitions(
       -DMMHAL_CHIP_TYPE=mmhal_mm6108
     )
   endif()
+
+  if(NOT CONFIG_WIFI_MORSE_REGION IN_LIST REGIONS)
+    message(FATAL_ERROR
+    "Invalid region specified for regulatory domain\n"
+    "CONFIG_WIFI_MORSE_REGION must be one of:\n"
+    "AU, EU, GB (MM8108 ONLY), IN, JP, KR, NZ, SG, US")
+    return()
+  endif()
+
 
   zephyr_library_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
