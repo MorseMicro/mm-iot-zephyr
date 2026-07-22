@@ -64,26 +64,56 @@ endfunction()
 
 
 if(CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED)
+  set(morse_sm_chip mm8108)
   dt_comp_path(morse_sm_path COMPATIBLE "morsemicro,mm8108" INDEX 0)
 else()
+  set(morse_sm_chip mm6108)
   dt_comp_path(morse_sm_path COMPATIBLE "morsemicro,mm6108" INDEX 0)
 endif()
 dt_prop(bcf PATH "${morse_sm_path}" PROPERTY "bcf" REQUIRED)
 
-if(NOT EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm6108/bcfs/${bcf} AND
-   NOT EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf})
+if(EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm6108/bcfs/${bcf})
+  set(bcf_path ${MMIOT_ROOT}/framework/morsefirmware/mm6108/bcfs/${bcf})
+elseif(EXISTS ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf})
+  set(bcf_path ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf})
+else()
   message(FATAL_ERROR
   "Invalid BCF specified\n"
   "File must be present in ${MMIOT_ROOT}/framework/morsefirmware/")
   return()
 endif()
 
+# Regulatory regions support is dictated by the BCF
+# Also pass the chip to verify that it matches the BCF
+execute_process(
+  COMMAND ${PYTHON_EXECUTABLE} ${ZEPHYR_CURRENT_MODULE_DIR}/scripts/bcf_info.py
+    ${bcf_path}
+    --chip ${morse_sm_chip}
+  OUTPUT_VARIABLE REGIONS
+  ERROR_VARIABLE bcf_info_error
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE bcf_info_result
+)
+
+if(NOT bcf_info_result EQUAL 0)
+  message(FATAL_ERROR "${bcf_info_error}")
+  return()
+endif()
+
+if(NOT CONFIG_WIFI_MORSE_REGION STREQUAL "00" AND NOT CONFIG_WIFI_MORSE_REGION IN_LIST REGIONS)
+  string(REPLACE ";" ", " regions_str "${REGIONS}")
+  message(FATAL_ERROR
+  "Invalid/unsupported region specified for regulatory domain\n"
+  "CONFIG_WIFI_MORSE_REGION must be \"00\" (application configures region via wifi_mgmt) or one of"
+  "the regions supported by the bcf (${bcf}):\n"
+  "${regions_str}")
+  return()
+endif()
 
 add_library(firmware INTERFACE)
 if(CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED)
   add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108b2-rl.mbin firmware)
-  add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm8108/bcfs/${bcf} bcf)
 else()
   add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm6108.mbin firmware)
-  add_mbin(firmware ${MMIOT_ROOT}/framework/morsefirmware/mm6108/bcfs/${bcf} bcf)
 endif()
+add_mbin(firmware ${bcf_path} bcf)
