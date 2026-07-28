@@ -185,7 +185,7 @@ void mmhal_wlan_set_spi_irq_enabled(bool enabled)
 	}
 }
 
-int morse_bus_init(const struct device *dev)
+static int morse_bus_init(const struct device *dev)
 {
 	bus_config = ((const struct morse_config *)dev->config)->bus_config;
 
@@ -207,6 +207,18 @@ int morse_bus_init(const struct device *dev)
 	return 0;
 }
 
+static int morsemicro_bus_release()
+{
+	int ret = spi_release(bus_config.spi.bus, &bus_config.spi.config);
+
+	if (ret != 0) {
+		LOG_ERR("Failed to release SPI bus: %d", ret);
+	}
+
+	return ret;
+}
+
 const struct morsemicro_bus_ops morsemicro_bus_ops_spi = {
 	.init = morse_bus_init,
+	.release = morsemicro_bus_release,
 };

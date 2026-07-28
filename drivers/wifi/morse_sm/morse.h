@@ -27,6 +27,7 @@ union morsemicro_bus_config {
 
 struct morsemicro_bus_ops {
 	int (*init)(const struct device *dev);
+	int (*release)(void);
 };
 
 struct morse_config {

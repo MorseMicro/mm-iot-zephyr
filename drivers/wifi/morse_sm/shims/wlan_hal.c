@@ -45,6 +45,11 @@ void mmhal_wlan_deinit(void)
 	const struct morse_config *cfg = morse_config0;
 	const struct gpio_dt_spec *gpio_dt = &cfg->resetn;
 	int ret = 0;
+
+	if (cfg->bus_ops->release != NULL) {
+		cfg->bus_ops->release();
+	}
+
 	if ((ret = gpio_pin_set_dt(gpio_dt, 0)) < 0) {
 		LOG_ERR("Unhandled exception %d in %s\n", ret, __func__);
 	}
