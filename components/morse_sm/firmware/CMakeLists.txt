@@ -14,23 +14,6 @@ set(fw_paths
   "${MMFW_ROOT}/firmware"
 )
 
-function(generate_start_symbol filename output_variable)
-  string(REPLACE "/" "_" temp "${filename}")
-  string(REPLACE ":" "_" temp "${temp}")
-  string(REPLACE "-" "_" temp "${temp}")
-  string(REPLACE "." "_" temp "${temp}")
-  set(${output_variable} "_binary_${temp}_start" PARENT_SCOPE)
-endfunction()
-
-# Helper function to generate the _end symbol name
-function(generate_end_symbol filename output_variable)
-  string(REPLACE "/" "_" temp "${filename}")
-  string(REPLACE ":" "_" temp "${temp}")
-  string(REPLACE "-" "_" temp "${temp}")
-  string(REPLACE "." "_" temp "${temp}")
-  set(${output_variable} "_binary_${temp}_end" PARENT_SCOPE)
-endfunction()
-
 # search_paths is a CMake list (semicolon-separated) of directories to search in
 # the first path to contain a 'fuzzy' match is then used
 # if the file found is a bin instead of the required mbin it is then converted
@@ -121,32 +104,6 @@ function(find_mbin out_var file_name search_paths)
   set(${out_var} "${found}" PARENT_SCOPE)
 endfunction()
 
-function(embed_binary library target section)
-
-  generate_start_symbol(${target} section_start_symbol)
-  generate_end_symbol(${target} section_end_symbol)
-
-  get_filename_component(base_file ${target} NAME)
-  set(section_binary ${section}_binary)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.o
-    COMMAND
-    ${CMAKE_OBJCOPY}
-    -I binary
-    -O ${OUTPUT_FORMAT}
-    --redefine-sym ${section_start_symbol}=${section}_binary_start
-    --redefine-sym ${section_end_symbol}=${section}_binary_end
-    --rename-section .section=.rodata,contents,alloc,load,readonly,data
-    ${target}
-    ${base_file}.o
-    DEPENDS ${target}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  )
-  add_custom_target(${section_binary} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.o)
-  add_dependencies(${library} ${section_binary})
-  target_link_libraries(${library} INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/${base_file}.o)
-endfunction()
-
 if(CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED)
   set(chip_type mm8108)
   set(fw_file "mm8108b2-rl.mbin")
@@ -164,7 +121,7 @@ get_filename_component(bcf_name "${bcf}" NAME)
 find_mbin(fw "${fw_file}" "${fw_paths}")
 find_mbin(bcf "${bcf}" "${bcf_paths}")
 
-if(NOT fw)
+if(fw STREQUAL "")
   message(FATAL_ERROR
     "Morse Micro firmware for the ${chip_type} was not found\n"
     "Check that submodules exist and are up to date"
@@ -172,7 +129,7 @@ if(NOT fw)
   return ()
 endif()
 
-if(NOT bcf)
+if(bcf STREQUAL "")
   message(FATAL_ERROR
     "BCF (${bcf}) was not found\n"
     "Check that submodules exist and are up to date"
@@ -216,6 +173,20 @@ file(WRITE ${bcf_regions_path} "${bcf_regions_flat}")
 # Add the binary data
 
 add_library(firmware INTERFACE)
-embed_binary(firmware "${fw}" firmware)
-embed_binary(firmware "${bcf}" bcf)
-embed_binary(firmware "${bcf_regions_path}" bcf_regions)
+target_include_directories(firmware INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+generate_inc_file_for_target(
+  firmware
+  "${fw}"
+  "${CMAKE_CURRENT_BINARY_DIR}/morsemicro_firmware.inc"
+)
+generate_inc_file_for_target(
+  firmware
+  "${bcf}"
+  "${CMAKE_CURRENT_BINARY_DIR}/morsemicro_bcf.inc"
+)
+generate_inc_file_for_gen_target(
+  firmware
+  "${bcf_regions_path}"
+  "${CMAKE_CURRENT_BINARY_DIR}/morsemicro_bcf_regions.inc"
+  bcf
+)
