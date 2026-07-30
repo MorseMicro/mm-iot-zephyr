@@ -89,15 +89,21 @@ function(find_mbin out_var file_name search_paths)
     set(bin ${found})
     get_filename_component(base_file ${bin} NAME)
     set(conv ${CMAKE_CURRENT_BINARY_DIR}/${base}.mbin)
-    add_custom_command(
-      OUTPUT ${conv}
+    execute_process(
       COMMAND
+      ${PYTHON_EXECUTABLE}
       ${mbin_tool}
       -t 1,2:2
       -o ${conv}
       ${bin}
-      DEPENDS ${bin}
+      RESULT_VARIABLE convert_result
+      ERROR_VARIABLE convert_error
     )
+    if(NOT convert_result EQUAL 0 OR NOT EXISTS "${conv}")
+      message(FATAL_ERROR
+        "Failed to convert '${bin}' to mbin${convert_error}\n"
+      )
+    endif()
     set(found ${conv})
   endif()
 

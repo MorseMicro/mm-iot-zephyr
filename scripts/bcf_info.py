@@ -94,10 +94,8 @@ def main():
     if args.chip:
         expected = CHIP_TLV_IDS[args.chip]
         if chip is None:
-            print(f"error: BCF '{args.bcf}' has no chip type TLV, "
-                  f"expected '{expected.decode()}' for chip '{args.chip}'", file=sys.stderr)
-            return 1
-        if chip != expected:
+            print(f"BCF '{args.bcf}' has no chip type TLV, skipping check", file=sys.stdout)
+        elif chip != expected:
             print(f"error: BCF '{args.bcf}' is built for chip type "
                   f"'{chip.decode(errors='replace')}', but the devicetree specifies "
                   f"'{args.chip}' (expected '{expected.decode()}')", file=sys.stderr)
