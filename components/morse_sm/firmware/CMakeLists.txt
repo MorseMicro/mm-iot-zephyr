@@ -11,7 +11,6 @@ set(bcf_paths
 
 set(fw_paths
   "${MMIOT_ROOT}/framework/morsefirmware"
-  "${MMFW_ROOT}/firmware"
 )
 
 # search_paths is a CMake list (semicolon-separated) of directories to search in
@@ -110,6 +109,17 @@ function(find_mbin out_var file_name search_paths)
   set(${out_var} "${found}" PARENT_SCOPE)
 endfunction()
 
+function(compress_mbin input output)
+  add_custom_command(
+    OUTPUT "${output}"
+    COMMAND "${PYTHON_EXECUTABLE}"
+      "${ZEPHYR_CURRENT_MODULE_DIR}/scripts/compress-mbin.py"
+      -o "${output}" "${input}"
+    DEPENDS "${input}" "${ZEPHYR_CURRENT_MODULE_DIR}/scripts/compress-mbin.py"
+    VERBATIM
+  )
+endfunction()
+
 if(CONFIG_DT_HAS_MORSEMICRO_MM8108_ENABLED)
   set(chip_type mm8108)
   set(fw_file "mm8108b2-rl.mbin")
@@ -133,6 +143,13 @@ if(fw STREQUAL "")
     "Check that submodules exist and are up to date"
   )
   return ()
+endif()
+
+if(CONFIG_MORSEMICRO_COMPRESS_FIRMWARE)
+  set(fw_processed "${CMAKE_CURRENT_BINARY_DIR}/morsemicro_firmware_compressed.mbin")
+  compress_mbin("${fw}" "${fw_processed}")
+else()
+  set(fw_processed "${fw}")
 endif()
 
 if(bcf STREQUAL "")
@@ -180,9 +197,10 @@ file(WRITE ${bcf_regions_path} "${bcf_regions_flat}")
 
 add_library(firmware INTERFACE)
 target_include_directories(firmware INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+
 generate_inc_file_for_target(
   firmware
-  "${fw}"
+  "${fw_processed}"
   "${CMAKE_CURRENT_BINARY_DIR}/morsemicro_firmware.inc"
 )
 generate_inc_file_for_target(

@@ -57,4 +57,13 @@ config NET_SOCKETS
 	bool
 	default y
 
+config MORSEMICRO_COMPRESS_FIRMWARE
+	bool "Compress the Morse Micro chip firmware"
+	default y
+	help
+	  Compresses the firmware.
+	  This results in a substantial reduction in flash space usage.
+	  However this comes at the cost of additional time the Morse Micro
+	  chip takes to boot since the firmware then needs to be decompressed again.
+
 endif
