@@ -1,0 +1,15 @@
+identifier: mmecs03
+name: Morse Micro MMECS03 Demonstration Board
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 786
+flash: 2048
+supported:
+  - counter
+  - gpio
+  - watchdog
+  - wifi
+vendor: morsemicro

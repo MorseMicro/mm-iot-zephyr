@@ -1,0 +1,6 @@
+board:
+  name: mmecs03
+  full_name: Morse Micro MMECS03 Demonstration Board
+  vendor: morsemicro
+  socs:
+    - name: stm32u585xx
