@@ -105,52 +105,36 @@ static void mmnetif_link_state(enum mmwlan_link_state link_state, void *arg)
 	}
 }
 
-void morse_iface_init(struct net_if *iface)
+int morsemicro_wlan_start(struct net_if *iface, struct morse_data *morse, const char *country_code)
 {
 	enum mmwlan_status status;
 	const struct mmwlan_s1g_channel_list *channel_list;
-
 	struct mmwlan_boot_args boot_args = MMWLAN_BOOT_ARGS_INIT;
-	const struct device *dev = net_if_get_device(iface);
-	struct morse_data *morse = dev->data;
-	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
+	struct mmwlan_sta_args init_args = MMWLAN_STA_ARGS_INIT;
 
-	if (morse->iface) {
-		return;
-	}
-
-	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
-	morse->iface = iface;
-
-	morse->status = WIFI_STATE_INTERFACE_DISABLED;
-
-	LOG_DBG("%s: initialising morse interface\n", __func__);
-
-	channel_list =
-		mmwlan_lookup_regulatory_domain(get_regulatory_db(), CONFIG_WIFI_MORSE_REGION);
-
+	channel_list = mmwlan_lookup_regulatory_domain(get_regulatory_db(), country_code);
 	if (channel_list == NULL) {
 		LOG_ERR("Could not find specified regulatory domain matching country code %s\n",
-			CONFIG_WIFI_MORSE_REGION);
-		return;
+			country_code);
+		return -ENOENT;
 	}
 
 	mmwlan_init();
 	mmwlan_set_channel_list(channel_list);
 	morse->channel_list = channel_list;
-	morse->country_code = CONFIG_WIFI_MORSE_REGION;
+	morse->country_code = country_code;
 
 	status = mmwlan_boot(&boot_args);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_DBG("mmwlan_boot failed with code %d", status);
-		return;
+		return mmwlan_err_to_errno(status);
 	}
 
 	/* Set MAC hardware address */
 	status = mmwlan_get_mac_addr(morse->mac_addr);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_DBG("mmwlan_get_mac_addr failed with code %d", status);
-		return;
+		return mmwlan_err_to_errno(status);
 	}
 
 	if (net_if_set_link_addr(iface, morse->mac_addr, MMWLAN_MAC_ADDR_LEN, NET_LINK_ETHERNET)) {
@@ -160,13 +144,13 @@ void morse_iface_init(struct net_if *iface)
 	status = mmwlan_register_rx_cb(mmnetif_rx, morse);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_DBG("mmwlan_register_rx_cb failed with code %d", status);
-		return;
+		return mmwlan_err_to_errno(status);
 	}
 
 	status = mmwlan_register_link_state_cb(mmnetif_link_state, morse);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_DBG("mmwlan_register_link_state_cb failed with code %d", status);
-		return;
+		return mmwlan_err_to_errno(status);
 	}
 
 	LOG_DBG("Morse Micro Wi-Fi HaLow interface initialised.\n"
@@ -177,25 +161,43 @@ void morse_iface_init(struct net_if *iface)
 	status = mmwlan_get_version(&morse->version);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_DBG("mmwlan_get_version failed with code %d", status);
-		return;
+		return mmwlan_err_to_errno(status);
 	}
 
 	LOG_DBG("Morse firmware version %s, morselib version %s, Morse chip ID 0x%04x\n",
 		morse->version.morse_fw_version, morse->version.morselib_version,
 		morse->version.morse_chip_id);
 
-	/* Initialize Ethernet L2 stack */
-	ethernet_init(morse->iface);
-
 	/* Not currently connected to a network */
-	net_if_dormant_on(morse->iface);
+	net_if_dormant_on(iface);
 
 	/* L1 network layer (physical layer) is up */
-	net_if_carrier_on(morse->iface);
+	net_if_carrier_on(iface);
 
 	morse->status = WIFI_STATE_INACTIVE;
-	struct mmwlan_sta_args init_args = MMWLAN_STA_ARGS_INIT;
 	memcpy(&morse->sta_args, &init_args, sizeof(struct mmwlan_sta_args));
+
+	return 0;
+}
+
+void morse_iface_init(struct net_if *iface)
+{
+	const struct device *dev = net_if_get_device(iface);
+	struct morse_data *morse = dev->data;
+	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
+
+	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
+	morse->iface = iface;
+	morse->status = WIFI_STATE_INTERFACE_DISABLED;
+
+	LOG_DBG("%s: initialising morse interface\n", __func__);
+
+	/* Initialize Ethernet L2 stack, done once regardless of mmwlan start outcome */
+	ethernet_init(morse->iface);
+
+	if (morsemicro_wlan_start(iface, morse, CONFIG_WIFI_MORSE_REGION) != 0) {
+		LOG_DBG("%s: mmwlan start failed, interface left down", __func__);
+	}
 }
 
 const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ops = {

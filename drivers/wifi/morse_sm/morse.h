@@ -73,6 +73,17 @@ extern const struct net_wifi_mgmt_offload morse_api;
 void morse_iface_init(struct net_if *iface);
 
 /**
+ * @brief Starts mmlwan with the provided domain
+ *
+ * @param[in] iface: net_if being brought up.
+ * @param[in] morse: driver data for iface.
+ * @param[in] country_code: alpha2 reg domain to boot into.
+ *
+ * @return 0 on success, negative errno otherwise.
+ */
+int morsemicro_wlan_start(struct net_if *iface, struct morse_data *morse, const char *country_code);
+
+/**
  * @brief Device init function, shared by all chip-specific device definitions.
  *
  * @param[in] dev: morse device.
