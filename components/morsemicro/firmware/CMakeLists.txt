@@ -208,9 +208,8 @@ generate_inc_file_for_target(
   "${bcf}"
   "${CMAKE_CURRENT_BINARY_DIR}/morsemicro_bcf.inc"
 )
-generate_inc_file_for_gen_target(
+generate_inc_file_for_target(
   firmware
   "${bcf_regions_path}"
   "${CMAKE_CURRENT_BINARY_DIR}/morsemicro_bcf_regions.inc"
-  bcf
 )

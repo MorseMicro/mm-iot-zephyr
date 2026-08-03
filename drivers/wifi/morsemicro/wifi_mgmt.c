@@ -12,6 +12,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <string.h>
 #include <errno.h>
 #include <zephyr/net/wifi_mgmt.h>
+#include <zephyr/net/net_if.h>
 
 #include "common.h"
 #include "mmwlan.h"
@@ -269,10 +270,85 @@ static int morsemicro_mgmt_get_version(const struct device *dev, struct wifi_ver
 	return 0;
 }
 
+static int morsemicro_mgmt_reg_domain(const struct device *dev, struct wifi_reg_domain *domain)
+{
+	struct morsemicro_data *dev_data = dev->data;
+
+	switch (domain->oper) {
+	case WIFI_MGMT_SET: {
+		static char country_code[WIFI_COUNTRY_CODE_LEN + 1];
+		enum mmwlan_status status = mmwlan_shutdown();
+		int ret;
+
+		if (status != MMWLAN_SUCCESS) {
+			LOG_ERR("Failed cycling interface during region switch\n"
+				"mmwlan_shutdown: err %d",
+				status);
+			return mmwlan_err_to_errno(status);
+		}
+
+		memcpy(country_code, domain->country_code, WIFI_COUNTRY_CODE_LEN);
+		country_code[WIFI_COUNTRY_CODE_LEN] = '\0';
+
+		/* Gets set in wlan_start with valid reg  */
+		dev_data->channel_list = NULL;
+
+		/* 00 check to avoid printing error messages from mmregdb lookup */
+		if (country_code[0] == '0' && country_code[1] == '0') {
+			ret = 0;
+		} else {
+			ret = morsemicro_wlan_start(dev_data->iface, dev_data, country_code);
+		}
+
+		/* netif down when no valid channels (invalid reg) */
+		if (dev_data->channel_list == NULL && net_if_is_up(dev_data->iface)) {
+			net_if_down(dev_data->iface);
+		}
+
+		return ret;
+	}
+
+	case WIFI_MGMT_GET: {
+
+		if (dev_data->channel_list == NULL) {
+			domain->country_code[0] = '0';
+			domain->country_code[1] = '0';
+			domain->num_channels = 0;
+			return 0;
+		}
+
+		memcpy(domain->country_code, dev_data->channel_list->country_code,
+		       WIFI_COUNTRY_CODE_LEN);
+		domain->num_channels = 0;
+
+		if (domain->chan_info == NULL) {
+			return 0;
+		}
+
+		domain->num_channels = MIN(dev_data->channel_list->num_channels, MAX_REG_CHAN_NUM);
+		for (unsigned int i = 0; i < domain->num_channels; i++) {
+			const struct mmwlan_s1g_channel *channel =
+				&dev_data->channel_list->channels[i];
+
+			domain->chan_info[i].center_frequency = channel->centre_freq_hz / 1000000;
+			domain->chan_info[i].max_power = channel->max_tx_eirp_dbm;
+			domain->chan_info[i].supported = 1;
+			domain->chan_info[i].passive_only = 0;
+			domain->chan_info[i].dfs = 0;
+		}
+
+		return 0;
+	}
+	default:
+		return -EINVAL;
+	}
+}
+
 const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops = {
 	.scan = morsemicro_mgmt_scan,
 	.connect = morsemicro_mgmt_connect,
 	.disconnect = morsemicro_mgmt_disconnect,
 	.iface_status = morsemicro_mgmt_iface_status,
 	.get_version = morsemicro_mgmt_get_version,
+	.reg_domain = morsemicro_mgmt_reg_domain,
 };

@@ -16,6 +16,12 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "mmwlan.h"
 #include "mmregdb.h"
 
+static const uint8_t morsemicro_bcf_regions[] = {
+#include "morsemicro_bcf_regions.inc"
+};
+
+static const size_t bcf_regions_len = sizeof(morsemicro_bcf_regions);
+
 int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 {
 	struct morsemicro_data *morsemicro = dev->data;
@@ -105,6 +111,17 @@ static void mmnetif_link_state(enum mmwlan_link_state link_state, void *arg)
 	}
 }
 
+static int bcf_reg_dne(const char *country_code)
+{
+	for (size_t i = 0; i < bcf_regions_len; i += 2) {
+		if (country_code[0] == morsemicro_bcf_regions[i] &&
+		    country_code[1] == morsemicro_bcf_regions[i + 1]) {
+			return 0;
+		}
+	}
+	return -EINVAL;
+}
+
 int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data,
 			  const char *country_code)
 {
@@ -113,10 +130,15 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 	struct mmwlan_boot_args boot_args = MMWLAN_BOOT_ARGS_INIT;
 	struct mmwlan_sta_args init_args = MMWLAN_STA_ARGS_INIT;
 
+	if (bcf_reg_dne(country_code)) {
+		LOG_ERR("Region %s missing radio configuration parameterss in BCF", country_code);
+		dev_data->channel_list = NULL;
+		return -EINVAL;
+	}
+
 	channel_list = mmwlan_lookup_regulatory_domain(get_regulatory_db(), country_code);
 	if (channel_list == NULL) {
-		LOG_ERR("Could not find specified regulatory domain matching country code %s\n",
-			country_code);
+		LOG_ERR("Region %s missing Wi-Fi channel definitions in mmregdb", country_code);
 		return -ENOENT;
 	}
 
@@ -183,6 +205,18 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 	return 0;
 }
 
+static int morsemicro_iface_start(const struct device *dev)
+{
+	struct morsemicro_data *dev_data = dev->data;
+
+	if (dev_data->channel_list == NULL) {
+		LOG_ERR("Cannot bring interface up without a valid regulatory domain");
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
 void morsemicro_iface_init(struct net_if *iface)
 {
 	const struct device *dev = net_if_get_device(iface);
@@ -198,6 +232,11 @@ void morsemicro_iface_init(struct net_if *iface)
 	/* Initialize Ethernet L2 stack, done once regardless of mmwlan start outcome */
 	ethernet_init(dev_data->iface);
 
+	net_if_dormant_on(iface);
+
+	/* L1 network layer (physical layer) down unti valid reg is set */
+	net_if_carrier_off(iface);
+
 	if (morsemicro_wlan_start(iface, dev_data, CONFIG_WIFI_MORSEMICRO_REGION) != 0) {
 		LOG_DBG("%s: mmwlan start failed, interface left down", __func__);
 	}
@@ -205,6 +244,7 @@ void morsemicro_iface_init(struct net_if *iface)
 
 const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ops = {
 	.wifi_iface.iface_api.init = morsemicro_iface_init,
+	.wifi_iface.start = morsemicro_iface_start,
 	.wifi_iface.send = mmnetif_tx,
 	.wifi_mgmt_api = &morsemicro_wifi_mgmt_ops,
 };
