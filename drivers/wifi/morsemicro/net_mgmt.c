@@ -14,6 +14,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 
 #include "common.h"
 #include "mmwlan.h"
+#include "mmpkt.h"
 #include "mmregdb.h"
 
 static const uint8_t morsemicro_bcf_regions[] = {
@@ -22,22 +23,40 @@ static const uint8_t morsemicro_bcf_regions[] = {
 
 static const size_t bcf_regions_len = sizeof(morsemicro_bcf_regions);
 
-int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
+static int mmnetif_vif_tx(struct morsemicro_vif_data *vif_data, struct net_pkt *pkt)
 {
-	struct morsemicro_data *morsemicro = dev->data;
 	const int pkt_len = net_pkt_get_len(pkt);
+	struct mmwlan_tx_metadata metadata = MMWLAN_TX_METADATA_INIT;
+	struct mmpkt *tx_pkt;
+	struct mmpktview *pkt_view;
+	uint8_t *pkt_data;
+	int ret;
+	enum mmwlan_status status;
 
-	if (pkt_len > NET_ETH_MAX_FRAME_SIZE) {
+	status = mmwlan_tx_wait_until_ready(MMWLAN_TX_DEFAULT_TIMEOUT_MS);
+	if (status != MMWLAN_SUCCESS) {
+		return mmwlan_err_to_errno(status);
+	}
+
+	tx_pkt = mmwlan_alloc_mmpkt_for_tx(pkt_len, MMWLAN_TX_DEFAULT_QOS_TID);
+	if (tx_pkt == NULL) {
 		return -ENOMEM;
 	}
 
-	int ret = net_pkt_read(pkt, morsemicro->frame_buf, pkt_len);
+	pkt_view = mmpkt_open(tx_pkt);
+	pkt_data = mmpkt_append(pkt_view, pkt_len);
+	ret = net_pkt_read(pkt, pkt_data, pkt_len);
+	mmpkt_close(&pkt_view);
+
 	if (ret < 0) {
 		LOG_ERR("Failed to read packet buffer");
+		mmpkt_release(tx_pkt);
 		return ret;
 	}
 
-	enum mmwlan_status status = mmwlan_tx(morsemicro->frame_buf, pkt_len);
+	metadata.vif = vif_data->vif;
+
+	status = mmwlan_tx_pkt(tx_pkt, &metadata);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_ERR("Failed to send packet - %d", status);
 		return mmwlan_err_to_errno(status);
@@ -46,68 +65,83 @@ int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 	LOG_DBG("Packet sent");
 
 	return 0;
-};
-
-static void mmnetif_rx(uint8_t *header, unsigned header_len, uint8_t *payload, unsigned payload_len,
-		       void *arg)
-{
-	struct morsemicro_data *morsemicro = (struct morsemicro_data *)arg;
-	struct net_pkt *pkt;
-
-	NET_ASSERT(morsemicro != NULL);
-	if (morsemicro->iface == NULL) {
-		LOG_ERR("Unhandled packet, network interface unavailable");
-		return;
-	}
-
-	pkt = net_pkt_rx_alloc_with_buffer(morsemicro->iface, header_len + payload_len, AF_UNSPEC,
-					   0, K_MSEC(200));
-	if (!pkt) {
-		LOG_ERR("Failed to allocate packet buffer");
-		return;
-	}
-
-	if (net_pkt_write(pkt, header, header_len) < 0) {
-		LOG_ERR("Failed to write packet header");
-		goto pkt_unref;
-	}
-
-	if (net_pkt_write(pkt, payload, payload_len) < 0) {
-		LOG_ERR("Failed to write packet data");
-		goto pkt_unref;
-	}
-
-	if (net_recv_data(morsemicro->iface, pkt) < 0) {
-		LOG_ERR("Failed to propagate packet");
-		goto pkt_unref;
-	}
-
-	return;
-
-pkt_unref:
-	net_pkt_unref(pkt);
-	return;
 }
 
-static void mmnetif_link_state(enum mmwlan_link_state link_state, void *arg)
+int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 {
-	struct morsemicro_data *dev_data = (struct morsemicro_data *)arg;
-	NET_ASSERT(dev_data != NULL);
+	struct morsemicro_data *dev_data = dev->data;
+	const int pkt_len = net_pkt_get_len(pkt);
 
-	if (link_state == MMWLAN_LINK_DOWN) {
-		net_if_dormant_on(dev_data->iface);
-		if (dev_data->status == WIFI_STATE_INACTIVE) {
-			wifi_mgmt_raise_disconnect_result_event(dev_data->iface,
+	if (pkt_len > NET_ETH_MAX_FRAME_SIZE) {
+		return -ENOMEM;
+	}
+
+	return mmnetif_vif_tx(&dev_data->sta, pkt);
+};
+
+static void mmnetif_rx(struct mmpkt *mmpkt, const struct mmwlan_rx_metadata *metadata, void *arg)
+{
+	struct morsemicro_vif_data *vif_data = (struct morsemicro_vif_data *)arg;
+	struct mmpktview *pkt_view;
+	struct net_pkt *pkt;
+	uint8_t *pkt_data;
+	uint32_t pkt_len;
+
+	ARG_UNUSED(metadata);
+
+	NET_ASSERT(vif_data != NULL);
+	if (vif_data->iface == NULL) {
+		LOG_ERR("Unhandled packet, network interface unavailable");
+		mmpkt_release(mmpkt);
+		return;
+	}
+
+	pkt_view = mmpkt_open(mmpkt);
+	pkt_data = mmpkt_get_data_start(pkt_view);
+	pkt_len = mmpkt_get_data_length(pkt_view);
+
+	pkt = net_pkt_rx_alloc_with_buffer(vif_data->iface, pkt_len, AF_UNSPEC, 0, K_MSEC(200));
+	if (!pkt) {
+		LOG_ERR("Failed to allocate packet buffer");
+		goto done;
+	}
+
+	if (net_pkt_write(pkt, pkt_data, pkt_len) < 0) {
+		LOG_ERR("Failed to write packet data");
+		net_pkt_unref(pkt);
+		goto done;
+	}
+
+	if (net_recv_data(vif_data->iface, pkt) < 0) {
+		LOG_ERR("Failed to propagate packet");
+		net_pkt_unref(pkt);
+		goto done;
+	}
+
+done:
+	mmpkt_close(&pkt_view);
+	mmpkt_release(mmpkt);
+}
+
+static void mmnetif_vif_state(const struct mmwlan_vif_state *state, void *arg)
+{
+	struct morsemicro_vif_data *vif_data = (struct morsemicro_vif_data *)arg;
+	NET_ASSERT(vif_data != NULL);
+
+	if (state->link_state == MMWLAN_LINK_DOWN) {
+		net_if_dormant_on(vif_data->iface);
+		if (vif_data->status == WIFI_STATE_INACTIVE) {
+			wifi_mgmt_raise_disconnect_result_event(vif_data->iface,
 								WIFI_REASON_DISCONN_UNSPECIFIED);
 		}
-		dev_data->status = WIFI_STATE_INACTIVE;
+		vif_data->status = WIFI_STATE_INACTIVE;
 	} else {
-		net_if_dormant_off(dev_data->iface);
+		net_if_dormant_off(vif_data->iface);
 #if defined(CONFIG_NET_DHCPV4)
-		net_dhcpv4_restart(dev_data->iface);
+		net_dhcpv4_restart(vif_data->iface);
 #endif /* defined(CONFIG_NET_DHCPV4) */
-		wifi_mgmt_raise_connect_result_event(dev_data->iface, WIFI_STATUS_CONN_SUCCESS);
-		dev_data->status = WIFI_STATE_COMPLETED;
+		wifi_mgmt_raise_connect_result_event(vif_data->iface, WIFI_STATUS_CONN_SUCCESS);
+		vif_data->status = WIFI_STATE_COMPLETED;
 	}
 }
 
@@ -154,33 +188,33 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 	}
 
 	/* Set MAC hardware address */
-	status = mmwlan_get_mac_addr(dev_data->mac_addr);
+	status = mmwlan_get_vif_mac_addr(dev_data->sta.vif, dev_data->sta.mac_addr);
 	if (status != MMWLAN_SUCCESS) {
-		LOG_DBG("mmwlan_get_mac_addr failed with code %d", status);
+		LOG_DBG("mmwlan_get_vif_mac_addr failed with code %d", status);
 		return mmwlan_err_to_errno(status);
 	}
 
-	if (net_if_set_link_addr(iface, dev_data->mac_addr, MMWLAN_MAC_ADDR_LEN,
+	if (net_if_set_link_addr(iface, dev_data->sta.mac_addr, MMWLAN_MAC_ADDR_LEN,
 				 NET_LINK_ETHERNET)) {
 		LOG_ERR("Failed to set link address");
 	}
 
-	status = mmwlan_register_rx_cb(mmnetif_rx, dev_data);
+	status = mmwlan_register_rx_pkt_ext_cb(dev_data->sta.vif, mmnetif_rx, &dev_data->sta);
 	if (status != MMWLAN_SUCCESS) {
-		LOG_DBG("mmwlan_register_rx_cb failed with code %d", status);
+		LOG_DBG("mmwlan_register_rx_pkt_ext_cb failed with code %d", status);
 		return mmwlan_err_to_errno(status);
 	}
 
-	status = mmwlan_register_link_state_cb(mmnetif_link_state, dev_data);
+	status = mmwlan_register_vif_state_cb(dev_data->sta.vif, mmnetif_vif_state, &dev_data->sta);
 	if (status != MMWLAN_SUCCESS) {
-		LOG_DBG("mmwlan_register_link_state_cb failed with code %d", status);
+		LOG_DBG("mmwlan_register_vif_state_cb failed with code %d", status);
 		return mmwlan_err_to_errno(status);
 	}
 
 	LOG_DBG("Morse Micro Wi-Fi HaLow interface initialised.\n"
 		"MAC address %02x:%02x:%02x:%02x:%02x:%02x",
-		dev_data->mac_addr[0], dev_data->mac_addr[1], dev_data->mac_addr[2],
-		dev_data->mac_addr[3], dev_data->mac_addr[4], dev_data->mac_addr[5]);
+		dev_data->sta.mac_addr[0], dev_data->sta.mac_addr[1], dev_data->sta.mac_addr[2],
+		dev_data->sta.mac_addr[3], dev_data->sta.mac_addr[4], dev_data->sta.mac_addr[5]);
 
 	status = mmwlan_get_version(&dev_data->version);
 	if (status != MMWLAN_SUCCESS) {
@@ -199,8 +233,8 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 	/* L1 network layer (physical layer) is up */
 	net_if_carrier_on(iface);
 
-	dev_data->status = WIFI_STATE_INACTIVE;
-	memcpy(&dev_data->sta_args, &init_args, sizeof(struct mmwlan_sta_args));
+	dev_data->sta.status = WIFI_STATE_INACTIVE;
+	memcpy(&dev_data->sta.sta_args, &init_args, sizeof(struct mmwlan_sta_args));
 
 	return 0;
 }
@@ -224,13 +258,14 @@ void morsemicro_iface_init(struct net_if *iface)
 	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
 
 	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
-	dev_data->iface = iface;
-	dev_data->status = WIFI_STATE_INTERFACE_DISABLED;
+	dev_data->sta.iface = iface;
+	dev_data->sta.vif = MMWLAN_VIF_STA;
+	dev_data->sta.status = WIFI_STATE_INTERFACE_DISABLED;
 
 	LOG_DBG("%s: initialising Morse Micro interface\n", __func__);
 
 	/* Initialize Ethernet L2 stack, done once regardless of mmwlan start outcome */
-	ethernet_init(dev_data->iface);
+	ethernet_init(dev_data->sta.iface);
 
 	net_if_dormant_on(iface);
 

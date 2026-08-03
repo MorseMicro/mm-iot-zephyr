@@ -53,7 +53,7 @@ int morsemicro_init(const struct device *dev)
 
 	morsemicro_dev = dev;
 
-	morsemicro->status = WIFI_STATE_DISCONNECTED;
+	morsemicro->sta.status = WIFI_STATE_DISCONNECTED;
 	LOG_DBG("");
 
 	if (!gpio_is_ready_dt(&cfg->resetn)) {

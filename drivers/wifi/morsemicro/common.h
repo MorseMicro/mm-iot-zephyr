@@ -38,21 +38,27 @@ struct morsemicro_config {
 	union morsemicro_bus_config bus_config;
 };
 
-struct morsemicro_data {
+struct morsemicro_vif_data {
 	struct net_if *iface;
 	enum wifi_iface_state status;
-	enum wifi_iface_state scan_prev_state;
-
-	const char *country_code;
-	const struct mmwlan_s1g_channel_list *channel_list;
-
-	scan_result_cb_t scan_cb;
-	struct gpio_callback busy_cb;
+	enum mmwlan_vif vif;
 
 	uint8_t mac_addr[6];
-	struct mmwlan_version version;
+
+	/* STA-specific state. */
+	enum wifi_iface_state scan_prev_state;
+	scan_result_cb_t scan_cb;
 	struct mmwlan_sta_args sta_args;
-	uint8_t frame_buf[NET_ETH_MAX_FRAME_SIZE];
+};
+
+struct morsemicro_data {
+	/* Shared PHY state, common to all VIFs. */
+	const char *country_code;
+	const struct mmwlan_s1g_channel_list *channel_list;
+	struct mmwlan_version version;
+	struct gpio_callback busy_cb;
+
+	struct morsemicro_vif_data sta;
 };
 
 #define RSN_MFPR 1 << 6

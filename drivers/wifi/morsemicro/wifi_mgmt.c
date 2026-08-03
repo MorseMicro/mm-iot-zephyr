@@ -110,7 +110,7 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 	}
 
 scan_cb_end:
-	dev_data->scan_cb(dev_data->iface, 0, &scan);
+	dev_data->sta.scan_cb(dev_data->sta.iface, 0, &scan);
 	k_yield();
 	return;
 }
@@ -118,9 +118,9 @@ scan_cb_end:
 static void scan_complete_callback(enum mmwlan_scan_state state, void *arg)
 {
 	struct morsemicro_data *dev_data = arg;
-	dev_data->status = dev_data->scan_prev_state;
+	dev_data->sta.status = dev_data->sta.scan_prev_state;
 	LOG_DBG("Scanning completed.");
-	dev_data->scan_cb(dev_data->iface, 0, NULL);
+	dev_data->sta.scan_cb(dev_data->sta.iface, 0, NULL);
 }
 
 static int morsemicro_mgmt_scan(const struct device *dev, struct wifi_scan_params *params,
@@ -131,7 +131,7 @@ static int morsemicro_mgmt_scan(const struct device *dev, struct wifi_scan_param
 	enum mmwlan_status status;
 	struct mmwlan_scan_req scan_req = MMWLAN_SCAN_REQ_INIT;
 
-	dev_data->scan_cb = cb;
+	dev_data->sta.scan_cb = cb;
 	scan_req.scan_rx_cb = scan_callback;
 	scan_req.scan_complete_cb = scan_complete_callback;
 	scan_req.scan_cb_arg = dev_data;
@@ -141,8 +141,8 @@ static int morsemicro_mgmt_scan(const struct device *dev, struct wifi_scan_param
 		return mmwlan_err_to_errno(status);
 	}
 
-	dev_data->scan_prev_state = dev_data->status;
-	dev_data->status = WIFI_STATE_SCANNING;
+	dev_data->sta.scan_prev_state = dev_data->sta.status;
+	dev_data->sta.status = WIFI_STATE_SCANNING;
 	LOG_DBG("Scan started, waiting for results...");
 	return 0;
 }
@@ -150,7 +150,7 @@ static int morsemicro_mgmt_scan(const struct device *dev, struct wifi_scan_param
 static int morsemicro_mgmt_connect(const struct device *dev, struct wifi_connect_req_params *params)
 {
 	struct morsemicro_data *dev_data = dev->data;
-	struct mmwlan_sta_args *sta_args = &dev_data->sta_args;
+	struct mmwlan_sta_args *sta_args = &dev_data->sta.sta_args;
 	enum mmwlan_status status;
 
 	size_t ssid_len = MIN(sizeof(sta_args->ssid), params->ssid_length);
@@ -213,7 +213,7 @@ static int morsemicro_mgmt_disconnect(const struct device *dev)
 		return mmwlan_err_to_errno(status);
 	}
 
-	wifi_mgmt_raise_disconnect_result_event(dev_data->iface, WIFI_REASON_DISCONN_USER_REQUEST);
+	wifi_mgmt_raise_disconnect_result_event(dev_data->sta.iface, WIFI_REASON_DISCONN_USER_REQUEST);
 	return 0;
 }
 
@@ -221,17 +221,17 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 {
 	struct morsemicro_data *dev_data = dev->data;
 
-	status->state = dev_data->status;
+	status->state = dev_data->sta.status;
 
-	strncpy(status->ssid, dev_data->sta_args.ssid, WIFI_SSID_MAX_LEN);
-	status->ssid_len = dev_data->sta_args.ssid_len;
+	strncpy(status->ssid, dev_data->sta.sta_args.ssid, WIFI_SSID_MAX_LEN);
+	status->ssid_len = dev_data->sta.sta_args.ssid_len;
 	status->iface_mode = WIFI_MODE_INFRA;
 	status->band = WIFI_FREQ_BAND_UNKNOWN;
 	status->link_mode = WIFI_LINK_MODE_UNKNOWN;
-	status->mfp = dev_data->sta_args.pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
-									 : WIFI_MFP_REQUIRED;
+	status->mfp = dev_data->sta.sta_args.pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
+									     : WIFI_MFP_REQUIRED;
 
-	switch (dev_data->sta_args.security_type) {
+	switch (dev_data->sta.sta_args.security_type) {
 	case MMWLAN_OPEN:
 		status->security = WIFI_SECURITY_TYPE_NONE;
 		break;
@@ -242,7 +242,7 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 		status->security = WIFI_SECURITY_TYPE_UNKNOWN;
 	}
 
-	if (dev_data->status == WIFI_STATE_COMPLETED) {
+	if (dev_data->sta.status == WIFI_STATE_COMPLETED) {
 		status->rssi = mmwlan_get_rssi();
 		if (mmwlan_get_bssid(status->bssid) != MMWLAN_SUCCESS) {
 			LOG_ERR("Could not get AP BSSID");
@@ -261,7 +261,7 @@ static int morsemicro_mgmt_get_version(const struct device *dev, struct wifi_ver
 {
 	struct morsemicro_data *dev_data = dev->data;
 
-	if (dev_data->status == WIFI_STATE_INTERFACE_DISABLED) {
+	if (dev_data->sta.status == WIFI_STATE_INTERFACE_DISABLED) {
 		return -ENODEV;
 	}
 
@@ -297,12 +297,12 @@ static int morsemicro_mgmt_reg_domain(const struct device *dev, struct wifi_reg_
 		if (country_code[0] == '0' && country_code[1] == '0') {
 			ret = 0;
 		} else {
-			ret = morsemicro_wlan_start(dev_data->iface, dev_data, country_code);
+			ret = morsemicro_wlan_start(dev_data->sta.iface, dev_data, country_code);
 		}
 
 		/* netif down when no valid channels (invalid reg) */
-		if (dev_data->channel_list == NULL && net_if_is_up(dev_data->iface)) {
-			net_if_down(dev_data->iface);
+		if (dev_data->channel_list == NULL && net_if_is_up(dev_data->sta.iface)) {
+			net_if_down(dev_data->sta.iface);
 		}
 
 		return ret;
