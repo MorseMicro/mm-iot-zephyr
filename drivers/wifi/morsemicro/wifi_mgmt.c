@@ -222,6 +222,45 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 {
 	struct morsemicro_data *dev_data = dev->data;
 
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+	if (dev_data->ap.iface && net_if_get_device(dev_data->ap.iface) == dev) {
+		struct mmwlan_ap_args *ap_args = &dev_data->ap.ap_args;
+
+		status->state = dev_data->ap.status;
+
+		strncpy(status->ssid, ap_args->ssid, WIFI_SSID_MAX_LEN);
+		status->ssid_len = ap_args->ssid_len;
+		status->iface_mode = WIFI_MODE_AP;
+		status->band = WIFI_FREQ_BAND_UNKNOWN;
+		status->link_mode = WIFI_LINK_MODE_UNKNOWN;
+		status->mfp = ap_args->pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
+									: WIFI_MFP_REQUIRED;
+
+		switch (ap_args->security_type) {
+		case MMWLAN_OPEN:
+			status->security = WIFI_SECURITY_TYPE_NONE;
+			break;
+		case MMWLAN_SAE:
+			status->security = WIFI_SECURITY_TYPE_SAE;
+			break;
+		default:
+			status->security = WIFI_SECURITY_TYPE_UNKNOWN;
+		}
+
+		if (dev_data->ap.status == WIFI_STATE_COMPLETED) {
+			if (mmwlan_get_vif_mac_addr(MMWLAN_VIF_AP, status->bssid) != MMWLAN_SUCCESS) {
+				LOG_ERR("Could not get AP BSSID");
+			}
+
+			/* Currently no simple way to get this information from the mmwlan APIs. */
+			status->channel = 0;
+			status->beacon_interval = 0;
+		}
+
+		return 0;
+	}
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
+
 	status->state = dev_data->sta.status;
 
 	strncpy(status->ssid, dev_data->sta.sta_args.ssid, WIFI_SSID_MAX_LEN);
@@ -350,25 +389,25 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 				     struct wifi_connect_req_params *params)
 {
 	struct morsemicro_data *dev_data = dev->data;
-	struct mmwlan_ap_args ap_args = MMWLAN_AP_ARGS_INIT;
+	struct mmwlan_ap_args *ap_args = &dev_data->ap.ap_args;
 	enum mmwlan_status status;
 
-	size_t ssid_len = MIN(sizeof(ap_args.ssid), params->ssid_length);
+	size_t ssid_len = MIN(sizeof(ap_args->ssid), params->ssid_length);
 
-	memcpy((char *)ap_args.ssid, params->ssid, ssid_len);
-	ap_args.ssid_len = ssid_len;
+	memcpy((char *)ap_args->ssid, params->ssid, ssid_len);
+	ap_args->ssid_len = ssid_len;
 
 	if (params->security == WIFI_SECURITY_TYPE_SAE) {
 		const uint8_t *psk = params->sae_password ? params->sae_password : params->psk;
 		uint8_t psk_len = psk == params->sae_password ? params->sae_password_length
 							      : params->psk_length;
 
-		psk_len = MIN(sizeof(ap_args.passphrase), psk_len);
-		memcpy(ap_args.passphrase, psk, psk_len);
-		ap_args.passphrase_len = psk_len;
-		ap_args.security_type = MMWLAN_SAE;
+		psk_len = MIN(sizeof(ap_args->passphrase), psk_len);
+		memcpy(ap_args->passphrase, psk, psk_len);
+		ap_args->passphrase_len = psk_len;
+		ap_args->security_type = MMWLAN_SAE;
 	} else if (params->security == WIFI_SECURITY_TYPE_NONE) {
-		ap_args.security_type = MMWLAN_OPEN;
+		ap_args->security_type = MMWLAN_OPEN;
 	} else {
 		LOG_ERR("Authentication method not supported");
 		return -EINVAL;
@@ -376,12 +415,12 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 
 	switch (params->mfp) {
 	case WIFI_MFP_DISABLE: {
-		ap_args.pmf_mode = MMWLAN_PMF_DISABLED;
+		ap_args->pmf_mode = MMWLAN_PMF_DISABLED;
 		break;
 	}
 	case WIFI_MFP_OPTIONAL:
 	case WIFI_MFP_REQUIRED: {
-		ap_args.pmf_mode = MMWLAN_PMF_REQUIRED;
+		ap_args->pmf_mode = MMWLAN_PMF_REQUIRED;
 		break;
 	}
 	default: {
@@ -389,10 +428,10 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 	}
 	}
 
-	ap_args.op_class = CONFIG_WIFI_MORSEMICRO_AP_OP_CLASS;
-	ap_args.s1g_chan_num = CONFIG_WIFI_MORSEMICRO_AP_S1G_CHAN_NUM;
+	ap_args->op_class = CONFIG_WIFI_MORSEMICRO_AP_OP_CLASS;
+	ap_args->s1g_chan_num = CONFIG_WIFI_MORSEMICRO_AP_S1G_CHAN_NUM;
 
-	status = mmwlan_ap_enable(&ap_args);
+	status = mmwlan_ap_enable(ap_args);
 	if (status != MMWLAN_SUCCESS) {
 		LOG_ERR("%s: mmwlan_ap_enable returned %d", __func__, status);
 		wifi_mgmt_raise_ap_enable_result_event(dev_data->ap.iface, WIFI_STATUS_AP_FAIL);

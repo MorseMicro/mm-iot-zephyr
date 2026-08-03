@@ -166,6 +166,9 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 	const struct mmwlan_s1g_channel_list *channel_list;
 	struct mmwlan_boot_args boot_args = MMWLAN_BOOT_ARGS_INIT;
 	struct mmwlan_sta_args init_args = MMWLAN_STA_ARGS_INIT;
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+	struct mmwlan_ap_args ap_init_args = MMWLAN_AP_ARGS_INIT;
+#endif
 
 	if (bcf_reg_dne(country_code)) {
 		LOG_ERR("Region %s missing radio configuration parameterss in BCF", country_code);
@@ -216,6 +219,7 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 
 #if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
 	dev_data->ap.vif = MMWLAN_VIF_AP;
+	memcpy(&dev_data->ap.ap_args, &ap_init_args, sizeof(struct mmwlan_ap_args));
 
 	status = mmwlan_register_rx_pkt_ext_cb(dev_data->ap.vif, mmnetif_rx, &dev_data->ap);
 	if (status != MMWLAN_SUCCESS) {

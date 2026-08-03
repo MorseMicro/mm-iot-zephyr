@@ -49,6 +49,9 @@ struct morsemicro_vif_data {
 	enum wifi_iface_state scan_prev_state;
 	scan_result_cb_t scan_cb;
 	struct mmwlan_sta_args sta_args;
+
+	/* AP-specific state. */
+	struct mmwlan_ap_args ap_args;
 };
 
 struct morsemicro_data {
