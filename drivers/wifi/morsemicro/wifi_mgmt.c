@@ -385,6 +385,22 @@ static int morsemicro_mgmt_reg_domain(const struct device *dev, struct wifi_reg_
 }
 
 #if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+static void morsemicro_ap_sta_status_cb(const struct mmwlan_ap_sta_status *sta_status, void *arg)
+{
+	struct morsemicro_vif_data *vif_data = (struct morsemicro_vif_data *)arg;
+	struct wifi_ap_sta_info sta_info = {0};
+
+	memcpy(sta_info.mac, sta_status->mac_addr, WIFI_MAC_ADDR_LEN);
+	sta_info.mac_length = WIFI_MAC_ADDR_LEN;
+	sta_info.link_mode = WIFI_LINK_MODE_UNKNOWN;
+
+	if (sta_status->state == MMWLAN_AP_STA_AUTHORIZED) {
+		wifi_mgmt_raise_ap_sta_connected_event(vif_data->iface, &sta_info);
+	} else if (sta_status->state == MMWLAN_AP_STA_UNKNOWN) {
+		wifi_mgmt_raise_ap_sta_disconnected_event(vif_data->iface, &sta_info);
+	}
+}
+
 static int morsemicro_mgmt_ap_enable(const struct device *dev,
 				     struct wifi_connect_req_params *params)
 {
@@ -430,6 +446,8 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 
 	ap_args->op_class = CONFIG_WIFI_MORSEMICRO_AP_OP_CLASS;
 	ap_args->s1g_chan_num = CONFIG_WIFI_MORSEMICRO_AP_S1G_CHAN_NUM;
+	ap_args->sta_status_cb = morsemicro_ap_sta_status_cb;
+	ap_args->sta_status_cb_arg = &dev_data->ap;
 
 	status = mmwlan_ap_enable(ap_args);
 	if (status != MMWLAN_SUCCESS) {
@@ -476,6 +494,23 @@ static int morsemicro_mgmt_ap_disable(const struct device *dev)
 	wifi_mgmt_raise_ap_disable_result_event(dev_data->ap.iface, WIFI_STATUS_AP_SUCCESS);
 	return 0;
 }
+
+static int morsemicro_mgmt_ap_config_params(const struct device *dev,
+					    struct wifi_ap_config_params *params)
+{
+	struct morsemicro_data *dev_data = dev->data;
+
+	/* Takes effect on the next ap_enable */
+	if (params->type & WIFI_AP_CONFIG_PARAM_MAX_NUM_STA) {
+		dev_data->ap.ap_args.max_stas = params->max_num_sta;
+	}
+
+	if (params->type & ~(uint32_t)WIFI_AP_CONFIG_PARAM_MAX_NUM_STA) {
+		LOG_WRN("Only max_num_sta is supported for AP config params");
+	}
+
+	return 0;
+}
 #endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
 
 const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops = {
@@ -488,5 +523,6 @@ const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops = {
 #if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
 	.ap_enable = morsemicro_mgmt_ap_enable,
 	.ap_disable = morsemicro_mgmt_ap_disable,
+	.ap_config_params = morsemicro_mgmt_ap_config_params,
 #endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
 };
