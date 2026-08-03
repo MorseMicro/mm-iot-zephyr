@@ -77,3 +77,16 @@ config MORSEMICRO_COMPRESS_FIRMWARE
 	  chip takes to boot since the firmware then needs to be decompressed again.
 
 endif
+
+menuconfig ALPHA_FEATURES
+	bool "Morse Micro Wi-Fi HaLow Alpha Features"
+	default y
+
+config WIFI_MORSEMICRO_AP_MODE
+	bool "Enables AP mode for the selected device"
+	default n
+	depends on ALPHA_FEATURES
+	select POSIX_API
+	help
+	  Allows the device to use AP functionality.
+	  Disabled by default as this takes up a substantial amount of flash
