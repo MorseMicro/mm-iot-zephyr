@@ -59,6 +59,9 @@ struct morsemicro_data {
 	struct gpio_callback busy_cb;
 
 	struct morsemicro_vif_data sta;
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+	struct morsemicro_vif_data ap;
+#endif
 };
 
 #define RSN_MFPR 1 << 6
@@ -114,6 +117,27 @@ int morsemicro_pm_action(const struct device *dev, enum pm_device_action action)
  * @return 0 on success, negative errno otherwise.
  */
 int mmnetif_tx(const struct device *dev, struct net_pkt *pkt);
+
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+/**
+ * @brief net_if callback for the AP netif init.
+ *
+ * @param[in] iface: interface being initialised.
+ */
+void morsemicro_ap_iface_init(struct net_if *iface);
+
+/**
+ * @brief net_if callback for packet sending on the AP VIF.
+ *
+ * @param[in] dev: compatible device.
+ * @param[in] pkt: packet to transmit.
+ *
+ * @return 0 on success, negative errno otherwise.
+ */
+int mmnetif_tx_ap(const struct device *dev, struct net_pkt *pkt);
+
+extern const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ap_ops;
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
 
 /**
  * @brief This function handles BUSY interrupt.
@@ -190,16 +214,27 @@ static inline int mmwlan_err_to_errno(enum mmwlan_status status)
 	DEVICE_DT_INST_DEFINE(inst, morsemicro_init, NULL, &chip##_data##inst,                     \
 			      &chip##_config##inst, POST_KERNEL, CONFIG_WIFI_INIT_PRIORITY, NULL);
 
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+#define MORSEMICRO_AP_NETIF(inst, chip)                                                            \
+	NET_DEVICE_INIT(chip##_ap##inst, "morsemicro_ap" #inst, NULL, NULL, &chip##_data##inst,    \
+			&chip##_config##inst, CONFIG_WIFI_INIT_PRIORITY,                           \
+			&morsemicro_net_mgmt_ap_ops, ETHERNET_L2,                                  \
+			NET_L2_GET_CTX_TYPE(ETHERNET_L2), NET_ETH_MTU);
+#else
+#define MORSEMICRO_AP_NETIF(inst, chip)
+#endif
+
 #define MORSEMICRO_DEVICE(inst, chip)                                                              \
 	COND_CODE_1(CONFIG_WIFI_MORSEMICRO_TEST,                                                   \
 		(MORSEMICRO_TEST(inst, chip)),                                                     \
-	        (MORSEMICRO_NETIF(inst, chip)))
+		(MORSEMICRO_NETIF(inst, chip)                                                      \
+		 MORSEMICRO_AP_NETIF(inst, chip)))
 
 #define MORSEMICRO_BUS_CONFIG(inst)                                                                \
 	{COND_CODE_1(DT_INST_ON_BUS(inst, spi),                                                    \
 				(MORSEMICRO_SPI_BUS_CONFIG(inst)),                                 \
 				({})                                                               \
-			   ) }
+		    ) }
 
 #define MORSEMICRO_BUS_OPS(inst)                                                                   \
 	COND_CODE_1(DT_INST_ON_BUS(inst, spi),                                                     \

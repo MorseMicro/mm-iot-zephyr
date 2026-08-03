@@ -76,6 +76,39 @@ config MORSEMICRO_COMPRESS_FIRMWARE
 	  However this comes at the cost of additional time the Morse Micro
 	  chip takes to boot since the firmware then needs to be decompressed again.
 
+menuconfig ALPHA_FEATURES
+	bool "Morse Micro Wi-Fi HaLow Alpha Features"
+	default y
+
+if ALPHA_FEATURES
+
+config WIFI_MORSEMICRO_AP_MODE
+	bool "Enables AP mode for the selected device"
+	default n
+	depends on ALPHA_FEATURES
+	select POSIX_API
+	help
+	  Allows the device to use AP functionality.
+	  Disabled by default as this takes up a substantial amount of flash.
+
+if WIFI_MORSEMICRO_AP_MODE
+
+config WIFI_MORSEMICRO_AP_OP_CLASS
+	int "S1G operating class to use for AP mode"
+	default 0
+	help
+	  Global operating class for the AP's operating channel.
+
+config WIFI_MORSEMICRO_AP_S1G_CHAN_NUM
+	int "S1G channel number to use for AP mode"
+	default 0
+	help
+	  S1G channel number for the AP's operating channel.
+
+endif # WIFI_MORSEMICRO_AP_MODE
+
+endif # ALPHA_FEATURES
+
 endif
 
 menuconfig ALPHA_FEATURES

@@ -130,17 +130,20 @@ static void mmnetif_vif_state(const struct mmwlan_vif_state *state, void *arg)
 
 	if (state->link_state == MMWLAN_LINK_DOWN) {
 		net_if_dormant_on(vif_data->iface);
-		if (vif_data->status == WIFI_STATE_INACTIVE) {
+		if (vif_data->vif == MMWLAN_VIF_STA && vif_data->status == WIFI_STATE_INACTIVE) {
 			wifi_mgmt_raise_disconnect_result_event(vif_data->iface,
 								WIFI_REASON_DISCONN_UNSPECIFIED);
 		}
 		vif_data->status = WIFI_STATE_INACTIVE;
 	} else {
 		net_if_dormant_off(vif_data->iface);
+		if (vif_data->vif == MMWLAN_VIF_STA) {
 #if defined(CONFIG_NET_DHCPV4)
-		net_dhcpv4_restart(vif_data->iface);
+			net_dhcpv4_restart(vif_data->iface);
 #endif /* defined(CONFIG_NET_DHCPV4) */
-		wifi_mgmt_raise_connect_result_event(vif_data->iface, WIFI_STATUS_CONN_SUCCESS);
+			wifi_mgmt_raise_connect_result_event(vif_data->iface,
+							     WIFI_STATUS_CONN_SUCCESS);
+		}
 		vif_data->status = WIFI_STATE_COMPLETED;
 	}
 }
@@ -210,6 +213,22 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 		LOG_DBG("mmwlan_register_vif_state_cb failed with code %d", status);
 		return mmwlan_err_to_errno(status);
 	}
+
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+	dev_data->ap.vif = MMWLAN_VIF_AP;
+
+	status = mmwlan_register_rx_pkt_ext_cb(dev_data->ap.vif, mmnetif_rx, &dev_data->ap);
+	if (status != MMWLAN_SUCCESS) {
+		LOG_DBG("mmwlan_register_rx_pkt_ext_cb (AP) failed with code %d", status);
+		return mmwlan_err_to_errno(status);
+	}
+
+	status = mmwlan_register_vif_state_cb(dev_data->ap.vif, mmnetif_vif_state, &dev_data->ap);
+	if (status != MMWLAN_SUCCESS) {
+		LOG_DBG("mmwlan_register_vif_state_cb (AP) failed with code %d", status);
+		return mmwlan_err_to_errno(status);
+	}
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
 
 	LOG_DBG("Morse Micro Wi-Fi HaLow interface initialised.\n"
 		"MAC address %02x:%02x:%02x:%02x:%02x:%02x",
@@ -283,3 +302,38 @@ const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ops = {
 	.wifi_iface.send = mmnetif_tx,
 	.wifi_mgmt_api = &morsemicro_wifi_mgmt_ops,
 };
+
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+int mmnetif_tx_ap(const struct device *dev, struct net_pkt *pkt)
+{
+	struct morsemicro_data *morsemicro = dev->data;
+	const int pkt_len = net_pkt_get_len(pkt);
+
+	if (pkt_len > NET_ETH_MAX_FRAME_SIZE) {
+		return -ENOMEM;
+	}
+
+	return mmnetif_vif_tx(&morsemicro->ap, pkt);
+}
+
+void morsemicro_ap_iface_init(struct net_if *iface)
+{
+	const struct device *dev = net_if_get_device(iface);
+	struct morsemicro_data *dev_data = dev->data;
+	struct ethernet_context *eth_ctx = net_if_l2_data(iface);
+
+	eth_ctx->eth_if_type = L2_ETH_IF_TYPE_WIFI;
+	dev_data->ap.iface = iface;
+	dev_data->ap.status = WIFI_STATE_INTERFACE_DISABLED;
+
+	LOG_DBG("%s: initialising Morse Micro AP interface\n", __func__);
+
+	ethernet_init(iface);
+}
+
+const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ap_ops = {
+	.wifi_iface.iface_api.init = morsemicro_ap_iface_init,
+	.wifi_iface.send = mmnetif_tx_ap,
+	.wifi_mgmt_api = &morsemicro_wifi_mgmt_ops,
+};
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */

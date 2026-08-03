@@ -213,7 +213,8 @@ static int morsemicro_mgmt_disconnect(const struct device *dev)
 		return mmwlan_err_to_errno(status);
 	}
 
-	wifi_mgmt_raise_disconnect_result_event(dev_data->sta.iface, WIFI_REASON_DISCONN_USER_REQUEST);
+	wifi_mgmt_raise_disconnect_result_event(dev_data->sta.iface,
+						WIFI_REASON_DISCONN_USER_REQUEST);
 	return 0;
 }
 
@@ -344,6 +345,100 @@ static int morsemicro_mgmt_reg_domain(const struct device *dev, struct wifi_reg_
 	}
 }
 
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+static int morsemicro_mgmt_ap_enable(const struct device *dev,
+				     struct wifi_connect_req_params *params)
+{
+	struct morsemicro_data *dev_data = dev->data;
+	struct mmwlan_ap_args ap_args = MMWLAN_AP_ARGS_INIT;
+	enum mmwlan_status status;
+
+	size_t ssid_len = MIN(sizeof(ap_args.ssid), params->ssid_length);
+
+	memcpy((char *)ap_args.ssid, params->ssid, ssid_len);
+	ap_args.ssid_len = ssid_len;
+
+	if (params->security == WIFI_SECURITY_TYPE_SAE) {
+		const uint8_t *psk = params->sae_password ? params->sae_password : params->psk;
+		uint8_t psk_len = psk == params->sae_password ? params->sae_password_length
+							      : params->psk_length;
+
+		psk_len = MIN(sizeof(ap_args.passphrase), psk_len);
+		memcpy(ap_args.passphrase, psk, psk_len);
+		ap_args.passphrase_len = psk_len;
+		ap_args.security_type = MMWLAN_SAE;
+	} else if (params->security == WIFI_SECURITY_TYPE_NONE) {
+		ap_args.security_type = MMWLAN_OPEN;
+	} else {
+		LOG_ERR("Authentication method not supported");
+		return -EINVAL;
+	}
+
+	switch (params->mfp) {
+	case WIFI_MFP_DISABLE: {
+		ap_args.pmf_mode = MMWLAN_PMF_DISABLED;
+		break;
+	}
+	case WIFI_MFP_OPTIONAL:
+	case WIFI_MFP_REQUIRED: {
+		ap_args.pmf_mode = MMWLAN_PMF_REQUIRED;
+		break;
+	}
+	default: {
+		LOG_WRN("Invalid MFP option");
+	}
+	}
+
+	ap_args.op_class = CONFIG_WIFI_MORSEMICRO_AP_OP_CLASS;
+	ap_args.s1g_chan_num = CONFIG_WIFI_MORSEMICRO_AP_S1G_CHAN_NUM;
+
+	status = mmwlan_ap_enable(&ap_args);
+	if (status != MMWLAN_SUCCESS) {
+		LOG_ERR("%s: mmwlan_ap_enable returned %d", __func__, status);
+		wifi_mgmt_raise_ap_enable_result_event(dev_data->ap.iface, WIFI_STATUS_AP_FAIL);
+		return mmwlan_err_to_errno(status);
+	}
+
+	status = mmwlan_get_vif_mac_addr(MMWLAN_VIF_AP, dev_data->ap.mac_addr);
+	if (status == MMWLAN_SUCCESS) {
+		/* net_if_set_link_addr() refuses to run while the iface is administratively
+		 * up, which it already is (auto-started at boot). Bracket it with down/up. */
+		bool was_up = net_if_is_up(dev_data->ap.iface);
+
+		if (was_up) {
+			net_if_down(dev_data->ap.iface);
+		}
+
+		if (net_if_set_link_addr(dev_data->ap.iface, dev_data->ap.mac_addr,
+					 MMWLAN_MAC_ADDR_LEN, NET_LINK_ETHERNET)) {
+			LOG_ERR("Failed to set link address");
+		}
+
+		if (was_up) {
+			net_if_up(dev_data->ap.iface);
+		}
+	}
+
+	wifi_mgmt_raise_ap_enable_result_event(dev_data->ap.iface, WIFI_STATUS_AP_SUCCESS);
+	return 0;
+}
+
+static int morsemicro_mgmt_ap_disable(const struct device *dev)
+{
+	struct morsemicro_data *dev_data = dev->data;
+	enum mmwlan_status status = mmwlan_ap_disable();
+
+	if (status != MMWLAN_SUCCESS && status != MMWLAN_SHUTDOWN_BLOCKED) {
+		LOG_ERR("Failed to disable AP");
+		wifi_mgmt_raise_ap_disable_result_event(dev_data->ap.iface, WIFI_STATUS_AP_FAIL);
+		return mmwlan_err_to_errno(status);
+	}
+
+	wifi_mgmt_raise_ap_disable_result_event(dev_data->ap.iface, WIFI_STATUS_AP_SUCCESS);
+	return 0;
+}
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
+
 const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops = {
 	.scan = morsemicro_mgmt_scan,
 	.connect = morsemicro_mgmt_connect,
@@ -351,4 +446,8 @@ const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops = {
 	.iface_status = morsemicro_mgmt_iface_status,
 	.get_version = morsemicro_mgmt_get_version,
 	.reg_domain = morsemicro_mgmt_reg_domain,
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+	.ap_enable = morsemicro_mgmt_ap_enable,
+	.ap_disable = morsemicro_mgmt_ap_disable,
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
 };
