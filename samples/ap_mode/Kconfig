@@ -1,0 +1,20 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+config AP_SSID
+	string "SSID to advertise for the open AP"
+	default "MorseMicroAP"
+
+config AP_STATIC_IP
+	string "Static IPv4 address for the AP interface"
+	default "192.168.4.1"
+
+config AP_STATIC_NETMASK
+	string "Netmask for the AP interface"
+	default "255.255.255.0"
+
+config UDP_ECHO_PORT
+	int "UDP port for the echo server"
+	default 4242
+
+source "Kconfig.zephyr"
