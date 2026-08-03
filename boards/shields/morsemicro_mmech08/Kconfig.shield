@@ -1,0 +1,5 @@
+# Copyright 2024-2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+config SHIELD_MORSEMICRO_MMECH08
+	def_bool $(shields_list_contains,morsemicro_mmech08)

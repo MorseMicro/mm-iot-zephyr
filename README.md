@@ -82,19 +82,19 @@ We currently support the following Morse Micro development boards:
 ### Shields
 We also support the following Morse Micro shields:
 
-- `morse_mmech08`
-- `morse_mmech18`
+- `morsemicro_mmech08`
+- `morsemicro_mmech18`
 
 ## Build and Run Porting Assistant Test Application
 
 Build and execute `porting_assistant`
 
 ```
-west build -p auto -b [board] [--shield morse_mmech08] modules/lib/morsemicro/samples/porting_assistant
+west build -p auto -b [board] [--shield morsemicro_mmech08] modules/lib/morsemicro/samples/porting_assistant
 west flash
 ```
 If using a Morse Micro MMECH08 hat, add the shield parameter to the build command.
-The porting assistant example application compilation will fail if a node with `compatible = "morse,mm6108"` is not found
+The porting assistant example application compilation will fail if a node with `compatible = "morsemicro,mm6108"` or `compatible = morsemicro,mm6108` is not found
 in the compiled device tree.
 
 ## Build and Run HaLow Client Application
@@ -102,7 +102,7 @@ in the compiled device tree.
 Build and execute `halow_client`
 
 ```
-west build -p auto -b [board] [--shield morse_mmech08] modules/lib/morsemicro/samples/halow_client
+west build -p auto -b [board] [--shield morsemicro_mmech08] modules/lib/morsemicro/samples/halow_client
 west flash
 ```
 This application will boot the MM6108 and enable device connectivity via the Zephyr command line.

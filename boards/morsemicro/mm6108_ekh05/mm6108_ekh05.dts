@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Morse Micro
+ * Copyright 2025-2026 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -206,7 +206,7 @@ stm32_lp_tick_source: &lptim1 {
            <&gpdma1 14 8 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_VERY_HIGH)>;
     dma-names = "tx", "rx";
 
-	morse_wifi_spi: morse@0 {
+	morsemicro_wifi_spi: morsemicro@0 {
 		status = "okay";
 		compatible = "morsemicro,mm6108";
 		spi-max-frequency = <50000000>;

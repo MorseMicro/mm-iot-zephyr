@@ -12,7 +12,7 @@ tests:
       - nucleo_u575zi_q
     build_only: true
     build_on_all: true
-    extra_args: SHIELD=morse_mmech08
+    extra_args: SHIELD=morsemicro_mmech08
     tags:
       - shield
       - build-only

@@ -10,7 +10,7 @@
 #include <zephyr/dt-bindings/dma/stm32_dma.h>
 
 / {
-	model = "Morse Micro MMECS03 Evaluation Board";
+	model = "Morse Micro MMECS03 Demonstration Board";
 	compatible = "morsemicro,mmecs03";
 
 	chosen {
@@ -162,15 +162,12 @@ stm32_lp_tick_source: &lptim1 {
 	       <&gpdma1 14 6 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_VERY_HIGH)>;
 	dma-names = "tx", "rx";
 
-	morse_wifi_spi: morse@0 {
+	morsemicro_wifi_spi: morsemicro@0 {
 		status = "okay";
 		compatible = "morsemicro,mm8108";
 		spi-max-frequency = <40000000>;
 		reg = <0>;
 
-		/* TODO: confirm this matches the antenna/module fitted on
-		 * this MMECS03 unit.
-		 */
 		bcf = "bcf_mf15457.mbin";
 		busy-gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
 		wakeup-gpios = <&gpioc 10 GPIO_ACTIVE_HIGH>;
