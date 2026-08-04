@@ -1,0 +1,154 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+common:
+  filter: dt_compat_enabled("morsemicro,mm6108") or
+          dt_compat_enabled("morsemicro,mm8108")
+
+tests:
+  # On-hardware functional suite: needs a real DUT, and for most cases a
+  # real AP (HALOW_TEST_SSID/HALOW_TEST_PSK). See tests/pytest/.
+  net.wifi.halow.pytest:
+    harness: pytest
+    integration_platforms:
+      - mm6108_ekh05
+      - mm8108_ekh05
+    tags:
+      - wifi
+      - net
+      - halow
+
+  # --- Build-only compile matrix ---------------------------------------
+  # No DUT required. Confirms every board/PM-variant/Kconfig combination
+  # this driver supports actually compiles, mirroring the vendor-owned
+  # build_only pattern upstream uses for other Wi-Fi drivers (e.g.
+  # zephyr/tests/drivers/wifi/nrf_wifi).
+  drivers.wifi.morsemicro.build.mm6108_ekh05:
+    build_only: true
+    platform_allow: mm6108_ekh05
+    integration_platforms:
+      - mm6108_ekh05
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.mm6108_ekh05_pm:
+    build_only: true
+    platform_allow: mm6108_ekh05/stm32u585xx/pm
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.mm8108_ekh05:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    integration_platforms:
+      - mm8108_ekh05
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.mm8108_ekh05_pm:
+    build_only: true
+    platform_allow: mm8108_ekh05/stm32u585xx/pm
+    tags: [wifi, halow, build]
+
+  # --- Regulatory region matrix -----------------------------------------
+  # CONFIG_WIFI_MORSEMICRO_REGION is validated at CMake-configure time
+  # (drivers/wifi/morsemicro/CMakeLists.txt: FATAL_ERROR on anything
+  # outside this list). One representative board is enough since the
+  # region logic is chip-independent; AU is already covered by the
+  # default config in the entries above.
+  drivers.wifi.morsemicro.build.region.eu:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_REGION="EU"
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.region.in:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_REGION="IN"
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.region.jp:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_REGION="JP"
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.region.nz:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_REGION="NZ"
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.region.us:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_REGION="US"
+    tags: [wifi, halow, build]
+
+  # --- AU channelisation matrix ------------------------------------------
+  # REVMF is the Kconfig default and already covered above.
+  drivers.wifi.morsemicro.build.au_channelisation.2020:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_AU_CHANNELISATION_2020=y
+    tags: [wifi, halow, build]
+
+  drivers.wifi.morsemicro.build.au_channelisation.2024:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_AU_CHANNELISATION_2024=y
+    tags: [wifi, halow, build]
+
+  # --- Other Kconfig variants ---------------------------------------------
+  # WIFI_MORSEMICRO_TEST disables netif registration for HAL-only bring-up
+  # testing (see samples/porting_assistant); confirm that mode builds too.
+  drivers.wifi.morsemicro.build.test_driver:
+    build_only: true
+    platform_allow: mm8108_ekh05
+    extra_configs:
+      - CONFIG_WIFI_MORSEMICRO_TEST=y
+    tags: [wifi, halow, build]
+
+  # --- Shield / host-board matrix -----------------------------------------
+  # Both shields on every host overlay morsemicro ships, so a build
+  # regression on any host is caught without needing that hardware.
+  drivers.wifi.morsemicro.build.shield.mmech08.nucleo_u575zi_q:
+    build_only: true
+    platform_allow: nucleo_u575zi_q
+    extra_args: SHIELD=morsemicro_mmech08
+    tags: [wifi, halow, build, shield]
+
+  drivers.wifi.morsemicro.build.shield.mmech08.nucleo_h753zi:
+    build_only: true
+    platform_allow: nucleo_h753zi
+    extra_args: SHIELD=morsemicro_mmech08
+    tags: [wifi, halow, build, shield]
+
+  drivers.wifi.morsemicro.build.shield.mmech08.ek_ra6m5:
+    build_only: true
+    platform_allow: ek_ra6m5
+    extra_args: SHIELD=morsemicro_mmech08
+    tags: [wifi, halow, build, shield]
+
+  drivers.wifi.morsemicro.build.shield.mmech18.nucleo_u575zi_q:
+    build_only: true
+    platform_allow: nucleo_u575zi_q
+    extra_args: SHIELD=morsemicro_mmech18
+    tags: [wifi, halow, build, shield]
+
+  drivers.wifi.morsemicro.build.shield.mmech18.nucleo_h753zi:
+    build_only: true
+    platform_allow: nucleo_h753zi
+    extra_args: SHIELD=morsemicro_mmech18
+    tags: [wifi, halow, build, shield]
+
+  drivers.wifi.morsemicro.build.shield.mmech18.ek_ra6m5:
+    build_only: true
+    platform_allow: ek_ra6m5
+    extra_args: SHIELD=morsemicro_mmech18
+    tags: [wifi, halow, build, shield]

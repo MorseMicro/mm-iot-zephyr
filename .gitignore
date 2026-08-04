@@ -4,3 +4,6 @@
 *build/
 twister-out*
 hardware_map.yaml
+
+*.pytest_cache
+*__pycache__

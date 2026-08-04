@@ -4,15 +4,63 @@ tests:
       - mm6108_ekh05
       - mm8108_ekh05
     build_only: true
-    build_on_all: true
+    integration_platforms:
+      - mm6108_ekh05
+      - mm8108_ekh05
     tags:
       - build
-  halow_client.build.shield:
+
+  halow_client.build.shield.mmech08.nucleo_u575zi_q:
     platform_allow:
       - nucleo_u575zi_q
     build_only: true
     build_on_all: true
     extra_args: SHIELD=morsemicro_mmech08
+    tags:
+      - shield
+      - build
+
+  halow_client.build.shield.mmech08.nucleo_h753zi:
+    platform_allow:
+      - nucleo_h753zi
+    build_only: true
+    extra_args: SHIELD=morsemicro_mmech08
+    tags:
+      - shield
+      - build
+
+  halow_client.build.shield.mmech08.ek_ra6m5:
+    platform_allow:
+      - ek_ra6m5
+    build_only: true
+    extra_args: SHIELD=morsemicro_mmech08
+    tags:
+      - shield
+      - build
+
+  halow_client.build.shield.mmech18.nucleo_u575zi_q:
+    platform_allow:
+      - nucleo_u575zi_q
+    build_only: true
+    extra_args: SHIELD=morsemicro_mmech18
+    tags:
+      - shield
+      - build
+
+  halow_client.build.shield.mmech18.nucleo_h753zi:
+    platform_allow:
+      - nucleo_h753zi
+    build_only: true
+    extra_args: SHIELD=morsemicro_mmech18
+    tags:
+      - shield
+      - build
+
+  halow_client.build.shield.mmech18.ek_ra6m5:
+    platform_allow:
+      - ek_ra6m5
+    build_only: true
+    extra_args: SHIELD=morsemicro_mmech18
     tags:
       - shield
       - build

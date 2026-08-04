@@ -27,3 +27,11 @@
 &mac {
 	status = "disabled";
 };
+
+&mdio {
+	status = "disabled";
+};
+
+&eth_phy {
+	status = "disabled";
+};
