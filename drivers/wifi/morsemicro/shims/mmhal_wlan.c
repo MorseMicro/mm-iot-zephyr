@@ -1,10 +1,17 @@
 /*
- * Copyright 2024 Morse Micro
+ * Copyright 2024-2026 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/hwinfo.h>
+#include <zephyr/net/ethernet.h>
+#include <zephyr/random/random.h>
+#include <zephyr/sys/crc.h>
+
 #include "mmhal.h"
+#include "mmhal_wlan.h"
 #include "mmosal.h"
 
 #include "common.h"
@@ -12,7 +19,50 @@
 #include "morsemicro_log.h"
 LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
+extern const struct device *morsemicro_dev;
+
 static mmhal_irq_handler_t busy_irq_handler = NULL;
+
+static uint32_t mmhal_read_device_uid(void)
+{
+	uint8_t eui64[8];
+	static uint32_t uid = 0;
+	int ret;
+
+	if (uid != 0) {
+		return uid;
+	}
+
+	ret = hwinfo_get_device_eui64(eui64);
+	if (ret == 0) {
+		uid = crc32_ieee((uint8_t *)eui64, 8);
+		return uid;
+	}
+
+	ret = hwinfo_get_device_id(eui64, 8);
+	if (ret > 0) {
+		uid = crc32_ieee((uint8_t *)eui64, 8);
+		return uid;
+	}
+
+	uid = sys_rand32_get();
+
+	return uid;
+}
+
+void mmhal_read_mac_addr(uint8_t *mac_addr)
+{
+	uint32_t uid = mmhal_read_device_uid();
+
+	if (net_eth_is_addr_valid((struct net_eth_addr *)mac_addr)) {
+		return;
+	}
+
+	mac_addr[0] = 0x02;
+	mac_addr[1] = 0x00;
+
+	memcpy(&mac_addr[2], &uid, sizeof(uint32_t));
+}
 
 void mmhal_wlan_hard_reset(void)
 {

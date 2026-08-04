@@ -1,14 +1,16 @@
 /*
- * Copyright 2024 Morse Micro
+ * Copyright 2024-2026 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <zephyr/kernel.h>
 #include <sys/types.h>
+#include "errno.h"
+
 #include "mmosal.h"
 #include "mmhal.h"
-#include "errno.h"
+#include "mmosal.h"
 
 #include "morsemicro_log.h"
 LOG_MODULE_DECLARE(LOG_MODULE_NAME);
@@ -35,6 +37,59 @@ static void *k_thread_other_custom_data_get(k_tid_t tid)
 
 /** Duration to delay before resetting the device on assert. */
 #define DELAY_BEFORE_RESET_MS 1000
+
+int mmosal_task_priorities[MMOSAL_TASK_PRI_HIGH + 1] = {
+	/* MMOSAL_TASK_PRI_IDLE */
+	CONFIG_NUM_PREEMPT_PRIORITIES,
+	/* MMOSAL_TASK_PRI_MIN */
+	CONFIG_NUM_PREEMPT_PRIORITIES - (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
+	/* MMOSAL_TASK_PRI_LOW */
+	CONFIG_NUM_PREEMPT_PRIORITIES - 2 * (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
+	/* MMOSAL_TASK_PRI_NORM */
+	CONFIG_NUM_PREEMPT_PRIORITIES - 3 * (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
+	/* MMOSAL_TASK_PRI_HIGH */
+	0};
+
+/*
+ * For implementation of the mmosal_task functions in Zephyr, we need some storage.
+ * We could provide an implementation of mmosal_task, however, doing so introduces
+ * difficulty retrieving the active task if the active task was not created with
+ * mmosal_task_create, as the pointer does not exist.
+ * Instead, construct storage across mmosal created tasks to be carried through thread
+ * custom_data. This assumes functions such as mmosal_task_*_critical and
+ * mmosal_task_wait_for_notification are only called from mmosal tasks.
+ * The mmosal_task pointer can then be an opaque pointer to Zephyrs tid_t and remain
+ * compatible with other tasks running in the system.
+ */
+struct mmosal_task_data {
+	struct k_thread tid;
+	uint32_t magic;
+	k_thread_stack_t *stack;
+};
+
+struct mmosal_mutex {
+	struct k_mutex mutex;
+	k_tid_t owner;
+	const char *name;
+};
+
+struct mmosal_sem {
+	struct k_sem sem;
+	int maximum;
+};
+
+struct mmosal_queue {
+	struct k_msgq queue;
+	char *buffer;
+};
+
+struct mmosal_timer {
+	struct k_timer timer;
+	uint32_t period;
+	bool reload;
+	timer_callback_t expiry;
+	void *arg;
+};
 
 void mmosal_log_failure_info(const struct mmosal_failure_info *info)
 {
@@ -76,35 +131,6 @@ void *mmosal_calloc(size_t nitems, size_t size)
 {
 	return k_calloc(nitems, size);
 }
-
-int mmosal_task_priorities[MMOSAL_TASK_PRI_HIGH + 1] = {
-	/* MMOSAL_TASK_PRI_IDLE */
-	CONFIG_NUM_PREEMPT_PRIORITIES,
-	/* MMOSAL_TASK_PRI_MIN */
-	CONFIG_NUM_PREEMPT_PRIORITIES - (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
-	/* MMOSAL_TASK_PRI_LOW */
-	CONFIG_NUM_PREEMPT_PRIORITIES - 2 * (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
-	/* MMOSAL_TASK_PRI_NORM */
-	CONFIG_NUM_PREEMPT_PRIORITIES - 3 * (CONFIG_NUM_PREEMPT_PRIORITIES / 4),
-	/* MMOSAL_TASK_PRI_HIGH */
-	0};
-
-/*
- * For implementation of the mmosal_task functions in Zephyr, we need some storage.
- * We could provide an implementation of mmosal_task, however, doing so introduces
- * difficulty retrieving the active task if the active task was not created with
- * mmosal_task_create, as the pointer does not exist.
- * Instead, construct storage across mmosal created tasks to be carried through thread
- * custom_data. This assumes functions such as mmosal_task_*_critical and
- * mmosal_task_wait_for_notification are only called from mmosal tasks.
- * The mmosal_task pointer can then be an opaque pointer to Zephyrs tid_t and remain
- * compatible with other tasks running in the system.
- */
-struct mmosal_task_data {
-	struct k_thread tid;
-	uint32_t magic;
-	k_thread_stack_t *stack;
-};
 
 /*
  * This thread wrapper just provides a valid Zephyr k_thread_entry_t for the
@@ -252,12 +278,6 @@ const char *mmosal_task_name(void)
 	return k_thread_name_get(k_current_get());
 }
 
-struct mmosal_mutex {
-	struct k_mutex mutex;
-	k_tid_t owner;
-	const char *name;
-};
-
 // Mutex management functions
 struct mmosal_mutex *mmosal_mutex_create(const char *name)
 {
@@ -331,11 +351,6 @@ bool mmosal_mutex_is_held_by_active_task(struct mmosal_mutex *mutex)
 
 	return false;
 }
-
-struct mmosal_sem {
-	struct k_sem sem;
-	int maximum;
-};
 
 struct mmosal_sem *mmosal_sem_create(unsigned max_count, unsigned initial_count, const char *name)
 {
@@ -454,11 +469,6 @@ bool mmosal_semb_wait(struct mmosal_semb *sem, uint32_t timeout_ms)
 	return true;
 }
 
-struct mmosal_queue {
-	struct k_msgq queue;
-	char *buffer;
-};
-
 struct mmosal_queue *mmosal_queue_create(size_t num_items, size_t item_size, const char *name)
 {
 	(void)name;
@@ -549,14 +559,6 @@ uint32_t mmosal_ticks_per_second(void)
 {
 	return k_sec_to_ticks_ceil32(1);
 }
-
-struct mmosal_timer {
-	struct k_timer timer;
-	uint32_t period;
-	bool reload;
-	timer_callback_t expiry;
-	void *arg;
-};
 
 static void mmosal_timer_expiry_fn(struct k_timer *timer_id)
 {

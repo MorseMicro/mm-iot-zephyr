@@ -8,10 +8,11 @@ if(CONFIG_WIFI_MORSEMICRO)
   )
 
   zephyr_library_sources(
+    ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal_core.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal_os.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal_wlan.c
     ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal_wlan_binaries.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/shims/wlan_hal.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmosal_shim_zephyr.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmosal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/common.c
     ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_spi.c
     ${CMAKE_CURRENT_SOURCE_DIR}/net_mgmt.c
