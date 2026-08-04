@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/net_if.h>
 
 #include "ap.h"
 #include "config.h"
@@ -16,7 +17,7 @@ LOG_MODULE_REGISTER(ap_mode_main, LOG_LEVEL_INF);
 
 int main(void)
 {
-	struct net_if *ap_iface = get_ap_iface();
+	struct net_if *ap_iface = net_if_get_wifi_sap();
 	int rc;
 
 	if (!ap_iface) {

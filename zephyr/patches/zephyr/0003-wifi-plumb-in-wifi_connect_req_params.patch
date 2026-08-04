@@ -1,0 +1,158 @@
+From dd4e1250af4c23b034801b04eac23a98a065fcea Mon Sep 17 00:00:00 2001
+From: Michael McCandless <michael.mccandless@morsemicro.com>
+Date: Wed, 5 Aug 2026 11:00:52 +0000
+Subject: [PATCH 3/3] wifi: plumb in wifi_connect_req_params
+
+Additions are the minimal changes needed to enable bringing up an
+802.11ah Wi-Fi HaLow AP using net_mgmt wifi.
+
+Also adds parameter handling to wifi_shell to enable setting the new
+enums values and S1G channels. This does not implement the channel
+constraining found in the other Wi-Fi bands as the S1G channelization is
+region dependant and thus not derivable from the frequency without that
+context available
+
+Tracked-by: OSP-934
+Signed-off-by: Michael McCandless <michael.mccandless@morsemicro.com>
+---
+ include/zephyr/net/wifi_utils.h | 10 ++++++++++
+ subsys/net/l2/wifi/wifi_shell.c | 33 +++++++++++++++++++++++++--------
+ subsys/net/l2/wifi/wifi_utils.c | 16 ++++++++++++++++
+ 3 files changed, 51 insertions(+), 8 deletions(-)
+
+diff --git a/include/zephyr/net/wifi_utils.h b/include/zephyr/net/wifi_utils.h
+index 511d2033532..01ae88b81ba 100644
+--- a/include/zephyr/net/wifi_utils.h
++++ b/include/zephyr/net/wifi_utils.h
+@@ -149,6 +149,16 @@ bool wifi_utils_validate_chan_5g(uint16_t chan);
+  */
+ bool wifi_utils_validate_chan_6g(uint16_t chan);
+ 
++/**
++ * @brief Validate a channel against the Sub 1 GHz band.
++ *
++ * @param chan Channel to validate.
++ *
++ * @retval true if the channel is valid for the band.
++ * @retval false if the channel is not valid for the band.
++ */
++bool wifi_utils_validate_chan_s1g(uint16_t chan);
++
+ /**
+  * @}
+  */
+diff --git a/subsys/net/l2/wifi/wifi_shell.c b/subsys/net/l2/wifi/wifi_shell.c
+index a194979cb6a..0749d2b7cfb 100644
+--- a/subsys/net/l2/wifi/wifi_shell.c
++++ b/subsys/net/l2/wifi/wifi_shell.c
+@@ -676,7 +676,8 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
+ 	const uint8_t all_bands[] = {
+ 		WIFI_FREQ_BAND_2_4_GHZ,
+ 		WIFI_FREQ_BAND_5_GHZ,
+-		WIFI_FREQ_BAND_6_GHZ
++		WIFI_FREQ_BAND_6_GHZ,
++		WIFI_FREQ_BAND_SUB_1_GHZ
+ 	};
+ 	bool found = false;
+ 	char bands_str[MAX_BANDS_STR_LEN] = {0};
+@@ -764,17 +765,20 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
+ 		case 'b':
+ 			if (iface_mode == WIFI_MODE_INFRA ||
+ 			    iface_mode == WIFI_MODE_AP) {
+-				switch (atoi(state->optarg)) {
+-				case 2:
++				switch (state->optarg[0]) {
++				case '2':
+ 					params->band = WIFI_FREQ_BAND_2_4_GHZ;
+ 					break;
+-				case 5:
++				case '5':
+ 					params->band = WIFI_FREQ_BAND_5_GHZ;
+ 					break;
+-				case 6:
++				case '6':
+ 					params->band = WIFI_FREQ_BAND_6_GHZ;
+ 					break;
+-				case 0:
++				case 'S':
++					params->band = WIFI_FREQ_BAND_SUB_1_GHZ;
++					break;
++				case '0':
+ 					/* Allow default value when connecting */
+ 					if (iface_mode == WIFI_MODE_INFRA) {
+ 						params->band = WIFI_FREQ_BAND_UNKNOWN;
+@@ -833,6 +837,18 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
+ 				case 3:
+ 					params->bandwidth = WIFI_FREQ_BANDWIDTH_80MHZ;
+ 					break;
++				case 4:
++					params->bandwidth = WIFI_FREQ_BANDWIDTH_1MHZ;
++					break;
++				case 5:
++					params->bandwidth = WIFI_FREQ_BANDWIDTH_2MHZ;
++					break;
++				case 6:
++					params->bandwidth = WIFI_FREQ_BANDWIDTH_4MHZ;
++					break;
++				case 7:
++					params->bandwidth = WIFI_FREQ_BANDWIDTH_8MHZ;
++					break;
+ 				default:
+ 					PR_ERROR("Invalid bandwidth: %d\n", atoi(state->optarg));
+ 					return -EINVAL;
+@@ -4435,7 +4451,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
+ 				 "-w --ieee-80211w=<MFP> (optional: needs security type to "
+ 				 "be specified)\n"
+ 				 "0:Disable, 1:Optional, 2:Required\n"
+-				 "-b --band=<band> (2 -2.6GHz, 5 - 5Ghz, 6 - 6GHz)\n"
++				 "-b --band=<band> (2 - 2.6GHz, 5 - 5Ghz, 6 - 6GHz, S - Sub 1GHz)\n"
+ 				 "-m --bssid=<BSSID>\n"
+ 				 "-g --ignore-broadcast-ssid=<type>. Hide SSID in AP mode.\n"
+ 				 "0: disabled (default)\n"
+@@ -4443,7 +4459,8 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
+ 				 "request for broadcast SSID\n"
+ 				 "2: clear SSID (ASCII 0), but keep the original length "
+ 				 "and ignore probe requests for broadcast SSID\n"
+-				 "[-B, --bandwidth=<bandwidth>]: 1:20MHz, 2:40MHz, 3:80MHz\n"
++				 "[-B, --bandwidth=<bandwidth>]: 1:20MHz, 2:40MHz, 3:80MHz, 4:1MHz,"
++				 "5:2MHz, 6:4MHz, 7:8MHz\n"
+ 				 "[-K, --key1-pwd for eap phase1 or --key2-pwd for eap phase2]:\n"
+ 				 "Private key passwd for enterprise mode. Default is no password "
+ 				 "for private key\n"
+diff --git a/subsys/net/l2/wifi/wifi_utils.c b/subsys/net/l2/wifi/wifi_utils.c
+index 95522e26ca8..2724342bc2c 100644
+--- a/subsys/net/l2/wifi/wifi_utils.c
++++ b/subsys/net/l2/wifi/wifi_utils.c
+@@ -79,6 +79,19 @@ bool wifi_utils_validate_chan_6g(uint16_t chan)
+ 	return false;
+ }
+ 
++bool wifi_utils_validate_chan_s1g(uint16_t chan)
++{
++	/* S1G chnnelization varies heavily by region, with many regions not yet having regional
++	 * definitions.
++	 *
++	 * Max derived from S1G Op classs 35 in the 2024 802.11ah, Annex E Table E 5
++	 * */
++	if (((chan >= 1) && (chan <= 172))) {
++		return true;
++	}
++
++	return false;
++}
+ 
+ bool wifi_utils_validate_chan(uint8_t band,
+ 			      uint16_t chan)
+@@ -95,6 +108,9 @@ bool wifi_utils_validate_chan(uint8_t band,
+ 	case WIFI_FREQ_BAND_6_GHZ:
+ 		result = wifi_utils_validate_chan_6g(chan);
+ 		break;
++	case WIFI_FREQ_BAND_SUB_1_GHZ:
++		result = wifi_utils_validate_chan_s1g(chan);
++		break;
+ 	default:
+ 		NET_ERR("Unknown band: %d", band);
+ 		break;
+-- 
+2.55.0
+

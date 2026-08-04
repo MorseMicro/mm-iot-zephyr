@@ -52,6 +52,12 @@ struct morsemicro_vif_data {
 
 	/* AP-specific state. */
 	struct mmwlan_ap_args ap_args;
+#if defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS)
+	/* S1G operating channel bandwidth (MHz), staged via NET_REQUEST_MORSEMICRO_S1G_BANDWIDTH
+	 * ahead of ap_enable(), since unpatched wifi_connect_req_params can't carry it.
+	 */
+	uint8_t s1g_bw_mhz;
+#endif
 };
 
 struct morsemicro_data {

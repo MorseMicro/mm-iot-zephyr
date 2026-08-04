@@ -1,0 +1,30 @@
+patches:
+  - path: zephyr/0001-PATCH-MARKER-DO-NOT-UPSTREAM.patch
+    sha256sum: 30575fbcc12fe17abc855ad40a6258afd79ec9ff319e349a5af98a5e1f991dc3
+    module: zephyr
+    author: Michael McCandless
+    email: michael.mccandless@morsemicro.com
+    date: 2026-08-18
+    upstreamable: false
+    comments: |
+      #define marker for indicating the patch was applied with WIFI_MORSEMICRO_PATCHED
+
+  - path: zephyr/0002-wifi-Add-S1GHz-Bands-and-Bandwidths.patch
+    sha256sum: baf321d548e8fb9fd5caaaccb3040c9dedfa2b0af0adb34a042680ff25d785d3
+    module: zephyr
+    author: Chetan Mistry
+    email: chetan.mistry@morsemicro.com
+    date: 2026-08-18
+    upstreamable: true
+    comments: |
+      Adds S1G bands and band frequencies to enum
+
+  - path: zephyr/0003-wifi-plumb-in-wifi_connect_req_params.patch
+    sha256sum: 0b95b73f212cd3d1f298359057f908ae37c62419afb8fcac9c182af7711c15e0
+    module: zephyr
+    author: Michael McCandless
+    email: michael.mccandless@morsemicro.com
+    date: 2026-08-18
+    upstreamable: true
+    comments: |
+      Minimal enum integration to enable AP bringup

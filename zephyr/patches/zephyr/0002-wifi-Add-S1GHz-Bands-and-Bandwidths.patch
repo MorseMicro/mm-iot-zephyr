@@ -1,0 +1,62 @@
+From 531d191edc003a949dc6fe4eb62a046b087b53fd Mon Sep 17 00:00:00 2001
+From: Chetan Mistry <chetan.mistry@morsemicro.com>
+Date: Mon, 27 Jul 2026 11:26:36 +0100
+Subject: [PATCH 2/3] wifi: Add S1GHz Bands and Bandwidths
+
+Add support for Wi-Fi HaLow (802.11ah) frequency band 1GHz and related
+bandwidths (1/2/4/8MHz).
+
+Tracked-by: OSP-219
+Signed-off-by: Chetan Mistry <chetan.mistry@morsemicro.com>
+---
+ include/zephyr/net/wifi.h      | 13 +++++++++++++
+ subsys/net/l2/wifi/wifi_mgmt.c |  2 ++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/include/zephyr/net/wifi.h b/include/zephyr/net/wifi.h
+index ace82cd4d1b..e6f709748df 100644
+--- a/include/zephyr/net/wifi.h
++++ b/include/zephyr/net/wifi.h
+@@ -269,6 +269,9 @@ enum wifi_frequency_bands {
+ 	/** 6 GHz band (Wi-Fi 6E, also extends to 7GHz). */
+ 	WIFI_FREQ_BAND_6_GHZ,
+ 
++	/** Sub-1GHz band (Wi-Fi HaLow, 802.11ah)*/
++	WIFI_FREQ_BAND_SUB_1_GHZ,
++
+ 	/** Number of frequency bands available. */
+ 	__WIFI_FREQ_BAND_AFTER_LAST,
+ 	/** Highest frequency band available. */
+@@ -291,6 +294,16 @@ enum wifi_frequency_bandwidths {
+ 	/** 80 MHz. */
+ 	WIFI_FREQ_BANDWIDTH_80MHZ,
+ 
++	/** Band widths for Sub-1GHz channels*/
++	/** 1 MHz. */
++	WIFI_FREQ_BANDWIDTH_1MHZ,
++	/** 2 MHz. */
++	WIFI_FREQ_BANDWIDTH_2MHZ,
++	/** 4 MHz. */
++	WIFI_FREQ_BANDWIDTH_4MHZ,
++	/** 8 MHz. */
++	WIFI_FREQ_BANDWIDTH_8MHZ,
++
+ 	/** Number of frequency bandwidths available. */
+ 	__WIFI_FREQ_BANDWIDTH_AFTER_LAST,
+ 	/** Highest frequency bandwidth available. */
+diff --git a/subsys/net/l2/wifi/wifi_mgmt.c b/subsys/net/l2/wifi/wifi_mgmt.c
+index aa7891ab91d..b115f2c1144 100644
+--- a/subsys/net/l2/wifi/wifi_mgmt.c
++++ b/subsys/net/l2/wifi/wifi_mgmt.c
+@@ -142,6 +142,8 @@ const char *wifi_band_txt(enum wifi_frequency_bands band)
+ 		return "5GHz";
+ 	case WIFI_FREQ_BAND_6_GHZ:
+ 		return "6GHz";
++	case WIFI_FREQ_BAND_SUB_1_GHZ:
++		return "S1GHz";
+ 	case WIFI_FREQ_BAND_UNKNOWN:
+ 	default:
+ 		return "UNKNOWN";
+-- 
+2.55.0
+

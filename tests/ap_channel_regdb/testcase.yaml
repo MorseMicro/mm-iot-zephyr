@@ -1,0 +1,12 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+common:
+  tags:
+    - drivers
+    - wifi
+    - morsemicro
+  integration_platforms:
+    - native_sim
+tests:
+  drivers.wifi.morsemicro.ap_channel_regdb: {}

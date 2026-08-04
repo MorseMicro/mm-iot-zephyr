@@ -12,6 +12,7 @@ menuconfig WIFI_MORSEMICRO
 	select WIFI_USE_NATIVE_NETWORKING
 	select NET_L2_WIFI_MGMT
 	select NET_L2_ETHERNET
+	select WIFI_NM
 	select DYNAMIC_THREAD_ALLOC
 	select GPIO_GET_CONFIG
 	select HWINFO
@@ -91,21 +92,29 @@ config WIFI_MORSEMICRO_AP_MODE
 	  Allows the device to use AP functionality.
 	  Disabled by default as this takes up a substantial amount of flash.
 
-if WIFI_MORSEMICRO_AP_MODE
+choice WIFI_USAGE_MODE
+	default WIFI_USAGE_MODE_STA_AP if WIFI_MORSEMICRO_AP_MODE
+endchoice
 
-config WIFI_MORSEMICRO_AP_OP_CLASS
-	int "S1G operating class to use for AP mode"
-	default 0
+config WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS
+	bool "Add temporary workarounds for non patched zephyr instances"
+	default n
+	select WIFI_MORSEMICRO_SHELL if SHELL
 	help
-	  Global operating class for the AP's operating channel.
+	  Add extra wifi mgmt calls for dealing with S1G specific behavior to avoid having to apply
+	  patches. These patches are intended for upstreaming, and when they are pulled in to a
+	  zephyr release, they will be deprecated and subsequently deprecated and then removed in
+	  the follow up mm-iot-zephyr releases.
 
-config WIFI_MORSEMICRO_AP_S1G_CHAN_NUM
-	int "S1G channel number to use for AP mode"
-	default 0
+# Currently only needed for unpatched workarounds
+config WIFI_MORSEMICRO_SHELL
+	bool "Morse Micro driver shell commands"
+	depends on SHELL
+	depends on WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS
+	default y if WIFI_MORSEMICRO_AP_MODE
 	help
-	  S1G channel number for the AP's operating channel.
-
-endif # WIFI_MORSEMICRO_AP_MODE
+	  Adds a 'morsemicro' shell command for driver-specific functionality not
+	  covered by the generic 'wifi' shell.
 
 endif # ALPHA_FEATURES
 

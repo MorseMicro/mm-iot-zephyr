@@ -17,4 +17,26 @@ config UDP_ECHO_PORT
 	int "UDP port for the echo server"
 	default 4242
 
+config AP_CHANNEL
+	int "S1G primary channel number for the AP"
+	default 39
+
+choice AP_BANDWIDTH
+	bool "AP operating channel bandwidth in MHz"
+	default AP_BANDWIDTH_1MHZ
+
+	config AP_BANDWIDTH_1MHZ
+		bool "1"
+
+	config AP_BANDWIDTH_2MHZ
+		bool "2"
+
+	config AP_BANDWIDTH_4MHZ
+		bool "4"
+
+	config AP_BANDWIDTH_8MHZ
+		bool "8"
+
+endchoice
+
 source "Kconfig.zephyr"

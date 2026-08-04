@@ -11,11 +11,15 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <string.h>
 #include <errno.h>
 #include <zephyr/net/wifi_mgmt.h>
+#include <zephyr/net/wifi_nm.h>
 
 #include "common.h"
+#include "morsemicro_mgmt.h"
 #include "mmwlan.h"
 #include "mmpkt.h"
 #include "mmregdb.h"
+
+DEFINE_WIFI_NM_INSTANCE(morsemicro, &morsemicro_wifi_mgmt_ops);
 
 static const uint8_t morsemicro_bcf_regions[] = {
 #include "morsemicro_bcf_regions.inc"
@@ -262,18 +266,6 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 	return 0;
 }
 
-static int morsemicro_iface_start(const struct device *dev)
-{
-	struct morsemicro_data *dev_data = dev->data;
-
-	if (dev_data->channel_list == NULL) {
-		LOG_ERR("Cannot bring interface up without a valid regulatory domain");
-		return -ENODEV;
-	}
-
-	return 0;
-}
-
 void morsemicro_iface_init(struct net_if *iface)
 {
 	const struct device *dev = net_if_get_device(iface);
@@ -290,10 +282,7 @@ void morsemicro_iface_init(struct net_if *iface)
 	/* Initialize Ethernet L2 stack, done once regardless of mmwlan start outcome */
 	ethernet_init(dev_data->sta.iface);
 
-	net_if_dormant_on(iface);
-
-	/* L1 network layer (physical layer) down unti valid reg is set */
-	net_if_carrier_off(iface);
+	wifi_nm_register_mgd_type_iface(&wifi_nm_morsemicro, WIFI_TYPE_STA, iface);
 
 	if (morsemicro_wlan_start(iface, dev_data, CONFIG_WIFI_MORSEMICRO_REGION) != 0) {
 		LOG_DBG("%s: mmwlan start failed, interface left down", __func__);
@@ -302,7 +291,6 @@ void morsemicro_iface_init(struct net_if *iface)
 
 const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ops = {
 	.wifi_iface.iface_api.init = morsemicro_iface_init,
-	.wifi_iface.start = morsemicro_iface_start,
 	.wifi_iface.send = mmnetif_tx,
 	.wifi_mgmt_api = &morsemicro_wifi_mgmt_ops,
 };
@@ -333,6 +321,8 @@ void morsemicro_ap_iface_init(struct net_if *iface)
 	LOG_DBG("%s: initialising Morse Micro AP interface\n", __func__);
 
 	ethernet_init(iface);
+
+	wifi_nm_register_mgd_type_iface(&wifi_nm_morsemicro, WIFI_TYPE_SAP, iface);
 }
 
 const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ap_ops = {

@@ -15,6 +15,10 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <zephyr/net/net_if.h>
 
 #include "common.h"
+
+#if defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS)
+#include "morsemicro_mgmt.h"
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS) */
 #include "mmwlan.h"
 #include "mmutils.h"
 
@@ -158,12 +162,18 @@ static int morsemicro_mgmt_connect(const struct device *dev, struct wifi_connect
 	sta_args->ssid_len = ssid_len;
 
 	if (params->security == WIFI_SECURITY_TYPE_SAE) {
-		const uint8_t *psk = params->sae_password ? params->sae_password : params->psk;
-		uint8_t psk_len = psk == params->sae_password ? params->sae_password_length
-							      : params->psk_length;
-		if (psk == params->psk) {
+		const uint8_t *psk;
+		uint8_t psk_len;
+
+		if (params->sae_password) {
+			psk = params->sae_password;
+			psk_len = params->sae_password_length;
+		} else {
+			psk = params->psk;
+			psk_len = params->psk_length;
 			LOG_WRN("WPA2 PSK is not supported. Upgrading to WPA3 SAE.");
 		}
+
 		psk_len = MIN(sizeof(sta_args->passphrase), psk_len);
 		memcpy(sta_args->passphrase, psk, psk_len);
 		sta_args->passphrase_len = psk_len;
@@ -231,10 +241,14 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 		strncpy(status->ssid, ap_args->ssid, WIFI_SSID_MAX_LEN);
 		status->ssid_len = ap_args->ssid_len;
 		status->iface_mode = WIFI_MODE_AP;
+#ifdef WIFI_MORSEMICRO_PATCHED
+		status->band = WIFI_FREQ_BAND_SUB_1_GHZ;
+#else
 		status->band = WIFI_FREQ_BAND_UNKNOWN;
+#endif /* WIFI_MORSEMICRO_PATCHED */
 		status->link_mode = WIFI_LINK_MODE_UNKNOWN;
 		status->mfp = ap_args->pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
-									: WIFI_MFP_REQUIRED;
+								       : WIFI_MFP_REQUIRED;
 
 		switch (ap_args->security_type) {
 		case MMWLAN_OPEN:
@@ -248,7 +262,8 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 		}
 
 		if (dev_data->ap.status == WIFI_STATE_COMPLETED) {
-			if (mmwlan_get_vif_mac_addr(MMWLAN_VIF_AP, status->bssid) != MMWLAN_SUCCESS) {
+			if (mmwlan_get_vif_mac_addr(MMWLAN_VIF_AP, status->bssid) !=
+			    MMWLAN_SUCCESS) {
 				LOG_ERR("Could not get AP BSSID");
 			}
 
@@ -266,7 +281,11 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 	strncpy(status->ssid, dev_data->sta.sta_args.ssid, WIFI_SSID_MAX_LEN);
 	status->ssid_len = dev_data->sta.sta_args.ssid_len;
 	status->iface_mode = WIFI_MODE_INFRA;
+#ifdef WIFI_MORSEMICRO_PATCHED
+	status->band = WIFI_FREQ_BAND_SUB_1_GHZ;
+#else
 	status->band = WIFI_FREQ_BAND_UNKNOWN;
+#endif /* WIFI_MORSEMICRO_PATCHED */
 	status->link_mode = WIFI_LINK_MODE_UNKNOWN;
 	status->mfp = dev_data->sta.sta_args.pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
 									     : WIFI_MFP_REQUIRED;
@@ -385,6 +404,193 @@ static int morsemicro_mgmt_reg_domain(const struct device *dev, struct wifi_reg_
 }
 
 #if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+/**
+ * @brief Validate a candidate AP channel against the active regulatory domain.
+ *
+ * @param[in] channel_list: active regulatory domain's channel list.
+ * @param[in] op_class: candidate global or S1G operating class.
+ * @param[in] chan_num: candidate S1G channel number.
+ * @param[in] bw_mhz: candidate operating bandwidth, in MHz.
+ * @param[in] pri_1mhz_chan_idx: candidate primary 1 MHz channel index.
+ *
+ * @return true if the combination has a matching entry in channel_list.
+ */
+static bool morsemicro_ap_channel_is_valid(const struct mmwlan_s1g_channel_list *channel_list,
+					   uint16_t op_class, uint16_t chan_num, uint8_t bw_mhz,
+					   uint8_t pri_1mhz_chan_idx)
+{
+	if (channel_list == NULL || bw_mhz == 0 || pri_1mhz_chan_idx >= bw_mhz) {
+		return false;
+	}
+
+	for (unsigned int i = 0; i < channel_list->num_channels; i++) {
+		const struct mmwlan_s1g_channel *chan = &channel_list->channels[i];
+
+		if (chan->s1g_chan_num != chan_num || chan->bw_mhz != bw_mhz) {
+			continue;
+		}
+
+		if (chan->global_operating_class == MMWLAN_SKIP_OP_CLASS_CHECK ||
+		    chan->s1g_operating_class == MMWLAN_SKIP_OP_CLASS_CHECK ||
+		    chan->global_operating_class == (int16_t)op_class ||
+		    chan->s1g_operating_class == (int16_t)op_class) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @brief Compute the index of a primary channel (1 or 2 MHz) within an S1G operating channel.
+ *
+ * @param[in] channel_list: active regulatory domain's channel list.
+ * @param[in] op_class: operating channel's global or S1G operating class.
+ * @param[in] chan_num: operating channel's S1G channel number.
+ * @param[in] s1g_primary_channel: S1G channel number of the primary channel.
+ *
+ * @return the primary channel's index (pri_1mhz_chan_idx) within the operating channel,
+ *         or -1 if either channel could not be resolved, or the primary channel's bandwidth
+ *         is invalid (must be 1 or 2 MHz, and no wider than the operating channel).
+ */
+static int calc_primary_chan_idx(const struct mmwlan_s1g_channel_list *channel_list,
+				 uint16_t op_class, uint16_t chan_num, uint8_t s1g_primary_channel)
+{
+	const struct mmwlan_s1g_channel *op_chan = NULL;
+	const struct mmwlan_s1g_channel *primary_chan = NULL;
+	int32_t freq_delta_hz;
+	int32_t bw_margin_hz;
+	int idx;
+
+	if (channel_list == NULL) {
+		return -ENOENT;
+	}
+
+	for (unsigned int i = 0; i < channel_list->num_channels; i++) {
+		const struct mmwlan_s1g_channel *chan = &channel_list->channels[i];
+
+		if (op_chan == NULL && chan->s1g_chan_num == chan_num &&
+		    (chan->global_operating_class == MMWLAN_SKIP_OP_CLASS_CHECK ||
+		     chan->s1g_operating_class == MMWLAN_SKIP_OP_CLASS_CHECK ||
+		     chan->global_operating_class == (int16_t)op_class ||
+		     chan->s1g_operating_class == (int16_t)op_class)) {
+			op_chan = chan;
+		}
+
+		if (primary_chan == NULL && chan->s1g_chan_num == s1g_primary_channel) {
+			primary_chan = chan;
+		}
+	}
+
+	if (op_chan == NULL || primary_chan == NULL || primary_chan->bw_mhz > 2 ||
+	    primary_chan->bw_mhz > op_chan->bw_mhz) {
+		return -1;
+	}
+
+	freq_delta_hz = (int32_t)primary_chan->centre_freq_hz - (int32_t)op_chan->centre_freq_hz;
+	bw_margin_hz = ((int32_t)op_chan->bw_mhz - (int32_t)primary_chan->bw_mhz) * 500000;
+	idx = (freq_delta_hz + bw_margin_hz) / 1000000;
+
+	if (idx < 0 || idx >= op_chan->bw_mhz) {
+		return -1;
+	}
+
+	return idx;
+}
+
+/**
+ * @brief Find the S1G operating channel that contains a primary channel at a given bandwidth.
+ *
+ * @param[in] channel_list: active regulatory domain's channel list.
+ * @param[in] pri_chan: the primary channel's regdb entry.
+ * @param[in] bw_mhz: desired operating channel bandwidth, in MHz.
+ *
+ * @return the matching operating channel entry, or NULL if no channel_list entry of that
+ *         bandwidth spans pri_chan's centre frequency.
+ */
+static const struct mmwlan_s1g_channel *
+find_operating_channel(const struct mmwlan_s1g_channel_list *channel_list,
+		       const struct mmwlan_s1g_channel *primary_chan, uint8_t bw_mhz)
+{
+	for (unsigned int i = 0; i < channel_list->num_channels; i++) {
+		const struct mmwlan_s1g_channel *chan = &channel_list->channels[i];
+		int32_t half_span_hz = ((int32_t)bw_mhz * 1000000) / 2;
+		int32_t freq_delta_hz =
+			(int32_t)primary_chan->centre_freq_hz - (int32_t)chan->centre_freq_hz;
+
+		if (chan->bw_mhz == bw_mhz && freq_delta_hz > -half_span_hz &&
+		    freq_delta_hz < half_span_hz) {
+			return chan;
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * @brief Derive the S1G operating channel using the primary channel and operating bandwidth in
+ * conjunciton with the region
+ *
+ * @param[in] channel_list: active regulatory domain's channel list.
+ * @param[in] s1g_primary_channel: S1G channel number of the primary channel.
+ * @param[in] bw_mhz: operating channel bandwidth, in MHz.
+ * @param[out] op_class: set to the operating channel's operating class on success.
+ * @param[out] s1g_chan_num: set to the operating channel's S1G channel number on success.
+ * @param[out] pri_1mhz_chan_idx: set to the primary channel's index within the operating
+ *             channel on success.
+ * @param[out] pri_bw_mhz: set to the primary channel's own bandwidth (1 or 2 MHz) on success.
+ *
+ * @return 0 on success, -ENOENT if the primary channel, or a matching operating channel for
+ *         it at bw_mhz, could not be found in channel_list.
+ */
+static int derive_operating_channel(const struct mmwlan_s1g_channel_list *channel_list,
+				    uint8_t s1g_primary_channel, uint8_t bw_mhz, uint16_t *op_class,
+				    uint16_t *s1g_chan_num, uint8_t *pri_1mhz_chan_idx,
+				    uint8_t *pri_bw_mhz)
+{
+	const struct mmwlan_s1g_channel *pri_chan = NULL;
+	const struct mmwlan_s1g_channel *op_chan;
+	int idx;
+
+	if (channel_list == NULL) {
+		return -ENOENT;
+	}
+
+	for (unsigned int i = 0; i < channel_list->num_channels; i++) {
+		if (channel_list->channels[i].s1g_chan_num == s1g_primary_channel) {
+			pri_chan = &channel_list->channels[i];
+			break;
+		}
+	}
+
+	if (pri_chan == NULL || pri_chan->bw_mhz > 2 || pri_chan->bw_mhz > bw_mhz) {
+		return -ENOENT;
+	}
+
+	op_chan = find_operating_channel(channel_list, pri_chan, bw_mhz);
+	if (op_chan == NULL) {
+		return -ENOENT;
+	}
+
+	if (op_chan->s1g_operating_class != MMWLAN_SKIP_OP_CLASS_CHECK) {
+		*op_class = (uint16_t)op_chan->s1g_operating_class;
+	} else {
+		*op_class = (uint16_t)op_chan->global_operating_class;
+	}
+
+	idx = calc_primary_chan_idx(channel_list, *op_class, op_chan->s1g_chan_num,
+				    s1g_primary_channel);
+	if (idx < 0) {
+		return -ENOENT;
+	}
+
+	*s1g_chan_num = op_chan->s1g_chan_num;
+	*pri_1mhz_chan_idx = (uint8_t)idx;
+	*pri_bw_mhz = pri_chan->bw_mhz;
+
+	return 0;
+}
+
 static void morsemicro_ap_sta_status_cb(const struct mmwlan_ap_sta_status *sta_status, void *arg)
 {
 	struct morsemicro_vif_data *vif_data = (struct morsemicro_vif_data *)arg;
@@ -405,8 +611,16 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 				     struct wifi_connect_req_params *params)
 {
 	struct morsemicro_data *dev_data = dev->data;
+
 	struct mmwlan_ap_args *ap_args = &dev_data->ap.ap_args;
 	enum mmwlan_status status;
+
+	uint8_t bw_mhz;
+	uint8_t primary_chan;
+	uint16_t op_class;
+	uint16_t s1g_chan_num;
+	uint8_t pri_1mhz_chan_idx;
+	uint8_t pri_bw_mhz;
 
 	size_t ssid_len = MIN(sizeof(ap_args->ssid), params->ssid_length);
 
@@ -444,8 +658,54 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 	}
 	}
 
-	ap_args->op_class = CONFIG_WIFI_MORSEMICRO_AP_OP_CLASS;
-	ap_args->s1g_chan_num = CONFIG_WIFI_MORSEMICRO_AP_S1G_CHAN_NUM;
+	primary_chan = params->channel;
+
+#if defined(WIFI_MORSEMICRO_PATCHED)
+	switch (params->bandwidth) {
+	case WIFI_FREQ_BANDWIDTH_1MHZ:
+		bw_mhz = 1;
+		break;
+	case WIFI_FREQ_BANDWIDTH_2MHZ:
+		bw_mhz = 2;
+		break;
+	case WIFI_FREQ_BANDWIDTH_4MHZ:
+		bw_mhz = 4;
+		break;
+	case WIFI_FREQ_BANDWIDTH_8MHZ:
+		bw_mhz = 8;
+		break;
+	default:
+		LOG_ERR("Unsupported S1G bandwidth %d", params->bandwidth);
+		return -EINVAL;
+	}
+#elif defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS)
+
+	if (dev_data->ap.s1g_bw_mhz == 0) {
+		LOG_ERR("S1G bandwidth not set - run the s1g_bandwidth shell command "
+			"before enabling the AP");
+		return -EINVAL;
+	}
+
+	bw_mhz = dev_data->ap.s1g_bw_mhz;
+
+#endif /* defined(WIFI_MORSEMICRO_PATCHED) */
+
+	if (derive_operating_channel(dev_data->channel_list, params->channel, bw_mhz, &op_class,
+				     &s1g_chan_num, &pri_1mhz_chan_idx, &pri_bw_mhz)) {
+		LOG_ERR("Invalid AP channel");
+		return -EINVAL;
+	}
+
+	if (!morsemicro_ap_channel_is_valid(dev_data->channel_list, op_class, s1g_chan_num, bw_mhz,
+					    pri_1mhz_chan_idx)) {
+		LOG_ERR("Invalid AP channel");
+		return -EINVAL;
+	}
+
+	ap_args->op_class = op_class;
+	ap_args->s1g_chan_num = s1g_chan_num;
+	ap_args->pri_bw_mhz = pri_bw_mhz;
+	ap_args->pri_1mhz_chan_idx = pri_1mhz_chan_idx;
 	ap_args->sta_status_cb = morsemicro_ap_sta_status_cb;
 	ap_args->sta_status_cb_arg = &dev_data->ap;
 
@@ -511,6 +771,36 @@ static int morsemicro_mgmt_ap_config_params(const struct device *dev,
 
 	return 0;
 }
+
+#if defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS)
+static int morsemicro_mgmt_s1g_bandwidth(uint64_t mgmt_request, struct net_if *iface, void *data,
+					 size_t len)
+{
+	struct morsemicro_data *dev_data;
+	uint8_t bw_mhz;
+
+	ARG_UNUSED(mgmt_request);
+
+	if (!iface || !data || len != sizeof(bw_mhz)) {
+		return -EINVAL;
+	}
+
+	bw_mhz = *(uint8_t *)data;
+
+	if (bw_mhz != 1 && bw_mhz != 2 && bw_mhz != 4 && bw_mhz != 8) {
+		LOG_ERR("Unsupported S1G bandwidth %u", bw_mhz);
+		return -EINVAL;
+	}
+
+	dev_data = net_if_get_device(iface)->data;
+	dev_data->ap.s1g_bw_mhz = bw_mhz;
+
+	return 0;
+}
+
+NET_MGMT_REGISTER_REQUEST_HANDLER(NET_REQUEST_MORSEMICRO_S1G_BANDWIDTH,
+				  morsemicro_mgmt_s1g_bandwidth);
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS) */
 #endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
 
 const struct wifi_mgmt_ops morsemicro_wifi_mgmt_ops = {
