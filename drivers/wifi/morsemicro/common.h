@@ -190,10 +190,10 @@ static inline int mmwlan_err_to_errno(enum mmwlan_status status)
 					   (MORSEMICRO_SPI_BUS_CONFIG(inst)), ({}))},              \
 	};                                                                                         \
 	struct morsemicro_config *morsemicro_config0 = &chip##_config##inst;                       \
+	PM_DEVICE_DT_INST_DEFINE(inst, morsemicro_pm_action);                                      \
 	COND_CODE_1(CONFIG_WIFI_MORSEMICRO_TEST, (MORSEMICRO_TEST(inst, chip)),                    \
 		    (MORSEMICRO_NETIF(inst, chip)))                                                \
 	CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(inst)));                        \
-	PM_DEVICE_DT_INST_DEFINE(inst, morsemicro_pm_action);                                      \
 	const struct mmhal_chip *mmhal_get_chip(void)                                              \
 	{                                                                                          \
 		return &mmhal_##chip;                                                              \
