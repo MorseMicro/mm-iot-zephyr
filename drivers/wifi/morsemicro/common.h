@@ -163,10 +163,20 @@ static inline int mmwlan_err_to_errno(enum mmwlan_status status)
 
 #define SPI_FRAME_BITS 8
 
+#define MORSEMICRO_POWERSAVE_PINS(inst)                                                            \
+	COND_CODE_1(CONFIG_WIFI_MORSEMICRO_POWERSAVE,                                              \
+		(                                                                                  \
+			.wakeup = GPIO_DT_SPEC_INST_GET(inst, wakeup_gpios),                       \
+			.busy = GPIO_DT_SPEC_INST_GET(inst, busy_gpios),                           \
+		), ())
+
 #define MORSEMICRO_SPI_BUS_CONFIG(inst)                                                            \
-	.spi = SPI_DT_SPEC_INST_GET(inst, (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB |   \
-					   SPI_WORD_SET(SPI_FRAME_BITS))),                         \
-	.spi_irq = GPIO_DT_SPEC_INST_GET(inst, spi_irq_gpios),
+	{                                                                                          \
+		.spi = SPI_DT_SPEC_INST_GET(inst,                                                  \
+					    (SPI_LOCK_ON | SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | \
+					     SPI_WORD_SET(SPI_FRAME_BITS))),                       \
+		.spi_irq = GPIO_DT_SPEC_INST_GET(inst, spi_irq_gpios),                             \
+	}
 
 #define MORSEMICRO_NETIF(inst, chip)                                                               \
 	NET_DEVICE_DT_INST_DEFINE(inst, morsemicro_init, PM_DEVICE_DT_INST_GET(inst),              \
@@ -178,21 +188,46 @@ static inline int mmwlan_err_to_errno(enum mmwlan_status status)
 	DEVICE_DT_INST_DEFINE(inst, morsemicro_init, NULL, &chip##_data##inst,                     \
 			      &chip##_config##inst, POST_KERNEL, CONFIG_WIFI_INIT_PRIORITY, NULL);
 
+#define MORSEMICRO_DEVICE(inst, chip)                                                              \
+	COND_CODE_1(CONFIG_WIFI_MORSEMICRO_TEST,                                                   \
+		(MORSEMICRO_TEST(inst, chip)),                                                     \
+	        (MORSEMICRO_NETIF(inst, chip)))
+
+#define MORSEMICRO_BUS_CONFIG(inst)                                                                \
+	{COND_CODE_1(DT_INST_ON_BUS(inst, spi),                                                    \
+				(MORSEMICRO_SPI_BUS_CONFIG(inst)),                                 \
+				({})                                                               \
+			   ) }
+
+#define MORSEMICRO_BUS_OPS(inst)                                                                   \
+	COND_CODE_1(DT_INST_ON_BUS(inst, spi),                                                     \
+				(&morsemicro_bus_ops_spi),                                         \
+				(NULL))
+
+#define MORSEMICRO_GPIO_ASSERT(inst, chip)                                                         \
+	BUILD_ASSERT(!DT_INST_NODE_HAS_PROP(inst, wakeup_gpios) ==                                 \
+			     !DT_INST_NODE_HAS_PROP(inst, busy_gpios),                             \
+		     "morsemicro,mm" STRINGIFY(chip) ": wakeup-gpios and busy-gpios need "         \
+						     "to either both be defined to "               \
+						     "enable power save, or both be "              \
+						     "undefined to indicate intent. Note "         \
+						     "that wake needs to be driven "               \
+						     "high for the chip to function. If "          \
+						     "only wake is routed, this can "              \
+						     "be "                                         \
+						     "accomplished with a gpio-hog");
+
 #define MORSEMICRO_NET_DEVICE(inst, chip)                                                          \
+	MORSEMICRO_GPIO_ASSERT(inst, chip)                                                         \
 	static struct morsemicro_data chip##_data##inst;                                           \
 	static struct morsemicro_config chip##_config##inst = {                                    \
 		.resetn = GPIO_DT_SPEC_INST_GET(inst, resetn_gpios),                               \
-		.wakeup = GPIO_DT_SPEC_INST_GET(inst, wakeup_gpios),                               \
-		.busy = GPIO_DT_SPEC_INST_GET(inst, busy_gpios),                                   \
-		.bus_ops =                                                                         \
-			COND_CODE_1(DT_INST_ON_BUS(inst, spi), (&morsemicro_bus_ops_spi), (NULL)), \
-		.bus_config = {COND_CODE_1(DT_INST_ON_BUS(inst, spi),                              \
-					   (MORSEMICRO_SPI_BUS_CONFIG(inst)), ({}))},              \
-	};                                                                                         \
+		.bus_config = MORSEMICRO_BUS_CONFIG(inst),                                         \
+		.bus_ops = MORSEMICRO_BUS_OPS(inst),                                               \
+		MORSEMICRO_POWERSAVE_PINS(inst)};                                                  \
 	struct morsemicro_config *morsemicro_config0 = &chip##_config##inst;                       \
 	PM_DEVICE_DT_INST_DEFINE(inst, morsemicro_pm_action);                                      \
-	COND_CODE_1(CONFIG_WIFI_MORSEMICRO_TEST, (MORSEMICRO_TEST(inst, chip)),                    \
-		    (MORSEMICRO_NETIF(inst, chip)))                                                \
+	MORSEMICRO_DEVICE(inst, chip)                                                              \
 	CONNECTIVITY_WIFI_MGMT_BIND(Z_DEVICE_DT_DEV_ID(DT_DRV_INST(inst)));                        \
 	const struct mmhal_chip *mmhal_get_chip(void)                                              \
 	{                                                                                          \

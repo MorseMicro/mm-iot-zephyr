@@ -17,8 +17,25 @@ properties:
 
   wakeup-gpios:
     type: phandle-array
-    description: Line for communicating when the host has data for the chip.
+    description: |
+      Line for communicating when the host has data for the chip.
+
+      Required for power saving features.
+
+      The wake line needs to be driven high by either the driver by defining these, attaching a
+      gpio-hog to the relevant pin, or at the hardware level freeing up a host gpio.
+
+      Defining this without busy-gpios intentionally throws build errors. Use a gpio-hog instead
+      if busy is not implemented.
+
 
   busy-gpios:
     type: phandle-array
-    description: Line for communicating when chip has data for the host.
+    description: |
+      Line for communicating when chip has data for the host.
+
+      Required for power saving features.
+
+      Defining this without wakeup-gpios intentionally throws build errors. If wakeup is hardware
+      driven, or driven by a gpio hog, this can be safely left undefined to indicate that there is
+      not a configuration issue.

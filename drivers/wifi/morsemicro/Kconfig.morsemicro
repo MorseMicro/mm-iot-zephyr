@@ -36,6 +36,17 @@ config WIFI_MORSEMICRO_BUS_SPI
 	select SPI
 endchoice
 
+config WIFI_MORSEMICRO_POWERSAVE
+	bool
+	default y
+	depends on (($(dt_compat_any_has_prop,$(DT_COMPAT_MORSEMICRO_MM8108),busy-gpios) \
+	&& $(dt_compat_any_has_prop,$(DT_COMPAT_MORSEMICRO_MM8108),wakeup-gpios)) \
+	|| ($(dt_compat_any_has_prop,$(DT_COMPAT_MORSEMICRO_MM6108),busy-gpios) \
+	&& $(dt_compat_any_has_prop,$(DT_COMPAT_MORSEMICRO_MM6108),wakeup-gpios)))
+	help
+	  Enables power saving functionality on the Morse Micro chip.
+	  Requires both the wakeup-gpios and busy-gpios are routed and defined.
+
 config WIFI_MORSEMICRO_TEST
 	bool "Morse Micro device test driver"
 	help

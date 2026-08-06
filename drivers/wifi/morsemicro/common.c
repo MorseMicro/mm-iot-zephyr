@@ -63,6 +63,8 @@ int morsemicro_init(const struct device *dev)
 	}
 	gpio_pin_configure_dt(&cfg->resetn, GPIO_OUTPUT_INACTIVE);
 
+#if defined(CONFIG_WIFI_MORSEMICRO_POWERSAVE)
+
 	if (!gpio_is_ready_dt(&cfg->wakeup)) {
 		LOG_ERR("%s: device %s is not ready", dev->name, cfg->wakeup.port->name);
 		return -ENODEV;
@@ -84,6 +86,7 @@ int morsemicro_init(const struct device *dev)
 		LOG_ERR("%s: no bus_init callback configured", dev->name);
 		return -ENOTSUP;
 	}
+#endif /* defined(MORSEMICRO_POWERSAVE) */
 
 	return cfg->bus_ops->init(dev);
 }

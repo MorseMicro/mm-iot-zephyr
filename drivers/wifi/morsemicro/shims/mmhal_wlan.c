@@ -21,7 +21,9 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
 extern const struct device *morsemicro_dev;
 
+#if defined(CONFIG_WIFI_MORSEMICRO_POWERSAVE)
 static mmhal_irq_handler_t busy_irq_handler = NULL;
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_POWERSAVE) */
 
 static uint32_t mmhal_read_device_uid(void)
 {
@@ -105,6 +107,8 @@ void mmhal_wlan_deinit(void)
 	}
 }
 
+#if defined(CONFIG_WIFI_MORSEMICRO_POWERSAVE)
+
 void mmhal_wlan_wake_assert(void)
 {
 	const struct morsemicro_config *cfg = morsemicro_config0;
@@ -162,3 +166,36 @@ void morsemicro_busy_cb(const struct device *dev, struct gpio_callback *cb, uint
 		busy_irq_handler();
 	}
 }
+
+#else
+void mmhal_wlan_wake_assert(void)
+{
+}
+
+void mmhal_wlan_wake_deassert(void)
+{
+}
+
+bool mmhal_wlan_busy_is_asserted(void)
+{
+	return false;
+}
+
+void mmhal_wlan_register_busy_irq_handler(mmhal_irq_handler_t handler)
+{
+	ARG_UNUSED(handler);
+}
+
+void mmhal_wlan_set_busy_irq_enabled(bool enabled)
+{
+	ARG_UNUSED(enabled);
+}
+
+void morsemicro_busy_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+	ARG_UNUSED(dev);
+	ARG_UNUSED(cb);
+	ARG_UNUSED(pins);
+}
+
+#endif /* CONFIG_WIFI_MORSEMICRO_POWERSAVE */
