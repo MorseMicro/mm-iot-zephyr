@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <zephyr/kernel.h>
 #include <zephyr/sys/reboot.h>
 
 #include "mmhal.h"
