@@ -36,8 +36,32 @@ definitions:
           - echo "Files to check:" && echo "$FILES"
           - git-clang-format-20 --binary clang-format-20 --diff "$BASE" HEAD -- $FILES
 
+    - step: &cmake-format-check
+        name: cmake-format check
+        script:
+          - apt-get update -qq && apt-get install -y -qq python3-pip git
+          - pip install --break-system-packages --quiet cmake-format==0.6.13 pyyaml
+
+          # Compute against merge base
+          - BASE=$(git merge-base HEAD origin/${BITBUCKET_PR_DESTINATION_BRANCH})
+
+          # Detect changed CMakeLists.txt / *.cmake files under subdirectories of interest
+          - FILES=$(git diff --name-only "$BASE" HEAD -- 'CMakeLists.txt' 'drivers/**/CMakeLists.txt' 'drivers/**/*.cmake' 'samples/**/CMakeLists.txt' 'samples/**/*.cmake' 'components/**/CMakeLists.txt' 'components/**/*.cmake' 'boards/**/CMakeLists.txt' 'boards/**/*.cmake')
+
+          - |
+            if [ -z "$FILES" ]; then
+              echo "No CMake file changes in target directories."
+              exit 0
+            fi
+
+          # NOTE: file paths must precede -c/--config-files — cmake-format's
+          # nargs='+' greedily consumes trailing args otherwise (silent false pass).
+          - echo "Files to check:" && echo "$FILES"
+          - cmake-format --check $FILES -c .cmake-format.yaml
+
 pipelines:
   pull-requests:
     "**":
       - step: *check-todos
       - step: *clang-format-check
+      - step: *cmake-format-check

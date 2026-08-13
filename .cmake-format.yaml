@@ -1,0 +1,56 @@
+# .cmake-format.yaml
+format:
+  line_width: 100
+  tab_size: 2
+  use_tabchars: false
+  separate_ctrl_name_with_space: true
+  separate_fn_name_with_space: false
+  dangle_parens: true
+  dangle_align: prefix
+  max_pargs_hwrap: 6
+  max_subgroups_hwrap: 2
+  command_case: 'lower'
+  keyword_case: 'upper'
+
+markup:
+  enable_markup: false   # avoid mangling license headers / ASCII diagrams common in Zephyr files
+
+lint:
+  max_arguments: 6
+  max_statements: 60
+  max_branches: 15
+
+parse:
+  additional_commands:
+    zephyr_library:
+      kwargs: {}
+    zephyr_library_named:
+      pargs: 1
+    zephyr_library_sources:
+      pargs: '*'
+    zephyr_library_sources_ifdef:
+      pargs: '*'
+    zephyr_sources:
+      pargs: '*'
+    zephyr_sources_ifdef:
+      pargs: '*'
+    zephyr_library_include_directories:
+      pargs: '*'
+      flags: ['PRIVATE', 'PUBLIC', 'INTERFACE']
+    zephyr_include_directories:
+      pargs: '*'
+    zephyr_library_compile_definitions:
+      pargs: '*'
+    zephyr_library_compile_options:
+      pargs: '*'
+    zephyr_compile_definitions:
+      pargs: '*'
+    zephyr_compile_options:
+      pargs: '*'
+    zephyr_link_libraries:
+      pargs: '*'
+    zephyr_library_link_libraries:
+      pargs: '*'
+    target_sources_ifdef:
+      pargs: 4
+      flags: ['PRIVATE', 'PUBLIC', 'INTERFACE']
