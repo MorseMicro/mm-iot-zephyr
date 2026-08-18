@@ -15,6 +15,19 @@ definitions:
 
           - python3 scripts/ci/todo-checker.py -f todo.diff
 
+    - step: &check-copyright
+        name: Check copyright headers
+        script:
+          - apt-get update -qq && apt-get install -y -qq python3 git
+
+          # Compute against merge base
+          - BASE=$(git merge-base HEAD origin/${BITBUCKET_PR_DESTINATION_BRANCH})
+
+          # Detect all files touched by the PR, excluding deletions and vendored trees
+          - git diff --diff-filter=d --name-only "$BASE" HEAD -- . ':!submodules' ':!components' > touched-files.txt
+
+          - python3 scripts/ci/copyright-checker.py -f touched-files.txt --blocklist scripts/ci/copyright-blocklist.txt
+
     - step: &clang-format-check
         name: clang-format check
         script:
@@ -63,5 +76,6 @@ pipelines:
   pull-requests:
     "**":
       - step: *check-todos
+      - step: *check-copyright
       - step: *clang-format-check
       - step: *cmake-format-check

@@ -1,0 +1,19 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+#
+# Paths/globs exempt from the copyright header check in copyright-checker.py.
+#
+# One pattern per line. Blank lines and lines starting with '#' are ignored;
+# a trailing '# comment' on a pattern line is stripped. A pattern ending in
+# '/' (or a bare directory path) blocks everything under that directory;
+# otherwise '*' matches any characters, including '/'.
+#
+# Use this for files/directories where the copyright is intentionally
+# handled differently, e.g. vendored third-party sources kept close to their
+# upstream form - not as a way to silence files that are simply out of date.
+
+# Copied near-verbatim from upstream Zephyr samples/vendor trees; only the
+# original third-party copyright applies, no Morse Micro modifications.
+samples/halow_zperf/src/main.c
+samples/halow_zperf/Kconfig
+samples/halow_client/src/wifi_test.c
