@@ -26,8 +26,8 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 struct morsemicro_data morsemicro_data0;
 const struct device *morsemicro_dev;
 
-extern void morsemicro_busy_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
-extern uint32_t mmhal_get_deep_sleep_veto(void);
+void morsemicro_busy_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
+uint32_t mmhal_get_deep_sleep_veto(void);
 extern volatile uint32_t mmhal_spi_irq_poll_interval;
 
 int morsemicro_pm_action(const struct device *dev, enum pm_device_action action)
