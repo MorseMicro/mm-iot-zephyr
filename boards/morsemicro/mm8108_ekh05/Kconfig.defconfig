@@ -1,6 +1,6 @@
 # Morse Micro MM8108-EKH05 Evaluation Kit
 
-# Copyright 2025 Morse Micro
+# Copyright 2025-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
 if BOARD_MM8108_EKH05

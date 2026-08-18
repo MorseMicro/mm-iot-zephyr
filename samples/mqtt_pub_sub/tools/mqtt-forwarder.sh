@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 #
+# Copyright 2025-2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+#
 # mqtt-forwarder.sh
 # Subscribes to an MQTT topic and republishes all received messages to another topic.
 #

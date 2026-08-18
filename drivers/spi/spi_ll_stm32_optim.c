@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016 BayLibre, SAS
- * Copyright 2025 Morse Micro
+ * Copyright 2025-2026 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
