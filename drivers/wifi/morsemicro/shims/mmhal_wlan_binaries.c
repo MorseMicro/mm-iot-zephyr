@@ -24,6 +24,7 @@ static const size_t firmware_len = sizeof(morsemicro_firmware);
 void mmhal_wlan_read_bcf_file(uint32_t offset, uint32_t requested_len, struct mmhal_robuf *robuf)
 {
 
+	const size_t read_len = bcf_len - offset;
 	robuf->buf = NULL;
 	robuf->len = 0;
 	robuf->free_arg = NULL;
@@ -31,17 +32,22 @@ void mmhal_wlan_read_bcf_file(uint32_t offset, uint32_t requested_len, struct mm
 
 	if (bcf_len < offset) {
 		printf("Detected an attempt to start reading off the end of the bcf file.\n");
+		robuf->buf = NULL;
 		return;
 	}
 
 	robuf->buf = &morsemicro_bcf[offset];
-	robuf->len = bcf_len - offset;
-	robuf->len = (robuf->len < requested_len) ? robuf->len : requested_len;
+	robuf->len = (read_len < requested_len) ? read_len : requested_len;
 }
 
 void mmhal_wlan_read_fw_file(uint32_t offset, uint32_t requested_len, struct mmhal_robuf *robuf)
 {
 	const size_t read_len = firmware_len - offset;
+
+	robuf->buf = NULL;
+	robuf->len = 0;
+	robuf->free_arg = NULL;
+	robuf->free_cb = NULL;
 
 	if (offset > firmware_len) {
 		printf("Detected an attempt to start read off the end of the firmware file.\n");
@@ -50,6 +56,5 @@ void mmhal_wlan_read_fw_file(uint32_t offset, uint32_t requested_len, struct mmh
 	}
 
 	robuf->buf = &morsemicro_firmware[offset];
-
 	robuf->len = (read_len < requested_len) ? read_len : requested_len;
 }
