@@ -56,7 +56,7 @@ config WIFI_MORSEMICRO_TEST
 	  the hardware configuration, this configuration will disable the
 	  registration of the Morse Micro device as a Zephyr network interface.
 
-config HEAP_MEM_POOL_ADD_SIZE_MORSE
+config HEAP_MEM_POOL_ADD_SIZE_MORSEMICRO
 	int
 	default 65536
 
