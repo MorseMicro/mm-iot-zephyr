@@ -1,7 +1,7 @@
 # Copyright 2024-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-set(LIB_NAME libmorse)
+set(LIB_NAME morselib)
 set(SRCS
     ${MMIOT_ROOT}/framework/morselib/mmrc/src/core/mmrc.c
     ${MMIOT_ROOT}/framework/morselib/src/common/common.c
@@ -125,3 +125,21 @@ target_compile_options(${LIB_NAME} PRIVATE -w)
 add_dependencies(${LIB_NAME} mmutils mmpktmem mmhostap)
 target_link_libraries(${LIB_NAME} PUBLIC libmorse_interface)
 target_link_libraries(${LIB_NAME} PRIVATE mmutils mmhostap mmpktmem zephyr_interface)
+
+morsemicro_load_protected_symbols(
+  FILES "${MMIOT_ROOT}/framework/tools/metadata/protected_syms.txt" OUTPUT_VAR
+  _libmorse_protected_syms EXCLUDE_REGEX "^mbedtls_.*"
+)
+
+morsemicro_add_mangled_library(
+  NAME
+  libmorse
+  LIBS
+  morselib
+  mmhostap
+  mmmbedtls
+  PROTECTED_SYMS
+  ${_libmorse_protected_syms}
+)
+
+target_link_libraries(libmorse INTERFACE libmorse_interface)
