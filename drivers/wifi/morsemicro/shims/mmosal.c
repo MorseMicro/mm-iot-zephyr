@@ -10,7 +10,6 @@
 
 #include "mmosal.h"
 #include "mmhal.h"
-#include "mmosal.h"
 
 #include "morsemicro_log.h"
 LOG_MODULE_DECLARE(LOG_MODULE_NAME);
@@ -246,7 +245,7 @@ void mmosal_task_yield(void)
 
 void mmosal_task_sleep(uint32_t duration_ms)
 {
-	if (duration_ms > INT32_MAX) {
+	while (duration_ms > INT32_MAX) {
 		k_msleep(INT32_MAX);
 		duration_ms -= INT32_MAX;
 	}
