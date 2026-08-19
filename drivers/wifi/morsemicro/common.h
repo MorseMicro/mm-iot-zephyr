@@ -59,11 +59,7 @@ struct morsemicro_data {
 #define RSN_MFPC 1 << 7
 
 extern struct morsemicro_config *morsemicro_config0;
-extern struct morsemicro_data morsemicro_data0;
 extern const struct morsemicro_bus_ops morsemicro_bus_ops_spi;
-
-extern const struct wifi_mgmt_ops morsemicro_mgmt_api;
-extern const struct net_wifi_mgmt_offload morsemicro_api;
 
 /**
  * @brief net_if callback for the netif init.

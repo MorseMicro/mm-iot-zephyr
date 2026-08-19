@@ -23,7 +23,6 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "mmutils.h"
 #include "mmhal.h"
 
-struct morsemicro_data morsemicro_data0;
 const struct device *morsemicro_dev;
 
 void morsemicro_busy_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
