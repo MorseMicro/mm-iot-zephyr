@@ -12,4 +12,4 @@ target_compile_definitions(
 )
 target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
 
-target_link_libraries(${LIB_NAME} PRIVATE libmorse mmutils)
+target_link_libraries(${LIB_NAME} PRIVATE libmorse_interface mmutils)

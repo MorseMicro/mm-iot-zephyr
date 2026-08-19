@@ -7,6 +7,7 @@ get_property(
   PROPERTY INTERFACE_COMPILE_OPTIONS
 )
 
+add_subdirectory(libmorse_interface)
 add_subdirectory(mbedtls)
 add_subdirectory(hostap)
 add_subdirectory(firmware)

@@ -26,5 +26,4 @@ endif ()
 
 target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
 
-add_dependencies(${LIB_NAME} libmorse)
-target_link_libraries(${LIB_NAME} PRIVATE libmorse)
+target_link_libraries(${LIB_NAME} PRIVATE libmorse_interface)

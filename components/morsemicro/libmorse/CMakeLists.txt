@@ -95,10 +95,6 @@ set(SRCS
     ${MMIOT_ROOT}/framework/morselib/src/emmet/emmet_stubs.c
 )
 
-set(BUILD_DEFINES LOOKAROUND_FAIL_MAX=50 MMOSAL_ASSERT\(...\) MMOSAL_ASSERT_LOG_DATA\(...\)
-                  MMOSAL_NOASSERT MMOSAL_NO_DEBUGLOG
-)
-
 if (CONFIG_WIFI_MORSEMICRO_AP_MODE)
   list(APPEND SRCS ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/driver_ap.c
        ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/supplicant_core_ap.c
@@ -107,10 +103,7 @@ else ()
   list(APPEND BUILD_DEFINES MMWLAN_AP_DISABLED=1)
 endif ()
 
-set(LIBMORSE_INCLUDES ${MMIOT_ROOT}/framework/morselib/include ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 set(INC
-    ${LIBMORSE_INCLUDES}
     ${MMIOT_ROOT}/framework/morselib/src/
     ${MMIOT_ROOT}/framework/morselib/src/internal
     ${MMIOT_ROOT}/framework/morselib/src/emmet
@@ -120,7 +113,6 @@ set(INC
 
 add_library(${LIB_NAME} STATIC ${SRCS})
 target_include_directories(${LIB_NAME} PRIVATE ${INC})
-target_include_directories(${LIB_NAME} INTERFACE ${LIBMORSE_INCLUDES})
 
 target_compile_definitions(${LIB_NAME} PUBLIC ${BUILD_DEFINES})
 
@@ -131,4 +123,5 @@ endif ()
 target_compile_options(${LIB_NAME} PRIVATE -w)
 
 add_dependencies(${LIB_NAME} mmutils mmpktmem mmhostap)
+target_link_libraries(${LIB_NAME} PUBLIC libmorse_interface)
 target_link_libraries(${LIB_NAME} PRIVATE mmutils mmhostap mmpktmem zephyr_interface)

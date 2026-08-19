@@ -100,4 +100,4 @@ set(BUILD_DEFINES MBEDTLS_CONFIG_FILE="morse_mbedtls_config.h")
 target_compile_definitions(${LIB_NAME} PUBLIC ${BUILD_DEFINES})
 target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
 
-target_link_libraries(${LIB_NAME} PRIVATE libmorse)
+target_link_libraries(${LIB_NAME} PRIVATE libmorse_interface)
