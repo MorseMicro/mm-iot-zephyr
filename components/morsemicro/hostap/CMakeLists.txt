@@ -1,7 +1,7 @@
-# Copyright 2024 Morse Micro
+# Copyright 2024-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library_named(mmhostap) # to avoid namespacing conflicts with zephyrs hostap
+set(LIB_NAME mmhostap)
 set(SRCS
     ${MMIOT_ROOT}/framework/src/hostap/drivers_morse.c
     ${MMIOT_ROOT}/framework/src/hostap/morse_stubs.c
@@ -54,15 +54,15 @@ set(SRCS
     ${MMIOT_ROOT}/framework/src/hostap/crypto_mbedtls_mm.c
 )
 
-zephyr_include_directories(
-  .
-  ${MMIOT_ROOT}/framework/src/
-  ${MMIOT_ROOT}/framework/src/hostap/
-  ${MMIOT_ROOT}/framework/src/hostap/src
-  ${MMIOT_ROOT}/framework/src/hostap/src/common
-  ${MMIOT_ROOT}/framework/src/hostap/src/utils
-  ${MMIOT_ROOT}/framework/src/hostap/wpa_supplicant
-  ${MMIOT_ROOT}/framework/src/hostap/src/crypto
+set(INC
+    .
+    ${MMIOT_ROOT}/framework/src/
+    ${MMIOT_ROOT}/framework/src/hostap/
+    ${MMIOT_ROOT}/framework/src/hostap/src
+    ${MMIOT_ROOT}/framework/src/hostap/src/common
+    ${MMIOT_ROOT}/framework/src/hostap/src/utils
+    ${MMIOT_ROOT}/framework/src/hostap/wpa_supplicant
+    ${MMIOT_ROOT}/framework/src/hostap/src/crypto
 )
 
 set(BUILD_DEFINES
@@ -144,15 +144,15 @@ if (CONFIG_WIFI_MORSEMICRO_AP_MODE)
 
   list(APPEND BUILD_DEFINES CONFIG_AP=1 NEED_AP_MLME=1)
 
-  zephyr_library_compile_options(-include ${CMAKE_CURRENT_SOURCE_DIR}/bsd_types_compat.h)
+  list(APPEND COMPILE_OPTIONS -include ${CMAKE_CURRENT_SOURCE_DIR}/bsd_types_compat.h)
 endif ()
 
-zephyr_library_sources(${SRCS})
-zephyr_library_compile_definitions(${BUILD_DEFINES})
+add_library(${LIB_NAME} STATIC ${SRCS})
+target_include_directories(${LIB_NAME} PUBLIC ${INC})
 
-target_compile_definitions(${ZEPHYR_CURRENT_LIBRARY} INTERFACE ${BUILD_DEFINES})
+target_compile_definitions(${LIB_NAME} PUBLIC ${BUILD_DEFINES})
+target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
+target_compile_options(${LIB_NAME} PRIVATE -w)
 
-zephyr_library_compile_options(-w)
-
-zephyr_library_add_dependencies(mmmbedtls)
-target_link_libraries(${ZEPHYR_CURRENT_LIBRARY} PRIVATE mmmbedtls)
+add_dependencies(${LIB_NAME} mmmbedtls)
+target_link_libraries(${LIB_NAME} PRIVATE mmmbedtls mmutils libmorse)

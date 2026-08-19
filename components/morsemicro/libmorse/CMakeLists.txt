@@ -1,7 +1,7 @@
-# Copyright 2024 Morse Micro
+# Copyright 2024-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library_named(libmorse)
+set(LIB_NAME libmorse)
 set(SRCS
     ${MMIOT_ROOT}/framework/morselib/mmrc/src/core/mmrc.c
     ${MMIOT_ROOT}/framework/morselib/src/common/common.c
@@ -95,41 +95,40 @@ set(SRCS
     ${MMIOT_ROOT}/framework/morselib/src/emmet/emmet_stubs.c
 )
 
+set(BUILD_DEFINES LOOKAROUND_FAIL_MAX=50 MMOSAL_ASSERT\(...\) MMOSAL_ASSERT_LOG_DATA\(...\)
+                  MMOSAL_NOASSERT MMOSAL_NO_DEBUGLOG
+)
+
 if (CONFIG_WIFI_MORSEMICRO_AP_MODE)
   list(APPEND SRCS ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/driver_ap.c
        ${MMIOT_ROOT}/framework/morselib/src/umac/supplicant_shim/supplicant_core_ap.c
   )
 else ()
-  target_compile_definitions(libmorse PUBLIC MMWLAN_AP_DISABLED=1)
+  list(APPEND BUILD_DEFINES MMWLAN_AP_DISABLED=1)
 endif ()
 
-zephyr_library_sources(${SRCS})
+set(LIBMORSE_INCLUDES ${MMIOT_ROOT}/framework/morselib/include ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-list(APPEND LIBMORSE_INCLUDES "${MMIOT_ROOT}/framework/morselib/include"
-     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-zephyr_include_directories(
-  ${LIBMORSE_INCLUDES}
-  ${MMIOT_ROOT}/framework/morselib/src/
-  ${MMIOT_ROOT}/framework/morselib/src/internal
-  ${MMIOT_ROOT}/framework/morselib/src/emmet
-  ${MMIOT_ROOT}/framework/morselib/src/umac/rc/mmrc_osal
-  ${MMIOT_ROOT}/framework/morselib/mmrc/src/core
+set(INC
+    ${LIBMORSE_INCLUDES}
+    ${MMIOT_ROOT}/framework/morselib/src/
+    ${MMIOT_ROOT}/framework/morselib/src/internal
+    ${MMIOT_ROOT}/framework/morselib/src/emmet
+    ${MMIOT_ROOT}/framework/morselib/src/umac/rc/mmrc_osal
+    ${MMIOT_ROOT}/framework/morselib/mmrc/src/core
 )
 
-zephyr_library_compile_definitions(
-  LOOKAROUND_FAIL_MAX=50 MMOSAL_ASSERT\(...\) MMOSAL_ASSERT_LOG_DATA\(...\) MMOSAL_NO_DEBUGLOG
-)
+add_library(${LIB_NAME} STATIC ${SRCS})
+target_include_directories(${LIB_NAME} PRIVATE ${INC})
+target_include_directories(${LIB_NAME} INTERFACE ${LIBMORSE_INCLUDES})
 
-set_target_properties(libmorse PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LIBMORSE_INCLUDES}")
-
-target_compile_definitions(${ZEPHYR_CURRENT_LIBRARY} INTERFACE MMOSAL_NOASSERT MMOSAL_NO_DEBUGLOG)
+target_compile_definitions(${LIB_NAME} PUBLIC ${BUILD_DEFINES})
 
 if (CONFIG_PICOLIBC)
-  target_compile_options(libmorse PRIVATE -include ${CMAKE_CURRENT_SOURCE_DIR}/ffs_compat.h)
+  target_compile_options(${LIB_NAME} PRIVATE -include ${CMAKE_CURRENT_SOURCE_DIR}/ffs_compat.h)
 endif ()
 
-zephyr_library_compile_options(-w)
+target_compile_options(${LIB_NAME} PRIVATE -w)
 
-zephyr_library_add_dependencies(mmhostap)
-zephyr_library_link_libraries(mmhostap)
+add_dependencies(${LIB_NAME} mmutils mmpktmem mmhostap)
+target_link_libraries(${LIB_NAME} PRIVATE mmutils mmhostap mmpktmem zephyr_interface)

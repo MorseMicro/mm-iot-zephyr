@@ -1,8 +1,12 @@
-# Copyright 2024 Morse Micro
+# Copyright 2024-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library_named(mmutils)
-zephyr_library_sources(${MMIOT_ROOT}/framework/src/mmutils/mmutils_wlan.c)
-zephyr_include_directories(${MMIOT_ROOT}/framework/src/mmutils)
-zephyr_library_add_dependencies(libmorse)
-zephyr_library_link_libraries(libmorse)
+set(LIB_NAME mmutils)
+
+set(SRC ${MMIOT_ROOT}/framework/src/mmutils/mmutils_wlan.c)
+set(INC ${MMIOT_ROOT}/framework/src/mmutils)
+
+add_library(${LIB_NAME} STATIC ${SRC})
+target_include_directories(${LIB_NAME} PUBLIC ${INC})
+target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
+target_link_libraries(${LIB_NAME} PRIVATE libmorse)
