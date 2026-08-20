@@ -146,46 +146,14 @@ function (morsemicro_merge_static_libraries)
   morsemicro_get_toolchain_tool(ar AR)
   morsemicro_get_toolchain_tool(ranlib RANLIB)
 
-  get_filename_component(_name "${ARG_OUTPUT}" NAME_WE)
-  set(_merge_script "${ARG_WORKING_DIRECTORY}/${_name}.mri")
-  set(_merge_runner "${ARG_WORKING_DIRECTORY}/${_name}.mri.cmake")
-
-  set(_mri_content "CREATE \"${ARG_OUTPUT}\"\n")
-  foreach (_lib IN LISTS ARG_LIBS)
-    string(APPEND _mri_content "ADDLIB \"${_lib}\"\n")
-  endforeach ()
-  string(APPEND _mri_content "SAVE\nEND\n")
-
-  file(
-    GENERATE
-    OUTPUT "${_merge_script}"
-    CONTENT "${_mri_content}"
-  )
-
-  file(
-    GENERATE
-    OUTPUT "${_merge_runner}"
-    CONTENT
-      "execute_process(
-    COMMAND \"${AR}\" -M
-    INPUT_FILE \"${_merge_script}\"
-    WORKING_DIRECTORY \"${ARG_WORKING_DIRECTORY}\"
-    RESULT_VARIABLE result
-)
-if(NOT result EQUAL 0)
-    message(FATAL_ERROR \"ar -M failed with exit code ${result}\")
-endif()
-"
-  )
-
   add_custom_command(
     OUTPUT "${ARG_OUTPUT}"
-    COMMAND "${CMAKE_COMMAND}" -E echo "Merging static libraries into ${ARG_OUTPUT}"
-    COMMAND "${CMAKE_COMMAND}" -P "${_merge_runner}"
-    COMMAND "${RANLIB}" "${ARG_OUTPUT}"
+    COMMAND "${CMAKE_COMMAND}" "-DAR=${AR}" "-DRANLIB=${RANLIB}" "-DOUTPUT=${ARG_OUTPUT}"
+            "-DLIBS=${ARG_LIBS}" -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/merge_static_libs.cmake"
     WORKING_DIRECTORY "${ARG_WORKING_DIRECTORY}"
     DEPENDS ${ARG_DEPENDS}
     COMMENT "Merging ${ARG_LIBS} into ${ARG_OUTPUT}"
+    VERBATIM
   )
 endfunction ()
 
