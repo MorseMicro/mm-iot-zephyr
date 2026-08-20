@@ -1,10 +1,10 @@
-# Copyright 2024 Morse Micro
+# Copyright 2024-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(porting_assistant)
 
-FILE(GLOB app_sources src/*.c)
-target_link_libraries(app PRIVATE libmorse)
+file(GLOB app_sources src/*.c)
+target_link_libraries(app PRIVATE libmorse mmutils)
 target_sources(app PRIVATE ${app_sources})
