@@ -6,6 +6,7 @@ menuconfig WIFI_MORSEMICRO
 	default y
 	depends on DT_HAS_MORSEMICRO_MM6108_ENABLED \
 		|| DT_HAS_MORSEMICRO_MM8108_ENABLED
+	depends on WIFI
 	select DYNAMIC_THREAD
 	select REBOOT
 	select THREAD_CUSTOM_DATA
