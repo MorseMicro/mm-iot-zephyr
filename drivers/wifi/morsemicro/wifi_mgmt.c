@@ -615,7 +615,7 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 	struct mmwlan_ap_args *ap_args = &dev_data->ap.ap_args;
 	enum mmwlan_status status;
 
-	uint8_t bw_mhz;
+	uint8_t bw_mhz = 1;
 	uint8_t primary_chan;
 	uint16_t op_class;
 	uint16_t s1g_chan_num;
