@@ -229,14 +229,12 @@ endfunction ()
 #                                             # morsemicro_load_protected_symbols
 #     [MANGLER_SCRIPT <path>]                # defaults to
 #                                             #   ${MMIOT_ROOT}/framework/tools/buildsystem/librarymangler.py
-#     [DEFS <def1> <def2> ...]
-#     [INC <dir1> <dir2> ...]
 #     [WORKING_DIRECTORY <dir>]              # defaults to CMAKE_CURRENT_BINARY_DIR
 # )
 #
 # Top-level entry point. Merges LIBS into a single archive, mangles it,
 # and creates an IMPORTED STATIC GLOBAL target called NAME wrapping the
-# result, with DEFS/INC applied as INTERFACE properties.
+# result.
 #
 # Use morsemicro_load_protected_symbols() to build the list of protected symbols
 # from a file, combine multiple sources, or just hardcode a list, then pass it in
@@ -252,13 +250,11 @@ endfunction ()
 #       NAME libmorse
 #       LIBS morselib mmhostap mmmbedtls
 #       PROTECTED_SYMS ${_libmorse_protected_syms}
-#       DEFS ${DEFS}
-#       INC ${INC}
 #   )
 # ------------------------------------------------------------------------
 function (morsemicro_add_mangled_library)
   cmake_parse_arguments(
-    ARG "" "NAME;MANGLER_SCRIPT;WORKING_DIRECTORY" "LIBS;PROTECTED_SYMS;DEFS;INC" ${ARGN}
+    ARG "" "NAME;MANGLER_SCRIPT;WORKING_DIRECTORY" "LIBS;PROTECTED_SYMS" ${ARGN}
   )
 
   if (NOT ARG_NAME)
