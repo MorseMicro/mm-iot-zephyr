@@ -311,6 +311,7 @@ function (morsemicro_add_mangled_library)
   add_custom_target(${ARG_NAME}_build ALL DEPENDS "${_mangled_path}")
 
   add_library(${ARG_NAME} STATIC IMPORTED GLOBAL)
+  add_dependencies(${ARG_NAME} ${ARG_NAME}_build)
   set_target_properties(${ARG_NAME} PROPERTIES IMPORTED_LOCATION "${_mangled_path}")
 
 endfunction ()
