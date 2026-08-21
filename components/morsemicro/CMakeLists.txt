@@ -8,10 +8,10 @@ get_property(
 )
 
 add_subdirectory(libmorse_interface)
+add_subdirectory(mmutils)
 add_subdirectory(mbedtls)
+add_subdirectory(mmpktmem)
 add_subdirectory(hostap)
 add_subdirectory(firmware)
 add_subdirectory(libmorse)
-add_subdirectory(mmutils)
-add_subdirectory(mmpktmem)
 add_subdirectory(regdb)
