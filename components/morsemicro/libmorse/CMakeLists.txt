@@ -115,15 +115,12 @@ add_library(${LIB_NAME} STATIC ${SRCS})
 target_include_directories(${LIB_NAME} PRIVATE ${INC})
 
 target_compile_definitions(${LIB_NAME} PUBLIC ${BUILD_DEFINES})
-
-if (CONFIG_PICOLIBC)
-  target_compile_options(${LIB_NAME} PRIVATE -include ${CMAKE_CURRENT_SOURCE_DIR}/ffs_compat.h)
-endif ()
+target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
 
 target_compile_options(${LIB_NAME} PRIVATE -w)
 
 add_dependencies(${LIB_NAME} mmutils mmpktmem mmhostap)
-target_link_libraries(${LIB_NAME} PRIVATE libmorse_interface mmutils mmhostap mmpktmem zephyr_interface)
+target_link_libraries(${LIB_NAME} PRIVATE libmorse_interface mmutils mmhostap mmpktmem)
 
 morsemicro_load_protected_symbols(
   FILES "${MMIOT_ROOT}/framework/tools/metadata/protected_syms.txt" OUTPUT_VAR
