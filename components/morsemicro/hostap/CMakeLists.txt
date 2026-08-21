@@ -155,4 +155,4 @@ target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
 target_compile_options(${LIB_NAME} PRIVATE -w)
 
 add_dependencies(${LIB_NAME} mmmbedtls)
-target_link_libraries(${LIB_NAME} PRIVATE mmmbedtls mmutils libmorse)
+target_link_libraries(${LIB_NAME} PRIVATE mmmbedtls mmutils libmorse_interface)

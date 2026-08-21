@@ -123,8 +123,7 @@ endif ()
 target_compile_options(${LIB_NAME} PRIVATE -w)
 
 add_dependencies(${LIB_NAME} mmutils mmpktmem mmhostap)
-target_link_libraries(${LIB_NAME} PUBLIC libmorse_interface)
-target_link_libraries(${LIB_NAME} PRIVATE mmutils mmhostap mmpktmem zephyr_interface)
+target_link_libraries(${LIB_NAME} PRIVATE libmorse_interface mmutils mmhostap mmpktmem zephyr_interface)
 
 morsemicro_load_protected_symbols(
   FILES "${MMIOT_ROOT}/framework/tools/metadata/protected_syms.txt" OUTPUT_VAR
