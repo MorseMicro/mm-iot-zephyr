@@ -153,6 +153,4 @@ target_include_directories(${LIB_NAME} PUBLIC ${INC})
 target_compile_definitions(${LIB_NAME} PUBLIC ${BUILD_DEFINES})
 target_compile_options(${LIB_NAME} PRIVATE ${COMPILE_OPTIONS})
 target_compile_options(${LIB_NAME} PRIVATE -w)
-
-add_dependencies(${LIB_NAME} mmmbedtls)
 target_link_libraries(${LIB_NAME} PRIVATE mmmbedtls mmutils libmorse_interface)
