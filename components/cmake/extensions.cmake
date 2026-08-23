@@ -272,7 +272,10 @@ function (morsemicro_add_mangled_library)
                           "MMIOT_ROOT is not defined, so the default location can't be resolved"
       )
     endif ()
-    set(ARG_MANGLER_SCRIPT "${MMIOT_ROOT}/framework/tools/buildsystem/librarymangler.py")
+    # Using patched version of the mangler script, rom and ram reports need debug symbols
+    # which are stripped in the current mm-iot-sdk release (2.12)
+    # set(ARG_MANGLER_SCRIPT "${MMIOT_ROOT}/framework/tools/buildsystem/librarymangler.py")
+    set(ARG_MANGLER_SCRIPT "${ZEPHYR_CURRENT_MODULE_DIR}/scripts/librarymangler_patched.py")
   endif ()
 
   set(_lib_files)
