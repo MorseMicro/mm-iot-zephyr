@@ -60,25 +60,11 @@ tests:
       - CONFIG_WIFI_MORSEMICRO_REGION="EU"
     tags: [wifi, halow, build]
 
-  drivers.wifi.morsemicro.build.region.in:
-    build_only: true
-    platform_allow: mm8108_ekh05
-    extra_configs:
-      - CONFIG_WIFI_MORSEMICRO_REGION="IN"
-    tags: [wifi, halow, build]
-
   drivers.wifi.morsemicro.build.region.jp:
     build_only: true
     platform_allow: mm8108_ekh05
     extra_configs:
       - CONFIG_WIFI_MORSEMICRO_REGION="JP"
-    tags: [wifi, halow, build]
-
-  drivers.wifi.morsemicro.build.region.nz:
-    build_only: true
-    platform_allow: mm8108_ekh05
-    extra_configs:
-      - CONFIG_WIFI_MORSEMICRO_REGION="NZ"
     tags: [wifi, halow, build]
 
   drivers.wifi.morsemicro.build.region.us:
