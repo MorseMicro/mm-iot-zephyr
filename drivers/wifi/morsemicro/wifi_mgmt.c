@@ -14,7 +14,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <zephyr/net/wifi_mgmt.h>
 #include <zephyr/net/net_if.h>
 
-#include "common.h"
+#include "morsemicro_common.h"
 
 #if defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS)
 #include "morsemicro_mgmt.h"

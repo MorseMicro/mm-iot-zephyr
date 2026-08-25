@@ -12,7 +12,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <errno.h>
 #include <zephyr/net/wifi_mgmt.h>
 
-#include "common.h"
+#include "morsemicro_common.h"
 #include "morsemicro_mgmt.h"
 #include "mmwlan.h"
 #include "mmpkt.h"

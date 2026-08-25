@@ -6,7 +6,7 @@
 
 #define DT_DRV_COMPAT morsemicro_mm8108
 
-#include "common.h"
+#include "morsemicro_common.h"
 #include "mmhal.h"
 
 DT_INST_FOREACH_STATUS_OKAY_VARGS(MORSEMICRO_NET_DEVICE, mm8108)

@@ -15,7 +15,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
 #include "mmhal.h"
 
-#include "common.h"
+#include "morsemicro_common.h"
 
 static struct gpio_callback spi_irq_gpio_cb;
 static mmhal_irq_handler_t spi_irq_handler = NULL;

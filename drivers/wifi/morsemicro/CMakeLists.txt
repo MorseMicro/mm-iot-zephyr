@@ -13,7 +13,7 @@ zephyr_library_sources(
   ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal_wlan.c
   ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmhal_wlan_binaries.c
   ${CMAKE_CURRENT_SOURCE_DIR}/shims/mmosal.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/common.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_common.c
   ${CMAKE_CURRENT_SOURCE_DIR}/net_mgmt.c
   ${CMAKE_CURRENT_SOURCE_DIR}/wifi_mgmt.c
   ${CMAKE_CURRENT_SOURCE_DIR}/mm6108.c

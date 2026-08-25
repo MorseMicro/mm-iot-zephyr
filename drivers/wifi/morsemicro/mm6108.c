@@ -6,7 +6,7 @@
 
 #define DT_DRV_COMPAT morsemicro_mm6108
 
-#include "common.h"
+#include "morsemicro_common.h"
 #include "mmhal.h"
 
 #if DT_INST_PROP(0, external_crystal_init)

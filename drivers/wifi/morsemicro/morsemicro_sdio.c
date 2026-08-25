@@ -14,7 +14,7 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 
 #include "mmhal.h"
 
-#include "common.h"
+#include "morsemicro_common.h"
 
 static mmhal_irq_handler_t spi_irq_handler = NULL;
 static struct sd_card morse_sdio_card;

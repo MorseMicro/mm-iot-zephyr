@@ -16,7 +16,7 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <zephyr/net/wifi_mgmt.h>
 #include <zephyr/pm/device.h>
 
-#include "common.h"
+#include "morsemicro_common.h"
 #include "mmosal.h"
 #include "mmwlan.h"
 #include "mmregdb.h"

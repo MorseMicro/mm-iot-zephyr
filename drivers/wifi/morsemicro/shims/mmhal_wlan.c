@@ -14,7 +14,7 @@
 #include "mmhal_wlan.h"
 #include "mmosal.h"
 
-#include "common.h"
+#include "morsemicro_common.h"
 
 #include "morsemicro_log.h"
 LOG_MODULE_DECLARE(LOG_MODULE_NAME);
