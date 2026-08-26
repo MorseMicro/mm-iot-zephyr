@@ -6,6 +6,8 @@ import re
 import subprocess
 import time
 
+import pytest
+
 from twister_harness import DeviceAdapter, Shell
 
 
@@ -13,6 +15,9 @@ _ZPERF_PORT = 5001
 _ZPERF_DURATION_S = 5
 
 _DNS_RESULT_RE = re.compile(r"^dns:\s+(\d|[0-9a-f]+:)", re.IGNORECASE)
+
+# no region is compiled in, so set one before the chip does anything
+pytestmark = pytest.mark.usefixtures("wifi_region_au")
 
 
 def test_iface_present(shell: Shell):

@@ -16,6 +16,12 @@ def wifi_disconnect(shell: Shell):
     shell.exec_command("wifi disconnect")
 
 
+@pytest.fixture
+def wifi_region_au(shell: Shell) -> None:
+    # no region is compiled in; test_reg_domain.py manages regions itself
+    shell.exec_command("wifi reg_domain AU")
+
+
 def _wait_for_dhcpv4(shell: Shell, timeout: float = 30.0) -> str:
     deadline = time.time() + timeout
     ip_re = re.compile(r"(?<![\d.])((?:\d{1,3}\.){3}\d{1,3})(?![\d.])")
