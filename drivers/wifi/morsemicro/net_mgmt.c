@@ -11,7 +11,6 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include <string.h>
 #include <errno.h>
 #include <zephyr/net/wifi_mgmt.h>
-#include <zephyr/net/wifi_nm.h>
 
 #include "common.h"
 #include "morsemicro_mgmt.h"
@@ -19,7 +18,11 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME, CONFIG_WIFI_LOG_LEVEL);
 #include "mmpkt.h"
 #include "mmregdb.h"
 
+#if defined(CONFIG_WIFI_NM)
+#include <zephyr/net/wifi_nm.h>
+
 DEFINE_WIFI_NM_INSTANCE(morsemicro, &morsemicro_wifi_mgmt_ops);
+#endif /* CONFIG_WIFI_NM */
 
 static const uint8_t morsemicro_bcf_regions[] = {
 #include "morsemicro_bcf_regions.inc"
@@ -281,8 +284,9 @@ void morsemicro_iface_init(struct net_if *iface)
 
 	/* Initialize Ethernet L2 stack, done once regardless of mmwlan start outcome */
 	ethernet_init(dev_data->sta.iface);
-
+#if defined(CONFIG_WIFI_NM)
 	wifi_nm_register_mgd_type_iface(&wifi_nm_morsemicro, WIFI_TYPE_STA, iface);
+#endif /* CONFIG_WIFI_NM */
 
 	if (morsemicro_wlan_start(iface, dev_data, CONFIG_WIFI_MORSEMICRO_REGION) != 0) {
 		LOG_DBG("%s: mmwlan start failed, interface left down", __func__);
@@ -322,7 +326,9 @@ void morsemicro_ap_iface_init(struct net_if *iface)
 
 	ethernet_init(iface);
 
+#if defined(CONFIG_WIFI_NM)
 	wifi_nm_register_mgd_type_iface(&wifi_nm_morsemicro, WIFI_TYPE_SAP, iface);
+#endif /* CONFIG_WIFI_NM */
 }
 
 const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ap_ops = {
