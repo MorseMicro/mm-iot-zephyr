@@ -122,9 +122,11 @@ scan_cb_end:
 static void scan_complete_callback(enum mmwlan_scan_state state, void *arg)
 {
 	struct morsemicro_data *dev_data = arg;
+	int status = (state == MMWLAN_SCAN_SUCCESSFUL) ? 0 : -EIO;
+
 	dev_data->sta.status = dev_data->sta.scan_prev_state;
-	LOG_DBG("Scanning completed.");
-	dev_data->sta.scan_cb(dev_data->sta.iface, 0, NULL);
+	LOG_DBG("Scanning completed with state %d", state);
+	dev_data->sta.scan_cb(dev_data->sta.iface, status, NULL);
 }
 
 static int morsemicro_mgmt_scan(const struct device *dev, struct wifi_scan_params *params,
@@ -134,6 +136,10 @@ static int morsemicro_mgmt_scan(const struct device *dev, struct wifi_scan_param
 
 	enum mmwlan_status status;
 	struct mmwlan_scan_req scan_req = MMWLAN_SCAN_REQ_INIT;
+
+	if (dev_data->mmwlan_state == MMWLAN_UNINITIALIZED) {
+		return -ENODEV;
+	}
 
 	dev_data->sta.scan_cb = cb;
 	scan_req.scan_rx_cb = scan_callback;
@@ -156,6 +162,10 @@ static int morsemicro_mgmt_connect(const struct device *dev, struct wifi_connect
 	struct morsemicro_data *dev_data = dev->data;
 	struct mmwlan_sta_args *sta_args = &dev_data->sta.sta_args;
 	enum mmwlan_status status;
+
+	if (dev_data->mmwlan_state == MMWLAN_UNINITIALIZED) {
+		return -ENODEV;
+	}
 
 	size_t ssid_len = MIN(sizeof(sta_args->ssid), params->ssid_length);
 	memcpy((char *)sta_args->ssid, params->ssid, ssid_len);
@@ -216,8 +226,13 @@ static int morsemicro_mgmt_connect(const struct device *dev, struct wifi_connect
 static int morsemicro_mgmt_disconnect(const struct device *dev)
 {
 	struct morsemicro_data *dev_data = dev->data;
-	enum mmwlan_status status = mmwlan_sta_disable();
+	enum mmwlan_status status;
 
+	if (dev_data->mmwlan_state == MMWLAN_UNINITIALIZED) {
+		return -ENODEV;
+	}
+
+	status = mmwlan_sta_disable();
 	if (status != MMWLAN_SUCCESS && status != MMWLAN_SHUTDOWN_BLOCKED) {
 		LOG_ERR("Failed to disconnect from AP");
 		return mmwlan_err_to_errno(status);
@@ -336,9 +351,12 @@ static int morsemicro_mgmt_reg_domain(const struct device *dev, struct wifi_reg_
 	switch (domain->oper) {
 	case WIFI_MGMT_SET: {
 		static char country_code[WIFI_COUNTRY_CODE_LEN + 1];
-		enum mmwlan_status status = mmwlan_shutdown();
+		enum mmwlan_status status;
 		int ret;
 
+		mmwlan_scan_abort();
+
+		status = mmwlan_shutdown();
 		if (status != MMWLAN_SUCCESS) {
 			LOG_ERR("Failed cycling interface during region switch\n"
 				"mmwlan_shutdown: err %d",
@@ -354,6 +372,14 @@ static int morsemicro_mgmt_reg_domain(const struct device *dev, struct wifi_reg_
 
 		/* 00 check to avoid printing error messages from mmregdb lookup */
 		if (country_code[0] == '0' && country_code[1] == '0') {
+			if (dev_data->mmwlan_state == MMWLAN_INITIALIZED) {
+				mmwlan_deinit();
+				dev_data->mmwlan_state = MMWLAN_UNINITIALIZED;
+				dev_data->sta.status = WIFI_STATE_INTERFACE_DISABLED;
+#if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
+				dev_data->ap.status = WIFI_STATE_INTERFACE_DISABLED;
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_AP_MODE) */
+			}
 			ret = 0;
 		} else {
 			ret = morsemicro_wlan_start(dev_data->sta.iface, dev_data, country_code);
@@ -743,8 +769,13 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 static int morsemicro_mgmt_ap_disable(const struct device *dev)
 {
 	struct morsemicro_data *dev_data = dev->data;
-	enum mmwlan_status status = mmwlan_ap_disable();
+	enum mmwlan_status status;
 
+	if (dev_data->mmwlan_state == MMWLAN_UNINITIALIZED) {
+		return -ENODEV;
+	}
+
+	status = mmwlan_ap_disable();
 	if (status != MMWLAN_SUCCESS && status != MMWLAN_SHUTDOWN_BLOCKED) {
 		LOG_ERR("Failed to disable AP");
 		wifi_mgmt_raise_ap_disable_result_event(dev_data->ap.iface, WIFI_STATUS_AP_FAIL);

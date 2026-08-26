@@ -79,6 +79,10 @@ int mmnetif_tx(const struct device *dev, struct net_pkt *pkt)
 	struct morsemicro_data *dev_data = dev->data;
 	const int pkt_len = net_pkt_get_len(pkt);
 
+	if (dev_data->mmwlan_state == MMWLAN_UNINITIALIZED) {
+		return -ENODEV;
+	}
+
 	if (pkt_len > NET_ETH_MAX_FRAME_SIZE) {
 		return -ENOMEM;
 	}
@@ -200,6 +204,8 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 		return mmwlan_err_to_errno(status);
 	}
 
+	dev_data->mmwlan_state = MMWLAN_INITIALIZED;
+
 	/* Set MAC hardware address */
 	status = mmwlan_get_vif_mac_addr(dev_data->sta.vif, dev_data->sta.mac_addr);
 	if (status != MMWLAN_SUCCESS) {
@@ -207,10 +213,19 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 		return mmwlan_err_to_errno(status);
 	}
 
+	/* net_if_set_link_addr() refuses to run while the iface is running. Dormant
+	 * first so the transient down/up doesn't trigger DHCP/autoconf.
+	 */
+	net_if_dormant_on(iface);
+
+	net_if_down(iface);
+
 	if (net_if_set_link_addr(iface, dev_data->sta.mac_addr, MMWLAN_MAC_ADDR_LEN,
 				 NET_LINK_ETHERNET)) {
 		LOG_ERR("Failed to set link address");
 	}
+
+	net_if_up(iface);
 
 	status = mmwlan_register_rx_pkt_ext_cb(dev_data->sta.vif, mmnetif_rx, &dev_data->sta);
 	if (status != MMWLAN_SUCCESS) {
@@ -257,9 +272,6 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 		dev_data->version.morse_fw_version, dev_data->version.morselib_version,
 		dev_data->version.morse_chip_id);
 
-	/* Not currently connected to a network */
-	net_if_dormant_on(iface);
-
 	/* L1 network layer (physical layer) is up */
 	net_if_carrier_on(iface);
 
@@ -279,6 +291,7 @@ void morsemicro_iface_init(struct net_if *iface)
 	dev_data->sta.iface = iface;
 	dev_data->sta.vif = MMWLAN_VIF_STA;
 	dev_data->sta.status = WIFI_STATE_INTERFACE_DISABLED;
+	dev_data->mmwlan_state = MMWLAN_UNINITIALIZED;
 
 	LOG_DBG("%s: initialising Morse Micro interface\n", __func__);
 
@@ -302,14 +315,18 @@ const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ops = {
 #if defined(CONFIG_WIFI_MORSEMICRO_AP_MODE)
 int mmnetif_tx_ap(const struct device *dev, struct net_pkt *pkt)
 {
-	struct morsemicro_data *morsemicro = dev->data;
+	struct morsemicro_data *dev_data = dev->data;
 	const int pkt_len = net_pkt_get_len(pkt);
+
+	if (dev_data->mmwlan_state == MMWLAN_UNINITIALIZED) {
+		return -ENODEV;
+	}
 
 	if (pkt_len > NET_ETH_MAX_FRAME_SIZE) {
 		return -ENOMEM;
 	}
 
-	return mmnetif_vif_tx(&morsemicro->ap, pkt);
+	return mmnetif_vif_tx(&dev_data->ap, pkt);
 }
 
 void morsemicro_ap_iface_init(struct net_if *iface)

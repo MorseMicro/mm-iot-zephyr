@@ -63,10 +63,16 @@ struct morsemicro_vif_data {
 #endif
 };
 
+enum mmwlan_state {
+	MMWLAN_UNINITIALIZED,
+	MMWLAN_INITIALIZED
+};
+
 struct morsemicro_data {
 	/* Shared PHY state, common to all VIFs. */
 	const char *country_code;
 	const struct mmwlan_s1g_channel_list *channel_list;
+	enum mmwlan_state mmwlan_state;
 	struct mmwlan_version version;
 	struct gpio_callback busy_cb;
 
