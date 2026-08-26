@@ -17,19 +17,19 @@ LOG_MODULE_DECLARE(LOG_MODULE_NAME);
 #include "morsemicro_common.h"
 
 static mmhal_irq_handler_t spi_irq_handler = NULL;
-static struct sd_card morse_sdio_card;
+static struct sd_card morsemicro_sdio_card;
 
 /*
  * Falls back to this poll period (ms) when the SDHC controller can't notify us of SDIO_INT
  * (sdhc_enable_interrupt() returns -ENOSYS), instead of morselib's default 5000ms.
  */
-#define MORSE_SDIO_IRQ_POLL_FALLBACK_MS 5
+#define MORSEMICRO_SDIO_IRQ_POLL_FALLBACK_MS 5
 extern volatile uint32_t mmhal_spi_irq_poll_interval;
 
-#define MORSE_SDIO_CMD_TIMEOUT_MS  1000
-#define MORSE_SDIO_DATA_TIMEOUT_MS 1000
+#define MORSEMICRO_SDIO_CMD_TIMEOUT_MS  1000
+#define MORSEMICRO_SDIO_DATA_TIMEOUT_MS 1000
 
-static int morse_sdio_cmd_response_type(uint8_t cmd_idx)
+static int morsemicro_sdio_cmd_response_type(uint8_t cmd_idx)
 {
 	switch (cmd_idx) {
 	case SD_GO_IDLE_STATE:
@@ -50,7 +50,7 @@ static int morse_sdio_cmd_response_type(uint8_t cmd_idx)
 	}
 }
 
-static int morse_sdio_map_cmd_error(int ret)
+static int morsemicro_sdio_map_cmd_error(int ret)
 {
 	switch (ret) {
 	case 0:
@@ -62,7 +62,7 @@ static int morse_sdio_map_cmd_error(int ret)
 	}
 }
 
-static int morse_sdio_map_data_error(int ret)
+static int morsemicro_sdio_map_data_error(int ret)
 {
 	switch (ret) {
 	case 0:
@@ -74,15 +74,15 @@ static int morse_sdio_map_data_error(int ret)
 	}
 }
 
-static int morse_sdio_cmd53_raw(uint32_t sdio_arg, void *data, uint16_t block_size,
-				uint32_t transfer_length)
+static int morsemicro_sdio_cmd53_raw(uint32_t sdio_arg, void *data, uint16_t block_size,
+				     uint32_t transfer_length)
 {
 	const struct morsemicro_config *cfg = morsemicro_config0;
 	struct sdhc_command cmd = {
 		.opcode = SDIO_RW_EXTENDED,
 		.arg = sdio_arg,
 		.response_type = SD_RSP_TYPE_R5,
-		.timeout_ms = MORSE_SDIO_CMD_TIMEOUT_MS,
+		.timeout_ms = MORSEMICRO_SDIO_CMD_TIMEOUT_MS,
 	};
 	struct sdhc_data sdhc_data = {0};
 	int ret;
@@ -95,13 +95,13 @@ static int morse_sdio_cmd53_raw(uint32_t sdio_arg, void *data, uint16_t block_si
 		sdhc_data.blocks = 1;
 	}
 	sdhc_data.data = data;
-	sdhc_data.timeout_ms = MORSE_SDIO_DATA_TIMEOUT_MS;
+	sdhc_data.timeout_ms = MORSEMICRO_SDIO_DATA_TIMEOUT_MS;
 
 	ret = sdhc_request(cfg->bus_config.sdio, &cmd, &sdhc_data);
-	return morse_sdio_map_data_error(ret);
+	return morsemicro_sdio_map_data_error(ret);
 }
 
-static void morse_sdio_irq_handler(const struct device *dev, int reason, const void *user_data)
+static void morsemicro_sdio_irq_handler(const struct device *dev, int reason, const void *user_data)
 {
 	ARG_UNUSED(dev);
 	ARG_UNUSED(user_data);
@@ -120,7 +120,7 @@ static int morsemicro_bus_init(const struct device *dev)
 		return -ENODEV;
 	}
 
-	memset(&morse_sdio_card, 0, sizeof(morse_sdio_card));
+	memset(&morsemicro_sdio_card, 0, sizeof(morsemicro_sdio_card));
 
 	return 0;
 }
@@ -129,9 +129,9 @@ int mmhal_wlan_sdio_startup(void)
 {
 	int ret;
 
-	ret = sd_init(morsemicro_config0->bus_config.sdio, &morse_sdio_card);
+	ret = sd_init(morsemicro_config0->bus_config.sdio, &morsemicro_sdio_card);
 	if (ret != 0) {
-		return morse_sdio_map_cmd_error(ret);
+		return morsemicro_sdio_map_cmd_error(ret);
 	}
 
 	ret = mmhal_wlan_sdio_cmd(SDIO_RW_DIRECT,
@@ -178,14 +178,14 @@ int mmhal_wlan_sdio_cmd(uint8_t cmd_idx, uint32_t arg, uint32_t *rsp)
 	struct sdhc_command cmd = {
 		.opcode = cmd_idx,
 		.arg = arg,
-		.response_type = morse_sdio_cmd_response_type(cmd_idx),
-		.timeout_ms = MORSE_SDIO_CMD_TIMEOUT_MS,
+		.response_type = morsemicro_sdio_cmd_response_type(cmd_idx),
+		.timeout_ms = MORSEMICRO_SDIO_CMD_TIMEOUT_MS,
 	};
 	int ret;
 
 	ret = sdhc_request(cfg->bus_config.sdio, &cmd, NULL);
 	if (ret != 0) {
-		return morse_sdio_map_cmd_error(ret);
+		return morsemicro_sdio_map_cmd_error(ret);
 	}
 
 	if (rsp != NULL) {
@@ -197,14 +197,14 @@ int mmhal_wlan_sdio_cmd(uint8_t cmd_idx, uint32_t arg, uint32_t *rsp)
 
 int mmhal_wlan_sdio_cmd53_write(const struct mmhal_wlan_sdio_cmd53_write_args *args)
 {
-	return morse_sdio_cmd53_raw(args->sdio_arg, (void *)args->data, args->block_size,
-				    args->transfer_length);
+	return morsemicro_sdio_cmd53_raw(args->sdio_arg, (void *)args->data, args->block_size,
+					 args->transfer_length);
 }
 
 int mmhal_wlan_sdio_cmd53_read(const struct mmhal_wlan_sdio_cmd53_read_args *args)
 {
-	return morse_sdio_cmd53_raw(args->sdio_arg, args->data, args->block_size,
-				    args->transfer_length);
+	return morsemicro_sdio_cmd53_raw(args->sdio_arg, args->data, args->block_size,
+					 args->transfer_length);
 }
 
 void mmhal_wlan_register_spi_irq_handler(mmhal_irq_handler_t handler)
@@ -232,10 +232,10 @@ void mmhal_wlan_set_spi_irq_enabled(bool enabled)
 	int ret;
 
 	if (enabled) {
-		ret = sdhc_enable_interrupt(cfg->bus_config.sdio, morse_sdio_irq_handler,
+		ret = sdhc_enable_interrupt(cfg->bus_config.sdio, morsemicro_sdio_irq_handler,
 					    SDHC_INT_SDIO, NULL);
 		if (ret == -ENOSYS) {
-			mmhal_spi_irq_poll_interval = MORSE_SDIO_IRQ_POLL_FALLBACK_MS;
+			mmhal_spi_irq_poll_interval = MORSEMICRO_SDIO_IRQ_POLL_FALLBACK_MS;
 		} else if (ret != 0) {
 			LOG_ERR("Failed to enable SDIO interrupt: %d", ret);
 		}
