@@ -10,6 +10,18 @@ import pytest
 from twister_harness import DeviceAdapter, Shell
 
 
+@pytest.fixture(autouse=True)
+def reboot_before_test(dut: DeviceAdapter, shell: Shell) -> None:
+    # dut/shell are session-scoped (pytest_dut_scope in testcase.yaml); reboot
+    # instead of re-flashing to give each test a clean boot.
+    dut.clear_buffer()
+    dut.write(b"kernel reboot cold\n")
+    if not shell.wait_for_prompt():
+        pytest.fail("Prompt not found after reboot")
+    time.sleep(0.5)  # more boot log can land after the first prompt
+    dut.clear_buffer()
+
+
 @pytest.fixture
 def wifi_disconnect(shell: Shell):
     yield

@@ -10,6 +10,10 @@ tests:
   # real AP (HALOW_TEST_SSID/HALOW_TEST_PSK). See tests/pytest/.
   net.wifi.halow.pytest:
     harness: pytest
+    harness_config:
+      # flash once per session; conftest.py reboots between tests instead
+      pytest_dut_scope: session
+    timeout: 180
     integration_platforms:
       - mm6108_ekh05
       - mm8108_ekh05
