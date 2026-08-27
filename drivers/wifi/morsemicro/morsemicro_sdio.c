@@ -170,6 +170,8 @@ int mmhal_wlan_sdio_startup(void)
 	if (ret != 0) {
 		return ret;
 	}
+
+	return 0;
 }
 
 int mmhal_wlan_sdio_cmd(uint8_t cmd_idx, uint32_t arg, uint32_t *rsp)
