@@ -28,24 +28,60 @@ tests:
     platform_allow: mm6108_ekh05
     integration_platforms:
       - mm6108_ekh05
-    tags: [wifi, halow, build]
+    tags: [wifi, halow, build, spi]
 
   drivers.wifi.morsemicro.build.mm6108_ekh05_pm:
     build_only: true
     platform_allow: mm6108_ekh05/stm32u585xx/pm
-    tags: [wifi, halow, build]
+    tags: [wifi, halow, build, spi]
 
   drivers.wifi.morsemicro.build.mm8108_ekh05:
     build_only: true
     platform_allow: mm8108_ekh05
     integration_platforms:
       - mm8108_ekh05
-    tags: [wifi, halow, build]
+    tags: [wifi, halow, build, spi]
 
   drivers.wifi.morsemicro.build.mm8108_ekh05_pm:
     build_only: true
     platform_allow: mm8108_ekh05/stm32u585xx/pm
-    tags: [wifi, halow, build]
+    tags: [wifi, halow, build, spi]
+
+  drivers.wifi.morsemicro.build.mm6108_ekh05_sdio:
+    build_only: true
+    platform_allow: mm6108_ekh05/stm32u585xx/sdio
+    integration_platforms:
+      - mm6108_ekh05
+    tags: [wifi, halow, build, sdio]
+    extra_args:
+      # ST's SDHC driver emits warnings
+      - "EXTRA_CFLAGS=-Wno-error=unused-function -Wno-error=unused-variable"
+
+  drivers.wifi.morsemicro.build.mm6108_ekh05_sdio_pm:
+    build_only: true
+    platform_allow: mm6108_ekh05/stm32u585xx/sdio/pm
+    tags: [wifi, halow, build, sdio]
+    extra_args:
+      # ST's SDHC driver emits warnings
+      - "EXTRA_CFLAGS=-Wno-error=unused-function -Wno-error=unused-variable"
+
+  drivers.wifi.morsemicro.build.mm8108_ekh05_sdio:
+    build_only: true
+    platform_allow: mm8108_ekh05/stm32u585xx/sdio
+    integration_platforms:
+      - mm8108_ekh05
+    tags: [wifi, halow, build, sdio]
+    extra_args:
+      # ST's SDHC driver emits warnings
+      - "EXTRA_CFLAGS=-Wno-error=unused-function -Wno-error=unused-variable"
+
+  drivers.wifi.morsemicro.build.mm8108_ekh05_sdio_pm:
+    build_only: true
+    platform_allow: mm8108_ekh05/stm32u585xx/sdio/pm
+    tags: [wifi, halow, build, sdio]
+    extra_args:
+      # ST's SDHC driver emits warnings
+      - "EXTRA_CFLAGS=-Wno-error=unused-function -Wno-error=unused-variable"
 
   # --- Regulatory region matrix -----------------------------------------
   # CONFIG_WIFI_MORSEMICRO_REGION is validated at CMake-configure time
