@@ -107,7 +107,7 @@ endchoice
 
 config WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS
 	bool "Add temporary workarounds for non patched zephyr instances"
-	default n
+	default !WIFI_MORSEMICRO_PATCHED
 	select WIFI_MORSEMICRO_SHELL if SHELL
 	help
 	  Add extra wifi mgmt calls for dealing with S1G specific behavior to avoid having to apply

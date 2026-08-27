@@ -1,4 +1,4 @@
-From dd4e1250af4c23b034801b04eac23a98a065fcea Mon Sep 17 00:00:00 2001
+From 42a1474f9e4f62d4b1218157b6ae00467a75153b Mon Sep 17 00:00:00 2001
 From: Michael McCandless <michael.mccandless@morsemicro.com>
 Date: Wed, 5 Aug 2026 11:00:52 +0000
 Subject: [PATCH 3/3] wifi: plumb in wifi_connect_req_params

@@ -1,4 +1,4 @@
-From 531d191edc003a949dc6fe4eb62a046b087b53fd Mon Sep 17 00:00:00 2001
+From 789f555e8addd4fa86ead7a3d0bbf6192a9d943b Mon Sep 17 00:00:00 2001
 From: Chetan Mistry <chetan.mistry@morsemicro.com>
 Date: Mon, 27 Jul 2026 11:26:36 +0100
 Subject: [PATCH 2/3] wifi: Add S1GHz Bands and Bandwidths

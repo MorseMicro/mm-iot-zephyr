@@ -1,16 +1,16 @@
 patches:
   - path: zephyr/0001-PATCH-MARKER-DO-NOT-UPSTREAM.patch
-    sha256sum: 30575fbcc12fe17abc855ad40a6258afd79ec9ff319e349a5af98a5e1f991dc3
+    sha256sum: b94b55d56ac38a69fca2ec6e80f324e9fe3b94e0738904e515c1b0ec0c6e05f4
     module: zephyr
     author: Michael McCandless
     email: michael.mccandless@morsemicro.com
-    date: 2026-08-18
+    date: 2026-08-28
     upstreamable: false
     comments: |
-      #define marker for indicating the patch was applied with WIFI_MORSEMICRO_PATCHED
+      KConfig marker for indicating the patch was applied with CONFIG_WIFI_MORSEMICRO_PATCHED
 
   - path: zephyr/0002-wifi-Add-S1GHz-Bands-and-Bandwidths.patch
-    sha256sum: baf321d548e8fb9fd5caaaccb3040c9dedfa2b0af0adb34a042680ff25d785d3
+    sha256sum: 53ac390feb26f9b50bb68217bed008fbb79576e593279f01f172a4bdb68cd6e1
     module: zephyr
     author: Chetan Mistry
     email: chetan.mistry@morsemicro.com
@@ -20,7 +20,7 @@ patches:
       Adds S1G bands and band frequencies to enum
 
   - path: zephyr/0003-wifi-plumb-in-wifi_connect_req_params.patch
-    sha256sum: 0b95b73f212cd3d1f298359057f908ae37c62419afb8fcac9c182af7711c15e0
+    sha256sum: cac2c0284d9e865131908a7cb97efe1845c24d3b32cfc4718326def61a01bc69
     module: zephyr
     author: Michael McCandless
     email: michael.mccandless@morsemicro.com

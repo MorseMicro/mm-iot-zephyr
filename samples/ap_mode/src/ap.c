@@ -15,9 +15,9 @@
 
 #include "ap.h"
 #include "config.h"
-#ifndef WIFI_MORSEMICRO_PATCHED
+#ifndef CONFIG_WIFI_MORSEMICRO_PATCHED
 #include "morsemicro_mgmt.h"
-#endif /* WIFI_MORSEMICRO_PATCHED */
+#endif /* CONFIG_WIFI_MORSEMICRO_PATCHED */
 
 LOG_MODULE_REGISTER(ap_mode_ap, LOG_LEVEL_INF);
 
@@ -47,14 +47,14 @@ static int set_static_ip(struct net_if *iface)
 	return 0;
 }
 
-#ifndef WIFI_MORSEMICRO_PATCHED
+#ifndef CONFIG_WIFI_MORSEMICRO_PATCHED
 static int set_s1g_bandwidth(struct net_if *iface)
 {
 	uint8_t bw_mhz = AP_BANDWIDTH_MHZ;
 
 	return net_mgmt(NET_REQUEST_MORSEMICRO_S1G_BANDWIDTH, iface, &bw_mhz, sizeof(bw_mhz));
 }
-#endif /* WIFI_MORSEMICRO_PATCHED */
+#endif /* CONFIG_WIFI_MORSEMICRO_PATCHED */
 
 int ap_start(struct net_if *iface)
 {
@@ -65,7 +65,7 @@ int ap_start(struct net_if *iface)
 		return rc;
 	}
 
-#ifndef WIFI_MORSEMICRO_PATCHED
+#ifndef CONFIG_WIFI_MORSEMICRO_PATCHED
 	rc = set_s1g_bandwidth(iface);
 	if (rc) {
 		LOG_ERR("S1G bandwidth request failed: %d", rc);
@@ -86,7 +86,7 @@ int ap_start(struct net_if *iface)
 		params.bandwidth = WIFI_FREQ_BANDWIDTH_8MHZ;
 		break;
 	}
-#endif /* WIFI_MORSEMICRO_PATCHED */
+#endif /* CONFIG_WIFI_MORSEMICRO_PATCHED */
 
 	params.ssid = AP_SSID;
 	params.channel = AP_CHANNEL;

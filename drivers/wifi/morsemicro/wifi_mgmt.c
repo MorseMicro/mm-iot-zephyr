@@ -241,11 +241,11 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 		strncpy(status->ssid, ap_args->ssid, WIFI_SSID_MAX_LEN);
 		status->ssid_len = ap_args->ssid_len;
 		status->iface_mode = WIFI_MODE_AP;
-#ifdef WIFI_MORSEMICRO_PATCHED
+#ifdef CONFIG_WIFI_MORSEMICRO_PATCHED
 		status->band = WIFI_FREQ_BAND_SUB_1_GHZ;
 #else
 		status->band = WIFI_FREQ_BAND_UNKNOWN;
-#endif /* WIFI_MORSEMICRO_PATCHED */
+#endif /* CONFIG_WIFI_MORSEMICRO_PATCHED */
 		status->link_mode = WIFI_LINK_MODE_UNKNOWN;
 		status->mfp = ap_args->pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
 								       : WIFI_MFP_REQUIRED;
@@ -281,11 +281,11 @@ static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_if
 	strncpy(status->ssid, dev_data->sta.sta_args.ssid, WIFI_SSID_MAX_LEN);
 	status->ssid_len = dev_data->sta.sta_args.ssid_len;
 	status->iface_mode = WIFI_MODE_INFRA;
-#ifdef WIFI_MORSEMICRO_PATCHED
+#ifdef CONFIG_WIFI_MORSEMICRO_PATCHED
 	status->band = WIFI_FREQ_BAND_SUB_1_GHZ;
 #else
 	status->band = WIFI_FREQ_BAND_UNKNOWN;
-#endif /* WIFI_MORSEMICRO_PATCHED */
+#endif /* CONFIG_WIFI_MORSEMICRO_PATCHED */
 	status->link_mode = WIFI_LINK_MODE_UNKNOWN;
 	status->mfp = dev_data->sta.sta_args.pmf_mode == MMWLAN_PMF_DISABLED ? WIFI_MFP_DISABLE
 									     : WIFI_MFP_REQUIRED;
@@ -660,7 +660,7 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 
 	primary_chan = params->channel;
 
-#if defined(WIFI_MORSEMICRO_PATCHED)
+#if defined(CONFIG_WIFI_MORSEMICRO_PATCHED)
 	switch (params->bandwidth) {
 	case WIFI_FREQ_BANDWIDTH_1MHZ:
 		bw_mhz = 1;
@@ -688,7 +688,7 @@ static int morsemicro_mgmt_ap_enable(const struct device *dev,
 
 	bw_mhz = dev_data->ap.s1g_bw_mhz;
 
-#endif /* defined(WIFI_MORSEMICRO_PATCHED) */
+#endif /* defined(CONFIG_WIFI_MORSEMICRO_PATCHED) */
 
 	if (derive_operating_channel(dev_data->channel_list, params->channel, bw_mhz, &op_class,
 				     &s1g_chan_num, &pri_1mhz_chan_idx, &pri_bw_mhz)) {
