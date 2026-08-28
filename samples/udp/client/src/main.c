@@ -11,6 +11,9 @@
 
 LOG_MODULE_REGISTER(udp_client, LOG_LEVEL_DBG);
 
+BUILD_ASSERT(strcmp(CONFIG_WIFI_MORSEMICRO_REGION, "00") != 0,
+	     "Non interactive samples need CONFIG_WIFI_MORSEMICRO_REGION set to function");
+
 int main(void)
 {
 	int sock = 0;

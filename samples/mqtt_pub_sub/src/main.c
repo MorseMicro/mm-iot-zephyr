@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016 Intel Corporation.
- * Copyright (c) 2025 Morse Micro
+ * Copyright (c) 2025-2026 Morse Micro
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -21,6 +21,9 @@
 #include "mqtt.h"
 
 LOG_MODULE_REGISTER(mqtt_pub_sub, LOG_LEVEL_INF);
+
+BUILD_ASSERT(strcmp(CONFIG_WIFI_MORSEMICRO_REGION, "00") != 0,
+	     "Non interactive samples need CONFIG_WIFI_MORSEMICRO_REGION set to function");
 
 extern struct mqtt_client client;
 

@@ -23,6 +23,9 @@
 
 LOG_MODULE_REGISTER(long_runnning, LOG_LEVEL_INF);
 
+BUILD_ASSERT(strcmp(CONFIG_WIFI_MORSEMICRO_REGION, "00") != 0,
+	     "Non interactive samples need CONFIG_WIFI_MORSEMICRO_REGION set to function");
+
 #define PAYLOAD_SIZE CONFIG_PAYLOAD_SIZE
 
 static inline void fill_buffer_with_pattern(uint8_t *buffer, size_t buffer_size,

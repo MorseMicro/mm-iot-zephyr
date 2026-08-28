@@ -15,6 +15,9 @@
 
 LOG_MODULE_REGISTER(ap_mode_main, LOG_LEVEL_INF);
 
+BUILD_ASSERT(strcmp(CONFIG_WIFI_MORSEMICRO_REGION, "00") != 0,
+	     "Non interactive samples need CONFIG_WIFI_MORSEMICRO_REGION set to function");
+
 int main(void)
 {
 	struct net_if *ap_iface = net_if_get_wifi_sap();
