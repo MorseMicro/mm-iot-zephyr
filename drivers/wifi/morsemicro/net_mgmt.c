@@ -178,7 +178,7 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 #endif
 
 	if (bcf_reg_dne(country_code)) {
-		LOG_ERR("Region %s missing radio configuration parameterss in BCF", country_code);
+		LOG_ERR("Region %s missing radio configuration parameters in BCF", country_code);
 		dev_data->channel_list = NULL;
 		return -EINVAL;
 	}
