@@ -1,7 +1,7 @@
-# Copyright 2025 Morse Micro
+# Copyright 2025-2026 Morse Micro
 # SPDX-License-Identifier: Apache-2.0
 
-source "Kconfig.zephyr"
+mainmenu "Wi-Fi HaLow mqtt_pub_sub application"
 
 config WIFI_SSID
     string "Wi-Fi SSID of the AP we want to connect to"
@@ -18,3 +18,5 @@ config MQTT_BROKER_ADDR
 config MQTT_BROKER_PORT
     int "Port the MQTT broker is running on"
     default 1883
+
+source "Kconfig.zephyr"
