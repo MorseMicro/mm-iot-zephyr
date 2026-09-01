@@ -1,0 +1,9 @@
+/*
+ * Copyright 2026 Morse Micro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&arduino_spi {
+	/* defaults to 2 */
+	rx-delay = <0>;
+};
