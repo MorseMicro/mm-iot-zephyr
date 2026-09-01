@@ -32,6 +32,10 @@ zephyr_library_sources_ifdef(
   CONFIG_WIFI_MORSEMICRO_SHELL ${CMAKE_CURRENT_SOURCE_DIR}/morsemicro_shell.c
 )
 
+zephyr_library_sources_ifdef(
+  CONFIG_ATOMIC_OPERATIONS_C ${CMAKE_CURRENT_SOURCE_DIR}/shims/atomic_stubs.c
+)
+
 function (dt_count_compats output_var compatible)
   dt_comp_path(nodes COMPATIBLE "${compatible}")
 
