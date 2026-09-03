@@ -206,6 +206,14 @@ int morsemicro_wlan_start(struct net_if *iface, struct morsemicro_data *dev_data
 
 	dev_data->mmwlan_state = MMWLAN_INITIALIZED;
 
+	if (!IS_ENABLED(CONFIG_WIFI_MORSEMICRO_POWERSAVE)) {
+		status = mmwlan_set_power_save_mode(MMWLAN_PS_DISABLED);
+		if (status != MMWLAN_SUCCESS) {
+			LOG_DBG("mmwlan_set_power_save_mode failed with code %d", status);
+			return mmwlan_err_to_errno(status);
+		}
+	}
+
 	/* Set MAC hardware address */
 	status = mmwlan_get_vif_mac_addr(dev_data->sta.vif, dev_data->sta.mac_addr);
 	if (status != MMWLAN_SUCCESS) {

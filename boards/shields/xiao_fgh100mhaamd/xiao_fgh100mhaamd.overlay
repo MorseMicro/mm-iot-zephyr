@@ -15,8 +15,6 @@
 		spi-max-frequency = <DT_FREQ_M(50)>;
 		reg = <0>;
 
-		busy-gpios =    <&xiao_d 4 GPIO_ACTIVE_HIGH>;
-		wakeup-gpios =  <&xiao_d 1 GPIO_ACTIVE_HIGH>;
 		resetn-gpios =  <&xiao_d 0 GPIO_ACTIVE_LOW>;
 		spi-irq-gpios = <&xiao_d 2 GPIO_ACTIVE_LOW>;
 	};
