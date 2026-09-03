@@ -1,0 +1,11 @@
+/*
+ * Copyright 2026 Morse Micro
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "xiao_fgh100mhaamd.overlay"
+
+&morse_wifi_xiao_spi {
+	busy-gpios = <&xiao_d 4 GPIO_ACTIVE_HIGH>;
+	wakeup-gpios = <&xiao_d 1 GPIO_ACTIVE_HIGH>;	
+};
