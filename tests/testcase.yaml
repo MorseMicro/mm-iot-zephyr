@@ -4,13 +4,12 @@
 common:
   filter: dt_compat_enabled("morsemicro,mm6108") or
           dt_compat_enabled("morsemicro,mm8108")
-
 tests:
   # On-hardware functional suite: needs a real DUT, and for most cases a
   # real AP (HALOW_TEST_SSID/HALOW_TEST_PSK). See tests/pytest/.
-  net.wifi.halow.pytest:
+  net.wifi.halow.pytest: &base_halow_pytest
     harness: pytest
-    harness_config:
+    harness_config: &base_harness_config
       # flash once per session; conftest.py reboots between tests instead
       pytest_dut_scope: session
     timeout: 180
@@ -21,6 +20,53 @@ tests:
       - wifi
       - net
       - halow
+  # the below are duplicates of the above using fixtures to target platforms
+  # which use specific shields. Note that these are more targeted using platform_allow
+  # when compared to the above as:
+  # - twister will automatically attempt to build these on platforms without appropriate 
+  #   nexus nodes defined
+  # - the above tests cover the compilation smoke tests across platforms we don't have
+  #   explicit platforms for.
+  # A platform selector in extra_args could also have been used instead, but that would result
+  # in many duplicated builds.
+  net.wifi.halow.mmech08.pytest:
+    <<: *base_halow_pytest
+    harness_config:
+      <<: *base_harness_config
+      fixture: mmech08
+    integration_platforms: &mmech08_platforms
+      - nrf5340dk/nrf5340/cpuapp
+      - nucleo_h753zi
+      - nucleo_u575zi_q
+      - nucleo_f429zi
+    platform_allow: *mmech08_platforms
+    extra_args:
+      - SHIELD=morsemicro_mmech08
+  net.wifi.halow.mmech18.pytest:
+    <<: *base_halow_pytest
+    harness_config:
+      <<: *base_harness_config
+      fixture: mmech18
+    integration_platforms: &mmech18_platforms
+      - nrf5340dk/nrf5340/cpuapp
+      - nucleo_h753zi
+      - nucleo_u575zi_q
+      - nucleo_f429zi
+    platform_allow: *mmech18_platforms
+    extra_args:
+      - SHIELD=morsemicro_mmech18
+  net.wifi.halow.xiao_fgh100mhaamd.pytest:
+    <<: *base_halow_pytest
+    harness_config:
+      <<: *base_harness_config
+      fixture: xiao_fgh100mhaamd
+    integration_platforms: &xiao_fgh100mhaamd_platforms
+      - xiao_esp32s3/esp32s3/procpu
+      - xiao_esp32c6/esp32c6/hpcore
+      - xiao_esp32c3
+    platform_allow: *xiao_fgh100mhaamd_platforms
+    extra_args:
+      - SHIELD=xiao_fgh100mhaamd
 
   # --- Build-only compile matrix ---------------------------------------
   # No DUT required. Confirms every board/PM-variant/Kconfig combination
