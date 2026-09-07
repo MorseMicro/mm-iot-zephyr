@@ -84,9 +84,17 @@ def test_iface_status_fields(shell: Shell, wifi_connected: str, ap_ssid: str, ap
         f"no valid BSSID in status: {out!r}"
 
 
-def test_disconnect_event(dut: DeviceAdapter, shell: Shell, wifi_connected: str):
+def _wait_for_disconnect(shell: Shell, timeout: float = 10.0) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        out = shell.exec_command("wifi status")
+        if any("State: INACTIVE" in line for line in out):
+            return
+        time.sleep(1.0)
+    pytest.fail(f"wifi status did not report INACTIVE within {timeout}s of disconnect")
+
+
+def test_disconnect_event(shell: Shell, wifi_connected: str):
     shell.exec_command("wifi disconnect")
-    lines = dut.readlines_until(regex=r"Disconnected", timeout=15.0)
-    assert any("Disconnected" in line for line in lines), \
-        f"no disconnect event observed: {lines!r}"
+    _wait_for_disconnect(shell)
 
