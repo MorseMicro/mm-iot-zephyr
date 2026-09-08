@@ -6,7 +6,6 @@ common:
     - drivers
     - wifi
     - morsemicro
-  integration_platforms:
-    - native_sim
+
 tests:
   drivers.wifi.morsemicro.ap_channel_regdb: {}
