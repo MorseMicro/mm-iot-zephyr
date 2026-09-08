@@ -25,8 +25,8 @@ def test_iface_present(shell: Shell):
     assert any("interface wlan" in line.lower() for line in out), "no wifi interface found"
 
 
-def test_get_version(shell: Shell):
-    out = shell.exec_command("wifi version")
+def test_get_version(shell: Shell, wifi_iface: int):
+    out = shell.exec_command(f"wifi version -i {wifi_iface}")
     drv_re = re.compile(r"Wi-Fi Driver Version:\s*(\S+)")
     fw_re = re.compile(r"Wi-Fi Firmware Version:\s*(\S+)")
     drv = next((m.group(1) for l in out if (m := drv_re.search(l))), None)
@@ -35,15 +35,17 @@ def test_get_version(shell: Shell):
     assert fw, f"no firmware version reported: {out!r}"
 
 
-def test_connect_rejects_unsupported_security(dut: DeviceAdapter, shell: Shell):
-    shell.exec_command("wifi connect -s unsupported-security-test -p 12345678 -k 1")
+def test_connect_rejects_unsupported_security(dut: DeviceAdapter, shell: Shell, wifi_iface: int):
+    shell.exec_command(
+        f"wifi connect -i {wifi_iface} -s unsupported-security-test -p 12345678 -k 1"
+    )
     lines = dut.readlines_until(regex=r"Connection request failed", timeout=10.0)
     assert any("Connection request failed" in line for line in lines), \
         f"expected a WPA2-PSK connect attempt to be rejected: {lines!r}"
 
 
-def test_scan(dut: DeviceAdapter, shell: Shell):
-    shell.exec_command("wifi scan")
+def test_scan(dut: DeviceAdapter, shell: Shell, wifi_iface: int):
+    shell.exec_command(f"wifi scan -i {wifi_iface}")
     lines = dut.readlines_until(
         regex=r"Scan request done|Scan request failed", timeout=30.0
     )
@@ -57,15 +59,16 @@ def test_scan(dut: DeviceAdapter, shell: Shell):
             f"AP '{ap_ssid}' not found in scan results"
 
 
-def test_connect(dut: DeviceAdapter, shell: Shell, wifi_disconnect,
+def test_connect(dut: DeviceAdapter, shell: Shell, wifi_disconnect, wifi_iface: int,
                  ap_ssid: str, ap_psk: str):
-    shell.exec_command(f"wifi connect -s {ap_ssid} -p {ap_psk} -k 3 -w 2")
+    shell.exec_command(f"wifi connect -i {wifi_iface} -s {ap_ssid} -p {ap_psk} -k 3 -w 2")
     lines = dut.readlines_until(regex=r"Connected|Connection request failed", timeout=30.0)
     assert any("Connected" in line for line in lines), "wifi did not connect"
 
 
-def test_iface_status_fields(shell: Shell, wifi_connected: str, ap_ssid: str, ap_psk: str):
-    out = shell.exec_command("wifi status")
+def test_iface_status_fields(shell: Shell, wifi_connected: str, wifi_iface: int,
+                             ap_ssid: str, ap_psk: str):
+    out = shell.exec_command(f"wifi status -i {wifi_iface}")
     assert any(f"SSID: {ap_ssid}" in line for line in out), \
         f"unexpected SSID in status: {out!r}"
 
@@ -84,17 +87,17 @@ def test_iface_status_fields(shell: Shell, wifi_connected: str, ap_ssid: str, ap
         f"no valid BSSID in status: {out!r}"
 
 
-def _wait_for_disconnect(shell: Shell, timeout: float = 10.0) -> None:
+def _wait_for_disconnect(shell: Shell, iface: int, timeout: float = 10.0) -> None:
     deadline = time.time() + timeout
     while time.time() < deadline:
-        out = shell.exec_command("wifi status")
+        out = shell.exec_command(f"wifi status -i {iface}")
         if any("State: INACTIVE" in line for line in out):
             return
         time.sleep(1.0)
     pytest.fail(f"wifi status did not report INACTIVE within {timeout}s of disconnect")
 
 
-def test_disconnect_event(shell: Shell, wifi_connected: str):
-    shell.exec_command("wifi disconnect")
-    _wait_for_disconnect(shell)
+def test_disconnect_event(shell: Shell, wifi_connected: str, wifi_iface: int):
+    shell.exec_command(f"wifi disconnect -i {wifi_iface}")
+    _wait_for_disconnect(shell, wifi_iface)
 

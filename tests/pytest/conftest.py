@@ -22,16 +22,35 @@ def reboot_before_test(dut: DeviceAdapter, shell: Shell) -> None:
     dut.clear_buffer()
 
 
+_IFACE_HEADER_RE = re.compile(r"^Interface\s+\S+\s+\(\S+\)\s+\(.*\)\s+\[(\d+)\]")
+_DEVICE_RE = re.compile(r"^Device\s*:\s*(\S+)")
+
+
 @pytest.fixture
-def wifi_disconnect(shell: Shell):
+def wifi_iface(shell: Shell) -> int:
+    # Down interfaces don't display anything useful without explicitly targetting them
+    indices = [int(m.group(1)) for line in shell.exec_command("net iface")
+               if (m := _IFACE_HEADER_RE.match(line.strip()))]
+
+    for idx in indices:
+        out = shell.exec_command(f"net iface {idx}")
+        device = next((m.group(1) for l in out if (m := _DEVICE_RE.match(l.strip()))), None)
+        if device and "morse" in device.lower():
+            return idx
+
+    pytest.fail(f"no morse wifi interface found among `net iface` indices {indices}")
+
+
+@pytest.fixture
+def wifi_disconnect(shell: Shell, wifi_iface: int):
     yield
-    shell.exec_command("wifi disconnect")
+    shell.exec_command(f"wifi disconnect -i {wifi_iface}")
 
 
 @pytest.fixture
-def wifi_region_au(shell: Shell) -> None:
+def wifi_region_au(shell: Shell, wifi_iface: int) -> None:
     # no region is compiled in; test_reg_domain.py manages regions itself
-    shell.exec_command("wifi reg_domain AU")
+    shell.exec_command(f"wifi reg_domain -i {wifi_iface} AU")
 
 
 def _wait_for_dhcpv4(shell: Shell, timeout: float = 30.0) -> str:
@@ -50,10 +69,10 @@ def _wait_for_dhcpv4(shell: Shell, timeout: float = 30.0) -> str:
 
 
 @pytest.fixture
-def wifi_connected(dut: DeviceAdapter, shell: Shell, wifi_disconnect,
+def wifi_connected(dut: DeviceAdapter, shell: Shell, wifi_disconnect, wifi_iface: int,
                    ap_ssid: str, ap_psk: str, ap_key_mgmt: str, ap_mfp: str) -> str:
     shell.exec_command(
-        f"wifi connect -s {ap_ssid} -p {ap_psk} -k {ap_key_mgmt} -w {ap_mfp}"
+        f"wifi connect -i {wifi_iface} -s {ap_ssid} -p {ap_psk} -k {ap_key_mgmt} -w {ap_mfp}"
     )
     lines = dut.readlines_until(regex=r"Connected|Connection request failed", timeout=30.0)
     if not any("Connected" in line for line in lines):
