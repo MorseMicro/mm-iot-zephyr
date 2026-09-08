@@ -1,4 +1,5 @@
 *.mbin
+!/tests/mbin_cascade/**/*.mbin
 *.a
 *.cache
 *build/
