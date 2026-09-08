@@ -4,10 +4,24 @@
 import os
 import re
 import time
+import warnings
 
 import pytest
 
 from twister_harness import DeviceAdapter, Shell
+
+
+@pytest.fixture
+def dut_supported_regions(dut: DeviceAdapter) -> tuple[str, ...] | None:
+    reg_inc = dut.device_config.app_build_dir / "modules/morsemicro/components/morsemicro/firmware/morsemicro_bcf_regions.raw"
+    if not reg_inc.is_file():
+        return None
+    packed = reg_inc.read_text().strip()
+    regions = tuple(packed[i: i + 2] for i in range(0, len(packed), 2))
+
+    if regions is None:
+        warnings.warn(f"missing supported regions @ '{reg_inc}'")
+    return regions
 
 
 @pytest.fixture(autouse=True)

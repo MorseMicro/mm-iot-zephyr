@@ -32,7 +32,14 @@ def _set_region(shell: Shell, iface: int, region: str, timeout: float = 15.0) ->
 
 @pytest.mark.parametrize("from_region,to_region", _REGION_TRANSITIONS)
 def test_reg_domain_switch(dut: DeviceAdapter, shell: Shell, wifi_iface: int,
-                           from_region: str, to_region: str):
+                           from_region: str, to_region: str,
+                           dut_supported_regions: tuple[str, ...] | None):
+
+    if dut_supported_regions is not None and "JP" not in dut_supported_regions \
+            and "JP" in (from_region, to_region):
+        pytest.skip(f"JP is not supported by this DUT's module (BCF regions: "
+                    f"{', '.join(dut_supported_regions)})")
+
     if from_region != "00":
         _set_region(shell, wifi_iface, from_region)
     assert _get_region(shell, wifi_iface) == from_region
