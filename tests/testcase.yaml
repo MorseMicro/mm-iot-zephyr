@@ -23,7 +23,7 @@ tests:
   # the below are duplicates of the above using fixtures to target platforms
   # which use specific shields. Note that these are more targeted using platform_allow
   # when compared to the above as:
-  # - twister will automatically attempt to build these on platforms without appropriate 
+  # - twister will automatically attempt to build these on platforms without appropriate
   #   nexus nodes defined
   # - the above tests cover the compilation smoke tests across platforms we don't have
   #   explicit platforms for.
@@ -38,7 +38,6 @@ tests:
       - nrf5340dk/nrf5340/cpuapp
       - nucleo_h753zi
       - nucleo_u575zi_q
-      - nucleo_f429zi
     platform_allow: *mmech08_platforms
     extra_args:
       - SHIELD=morsemicro_mmech08
@@ -51,7 +50,6 @@ tests:
       - nrf5340dk/nrf5340/cpuapp
       - nucleo_h753zi
       - nucleo_u575zi_q
-      - nucleo_f429zi
     platform_allow: *mmech18_platforms
     extra_args:
       - SHIELD=morsemicro_mmech18
