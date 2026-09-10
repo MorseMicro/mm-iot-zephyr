@@ -8,6 +8,9 @@
 #include <st/u5/stm32u585vitxq-pinctrl.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
+#include "qwiic.dtsi"
+#include "mikro_bus.dtsi"
+
 / {
 	model = "Morse Micro MM8108-EKH05 Evaluation Kit";
 	compatible = "morsemicro,mm8108-ekh05";
@@ -151,6 +154,20 @@ stm32_lp_tick_source: &lptim1 {
 	pinctrl-names = "default";
 	current-speed = <115200>;
 	status = "okay";
+};
+
+&usart3 {
+	pinctrl-0 = <&usart3_tx_pb10 &usart3_rx_pb11>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pe13 &spi1_miso_pe14 &spi1_mosi_pe15>;
+	pinctrl-names = "default";
+	status = "okay";
+	cs-gpios = <&gpioe 12 GPIO_ACTIVE_LOW>;
 };
 
 &spi3 {

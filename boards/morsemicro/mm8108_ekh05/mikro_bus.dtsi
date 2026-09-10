@@ -1,0 +1,33 @@
+/*
+ * Copyright 2026 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	mikrobus_header: mikrobus-connector {
+		compatible = "mikro-bus";
+		status = "okay";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map = <0  0 &gpiob 2  0>,  /* AN  */
+			   <1  0 &gpiob 13 0>,  /* RST */
+			   <2  0 &gpioe 12 0>,  /* CS   */
+			   <3  0 &gpioe 13 0>,  /* SCK  */
+			   <4  0 &gpioe 14 0>,  /* MISO */
+			   <5  0 &gpioe 15 0>,  /* MOSI */
+			   <6  0 &gpioe 10 0>,  /* PWM  */
+			   <7  0 &gpioe 9  0>,  /* INT  */
+			   <8  0 &gpiob 10 0>,  /* RX   */
+			   <9  0 &gpiob 11 0>,  /* TX   */
+			   <10 0 &gpiob 8  0>,  /* SCL  */
+			   <11 0 &gpiob 9  0>;  /* SDA  */
+	};
+};
+
+mikrobus_i2c: &i2c1 {};
+
+mikrobus_spi: &spi1 {};
+
+mikrobus_serial: &usart3 {};

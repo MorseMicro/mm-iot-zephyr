@@ -1,0 +1,20 @@
+/*
+ * Copyright 2026 Morse Micro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	stemma_connector: stemma_connector {
+		compatible = "stemma-qt-connector";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0>;
+		gpio-map-pass-thru = <0 GPIO_DT_FLAGS_MASK>;
+		gpio-map = <0 0 &gpiob 8 0>,  /* SCL  */
+			   <1 0 &gpiob 9 0>;  /* SDA  */
+	};
+};
+
+zephyr_i2c: &i2c1 {};
