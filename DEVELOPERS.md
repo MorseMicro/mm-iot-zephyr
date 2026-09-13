@@ -4,7 +4,7 @@ This guide includes processes and advice for developers adding to this module.
 
 ## Modifying an existing Zephyr driver.
 
-Sometimes you will want to change an existing driver. For example, Morse Micro has done this for the default STM32 SPI driver.
+Sometimes you will want to change an existing driver.
 
 The decisions we have made for this process are:
 
@@ -25,7 +25,7 @@ The steps for this process are:
     clang-format ../../../zephyr/drivers/spi/spi_ll_stm32.c > drivers/spi/spi_ll_stm32_optim.c
     ```
 
-1.  Add a comment to the copied file, explaining its origin (e.g. the file above changed name from `spi_ll_stm32.c` to `spi_ll_stm32_optim.c`)
+1.  Add a comment to the copied file, explaining its origin. 
 1.  Update the `DT_DRV_COMPAT` and `LOG_MODULE_REGISTER` name to ensure you avoid conflicts.
 1.  Add and/or update the copyright header in each file edited.
 1.  Commit and push the change **prior** to continuing any improvements/changes, so future developers can trace the origin of the file and the subsequent edits. This is important if they want to rebase the edits onto an updated upstream driver.

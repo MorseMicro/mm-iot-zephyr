@@ -25,9 +25,9 @@ The expectation for this application is that it will:
 * Successfully receive a message on the aforementioned subscription
 * Disconnect from the AP
 
-## Testing with a HalowLink1
+## Testing with a HaLowLink 1
 
-You can run this sample with a MorseMicro HalowLink1.
+You can run this sample with a Morse Micro HaLowLink 1.
 To configure, install `mosquitto`
 
 ```

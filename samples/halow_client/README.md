@@ -1,7 +1,7 @@
 # HaLow Client
 
 This sample provides an interactive shell for evaluating Morse Micro Wi-Fi HaLow.
-It is largely a clone of Zephyr's [Wi-Fi shell sample](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/net/wifi/shell),
+It is a copy of Zephyr's [Wi-Fi shell sample](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/net/wifi/shell),
 shipped here so users can exercise the Morse Micro driver and test HaLow from a single directory.
 
 It exposes:
@@ -27,7 +27,7 @@ wifi reg_domain US
 
 ### Zperf
 
-Zperf is not compiled in by default, to keep the sample lightweight. Enable it by building with the
+Zperf is not compiled in by default, to keep the sample lighter weight by default. Enable it by building with the
 `overlay-zperf.conf` overlay:
 
 ```
@@ -54,23 +54,20 @@ above.
 ## Sample console interaction
 
 ```
-shell> wifi scan
+uart:~$ wifi scan
 Scan requested
-shell>
-Num  | SSID                             (len) | Chan | RSSI | Sec
-1    | my-halow-ap                      11    | 1    | -60  | WPA/WPA2
-----------
+Num  | SSID                             (len) | Chan (Band)   | RSSI | Security             | BSSID             | MFP
+1    | my-halow-ssid                    13    | 37   (UNKNOWN) | -21  | WPA3-SAE-HNP         | 94:BB:43:DC:F9:84 | Required
 Scan request done
 
-shell> wifi connect -s "my-halow-ap" -p SecretStuff
+uart:~$ wifi connect -s "my-halow-ssid" -p "my-halow-psk" -k 3 -w 2
 Connection requested
-shell>
 Connected
 ```
 
 With the `overlay-zperf.conf` overlay, throughput can also be tested, e.g.:
 
 ```
-shell> zperf udp download
-shell> zperf udp upload <ip> <port> <duration> <baud rate>
+uart:~$ zperf udp download
+uart:~$ zperf udp upload <ip> <port> <duration> <rate>
 ```

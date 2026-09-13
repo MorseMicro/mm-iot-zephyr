@@ -44,7 +44,7 @@ west update
 
 Install all of the python dependencies:
 ```
-pip install -r zephyr/scripts/requirements.txt
+west packages pip --install
 ```
 
 Pull in the submodules
@@ -71,10 +71,11 @@ We currently support the following Morse Micro development boards:
 - `mm8108_ekh05`
 
 ### Shields
-We also support the following Morse Micro shields:
+We also support the following shields with Morse Micro based modules:
 
 - `morsemicro_mmech08`
 - `morsemicro_mmech18`
+- `xiao_fgh100mhaamd`
 
 ## Build and Run Porting Assistant Test Application
 
@@ -85,7 +86,7 @@ west build -p auto -b [board] [--shield morsemicro_mmech08] modules/lib/morsemic
 west flash
 ```
 If using a Morse Micro MMECH08 hat, add the shield parameter to the build command.
-The porting assistant example application compilation will fail if a node with `compatible = "morsemicro,mm6108"` or `compatible = morsemicro,mm6108` is not found
+The porting assistant example application compilation will fail if a node with `compatible = "morsemicro,mm6108"` or `compatible = morsemicro,mm8108` is not found
 in the compiled device tree.
 
 ## Build and Run HaLow Client Application
@@ -143,8 +144,6 @@ The twister tests require the `-W` flag to be passed in as there are warnings in
 
 The Morse Micro HaLow Wi-Fi embedded software stack carries out a mix of short and long transactions over SPI.
 Unfortunately when paired with the SPI drivers for many platforms included in Zephyr, the overhead to prepare each transaction substantially reduces performance of the link.
-
-Zephyr has recently released the RTIO subsystem which looks promising for improving this performance. Future development will focus on an RTIO compatible driver.
 
 ## Where do I go for support?
 Feel free to join the Morse Micro developer community at https://community.morsemicro.com. While this is an Alpha port, we are happy to discuss issues and assist with further development.

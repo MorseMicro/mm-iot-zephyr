@@ -16,10 +16,10 @@ The expectation for this application is that it will:
 * Repeatedly send payload until N milliseconds have passed
 * Disconnect from the AP
 
-## Testing with a HalowLink
+## Testing with a HaLowLink
 
-You can run this sample with MorseMicro HalowLink products.
-Connect to the HalowLink AP via SSH and run the following command:
+You can run this sample with Morse Micro HaLowLink products.
+Connect to the HaLowLink AP via SSH and run the following command:
 ```
 nc -ltp <TCP_SERVER_PORT>
 ```
