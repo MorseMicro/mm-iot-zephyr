@@ -86,6 +86,16 @@ config MORSEMICRO_COMPRESS_FIRMWARE
 	  However this comes at the cost of additional time the Morse Micro
 	  chip takes to boot since the firmware then needs to be decompressed again.
 
+config WIFI_MORSEMICRO_SUPPLICANT_LOG_FILTER
+	bool "Compile out unused wpa_supplicant output"
+	default y
+	help
+	  The bundled wpa_supplicant runtime log level is fixed from MMLOG_LEVEL
+	  when it is started. This compiles out all output below that level,
+	  which saves a substantial amount of flash space.
+	  Disable if the log level is changed at runtime, or a wpa_msg callback
+	  is registered (which is otherwise a link error).
+
 menuconfig ALPHA_FEATURES
 	bool "Morse Micro Wi-Fi HaLow Alpha Features"
 	default y

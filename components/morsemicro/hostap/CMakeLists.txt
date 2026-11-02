@@ -147,6 +147,20 @@ if (CONFIG_WIFI_MORSEMICRO_AP_MODE)
   list(APPEND COMPILE_OPTIONS -include ${CMAKE_CURRENT_SOURCE_DIR}/bsd_types_compat.h)
 endif ()
 
+if (CONFIG_WIFI_MORSEMICRO_SUPPLICANT_LOG_FILTER)
+  # Compile out output below the runtime log level. wpa_debug.c implements the output functions
+  # and crypto_mbedtls_mm.c defines its own wpabuf, so neither can use the filter.
+  # SHELL: stops CMake de-duplicating the -include from AP mode
+  list(APPEND COMPILE_OPTIONS "SHELL:-include ${CMAKE_CURRENT_SOURCE_DIR}/wpa_debug_filter.h")
+  set_source_files_properties(${MMIOT_ROOT}/framework/src/hostap/src/utils/wpa_debug.c
+                              ${MMIOT_ROOT}/framework/src/hostap/crypto_mbedtls_mm.c
+                              PROPERTIES COMPILE_DEFINITIONS WPA_DEBUG_FILTER_SKIP)
+  # The filter assumes wpa_msg() only outputs through wpa_printf(), which is not true once a
+  # wpa_msg_cb is registered. Wrapping the (mangled) registration function without providing
+  # __wrap_mmint_wpa_msg_register_cb turns any registration into a link error.
+  zephyr_link_libraries(-Wl,--wrap=mmint_wpa_msg_register_cb)
+endif ()
+
 add_library(${LIB_NAME} STATIC ${SRCS})
 target_include_directories(${LIB_NAME} PUBLIC ${INC})
 
