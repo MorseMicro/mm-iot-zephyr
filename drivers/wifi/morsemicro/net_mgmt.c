@@ -300,6 +300,8 @@ void morsemicro_iface_init(struct net_if *iface)
 	dev_data->sta.vif = MMWLAN_VIF_STA;
 	dev_data->sta.status = WIFI_STATE_INTERFACE_DISABLED;
 	dev_data->mmwlan_state = MMWLAN_UNINITIALIZED;
+	net_if_carrier_off(iface);
+	net_if_dormant_on(iface);
 
 	LOG_DBG("%s: initialising Morse Micro interface\n", __func__);
 
