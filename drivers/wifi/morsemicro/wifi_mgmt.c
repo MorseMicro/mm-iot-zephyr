@@ -47,7 +47,11 @@ static void scan_callback(const struct mmwlan_scan_result *result, void *arg)
 
 	memcpy(scan.mac, result->bssid, WIFI_MAC_ADDR_LEN);
 	scan.mac_length = WIFI_MAC_ADDR_LEN;
+#ifdef CONFIG_WIFI_MORSEMICRO_PATCHED
+	scan.band = WIFI_FREQ_BAND_SUB_1_GHZ;
+#else
 	scan.band = WIFI_FREQ_BAND_UNKNOWN;
+#endif /* CONFIG_WIFI_MORSEMICRO_PATCHED */
 	scan.channel = 0;
 	scan.rssi = (int8_t)result->rssi;
 
