@@ -47,6 +47,10 @@ config WIFI_MORSEMICRO_BUS_SDIO
 config WIFI_INIT_PRIORITY
 	default 86 if WIFI_MORSEMICRO_BUS_SDIO
 
+config WIFI_MORSEMICRO_IF_AUTO_START
+	bool "Wi-Fi interface auto start on boot"
+	default y
+
 config WIFI_MORSEMICRO_POWERSAVE
 	bool
 	default y
