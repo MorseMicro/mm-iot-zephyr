@@ -309,6 +309,10 @@ void morsemicro_iface_init(struct net_if *iface)
 	wifi_nm_register_mgd_type_iface(&wifi_nm_morsemicro, WIFI_TYPE_STA, iface);
 #endif /* CONFIG_WIFI_NM */
 
+	if (!IS_ENABLED(CONFIG_WIFI_MORSEMICRO_IF_AUTO_START)) {
+		net_if_flag_set(iface, NET_IF_NO_AUTO_START);
+	}
+
 	if (morsemicro_wlan_start(iface, dev_data, CONFIG_WIFI_MORSEMICRO_REGION) != 0) {
 		LOG_DBG("%s: mmwlan start failed, interface left down", __func__);
 	}
