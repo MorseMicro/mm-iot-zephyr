@@ -220,7 +220,30 @@ static int morsemicro_mgmt_connect(const struct device *dev, struct wifi_connect
 		return mmwlan_err_to_errno(status);
 	}
 
+	/* mmwlan retries indefinitely, so enforce the requested timeout here.
+	 * Values <= 0 (including SYS_FOREVER_MS) disable it.
+	 */
+	if (params->timeout > 0) {
+		(void)k_work_reschedule(&dev_data->sta.connect_timeout, K_SECONDS(params->timeout));
+	}
+
 	return 0;
+}
+
+void morsemicro_connect_timeout_handler(struct k_work *work)
+{
+	struct k_work_delayable *dwork = k_work_delayable_from_work(work);
+	struct morsemicro_vif_data *sta =
+		CONTAINER_OF(dwork, struct morsemicro_vif_data, connect_timeout);
+
+	if (sta->status == WIFI_STATE_COMPLETED) {
+		/* Link came up as the timeout expired */
+		return;
+	}
+
+	LOG_INF("Connection attempt timed out");
+	(void)mmwlan_sta_disable();
+	wifi_mgmt_raise_connect_result_event(sta->iface, WIFI_STATUS_CONN_TIMEOUT);
 }
 
 static int morsemicro_mgmt_disconnect(const struct device *dev)
@@ -237,6 +260,7 @@ static int morsemicro_mgmt_disconnect(const struct device *dev)
 	 * actually goes down, this flag only selects the reported reason.
 	 */
 	dev_data->sta.disconnect_requested = true;
+	(void)k_work_cancel_delayable(&dev_data->sta.connect_timeout);
 
 	status = mmwlan_sta_disable();
 	if (status != MMWLAN_SUCCESS && status != MMWLAN_SHUTDOWN_BLOCKED) {

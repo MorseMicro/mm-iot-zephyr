@@ -55,6 +55,7 @@ struct morsemicro_vif_data {
 
 	/* Link down was requested via NET_REQUEST_WIFI_DISCONNECT */
 	bool disconnect_requested;
+	struct k_work_delayable connect_timeout;
 
 	/* AP-specific state. */
 	struct mmwlan_ap_args ap_args;
@@ -165,6 +166,11 @@ extern const struct net_wifi_mgmt_offload morsemicro_net_mgmt_ap_ops;
  * @brief This function handles BUSY interrupt.
  */
 void morsemicro_busy_cb(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
+
+/**
+ * @brief Abort a STA connection attempt that has exceeded the requested timeout.
+ */
+void morsemicro_connect_timeout_handler(struct k_work *work);
 
 /**
  * @brief Query whether deep sleep should be vetoed.
