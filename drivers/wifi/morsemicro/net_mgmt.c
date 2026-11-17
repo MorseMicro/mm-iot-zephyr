@@ -154,6 +154,7 @@ static void mmnetif_vif_state(const struct mmwlan_vif_state *state, void *arg)
 		vif_data->disconnect_requested = false;
 		net_if_dormant_off(vif_data->iface);
 		if (vif_data->vif == MMWLAN_VIF_STA) {
+			(void)k_work_cancel_delayable(&vif_data->connect_timeout);
 #if defined(CONFIG_NET_DHCPV4)
 			net_dhcpv4_restart(vif_data->iface);
 #endif /* defined(CONFIG_NET_DHCPV4) */
@@ -305,6 +306,7 @@ void morsemicro_iface_init(struct net_if *iface)
 	dev_data->sta.vif = MMWLAN_VIF_STA;
 	dev_data->sta.status = WIFI_STATE_INTERFACE_DISABLED;
 	dev_data->mmwlan_state = MMWLAN_UNINITIALIZED;
+	k_work_init_delayable(&dev_data->sta.connect_timeout, morsemicro_connect_timeout_handler);
 	net_if_carrier_off(iface);
 	net_if_dormant_on(iface);
 
