@@ -233,15 +233,16 @@ static int morsemicro_mgmt_disconnect(const struct device *dev)
 		return -ENODEV;
 	}
 
+	/* NET_EVENT_WIFI_DISCONNECT_RESULT is raised from mmnetif_vif_state() when the link
+	 * actually goes down, this flag only selects the reported reason.
+	 */
+	dev_data->sta.disconnect_requested = true;
+
 	status = mmwlan_sta_disable();
 	if (status != MMWLAN_SUCCESS && status != MMWLAN_SHUTDOWN_BLOCKED) {
 		LOG_ERR("Failed to disconnect from AP");
 		ret = mmwlan_err_to_errno(status);
-	}
-
-	if (ret == 0) {
-		wifi_mgmt_raise_disconnect_result_event(dev_data->sta.iface,
-							WIFI_REASON_DISCONN_USER_REQUEST);
+		dev_data->sta.disconnect_requested = false;
 	}
 
 	/* Signal completion of the requested disconnect */

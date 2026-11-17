@@ -53,6 +53,9 @@ struct morsemicro_vif_data {
 	scan_result_cb_t scan_cb;
 	struct mmwlan_sta_args sta_args;
 
+	/* Link down was requested via NET_REQUEST_WIFI_DISCONNECT */
+	bool disconnect_requested;
+
 	/* AP-specific state. */
 	struct mmwlan_ap_args ap_args;
 #if defined(CONFIG_WIFI_MORSEMICRO_UNPATCHED_WORKAROUNDS)

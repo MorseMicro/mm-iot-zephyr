@@ -141,12 +141,17 @@ static void mmnetif_vif_state(const struct mmwlan_vif_state *state, void *arg)
 
 	if (state->link_state == MMWLAN_LINK_DOWN) {
 		net_if_dormant_on(vif_data->iface);
-		if (vif_data->vif == MMWLAN_VIF_STA && vif_data->status == WIFI_STATE_INACTIVE) {
-			wifi_mgmt_raise_disconnect_result_event(vif_data->iface,
-								WIFI_REASON_DISCONN_UNSPECIFIED);
+		/* Report the loss of an established link, whatever the cause */
+		if (vif_data->vif == MMWLAN_VIF_STA && vif_data->status == WIFI_STATE_COMPLETED) {
+			wifi_mgmt_raise_disconnect_result_event(
+				vif_data->iface, vif_data->disconnect_requested
+							 ? WIFI_REASON_DISCONN_USER_REQUEST
+							 : WIFI_REASON_DISCONN_UNSPECIFIED);
 		}
+		vif_data->disconnect_requested = false;
 		vif_data->status = WIFI_STATE_INACTIVE;
 	} else {
+		vif_data->disconnect_requested = false;
 		net_if_dormant_off(vif_data->iface);
 		if (vif_data->vif == MMWLAN_VIF_STA) {
 #if defined(CONFIG_NET_DHCPV4)
