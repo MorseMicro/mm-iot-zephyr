@@ -227,6 +227,7 @@ static int morsemicro_mgmt_disconnect(const struct device *dev)
 {
 	struct morsemicro_data *dev_data = dev->data;
 	enum mmwlan_status status;
+	int ret = 0;
 
 	if (dev_data->mmwlan_state == MMWLAN_UNINITIALIZED) {
 		return -ENODEV;
@@ -235,12 +236,17 @@ static int morsemicro_mgmt_disconnect(const struct device *dev)
 	status = mmwlan_sta_disable();
 	if (status != MMWLAN_SUCCESS && status != MMWLAN_SHUTDOWN_BLOCKED) {
 		LOG_ERR("Failed to disconnect from AP");
-		return mmwlan_err_to_errno(status);
+		ret = mmwlan_err_to_errno(status);
 	}
 
-	wifi_mgmt_raise_disconnect_result_event(dev_data->sta.iface,
-						WIFI_REASON_DISCONN_USER_REQUEST);
-	return 0;
+	if (ret == 0) {
+		wifi_mgmt_raise_disconnect_result_event(dev_data->sta.iface,
+							WIFI_REASON_DISCONN_USER_REQUEST);
+	}
+
+	/* Signal completion of the requested disconnect */
+	wifi_mgmt_raise_disconnect_complete_event(dev_data->sta.iface, ret);
+	return ret;
 }
 
 static int morsemicro_mgmt_iface_status(const struct device *dev, struct wifi_iface_status *status)
