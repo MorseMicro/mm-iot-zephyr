@@ -26,6 +26,7 @@ if WIFI_MORSEMICRO
 menu "Components"
 	rsource "../../../components/morsemicro/regdb/Kconfig"
 	rsource "../../../components/morsemicro/mmpktmem/Kconfig"
+	rsource "../../../components/morsemicro/mbedtls/Kconfig"
 endmenu
 
 # Need these invisible KConfigs because on_bus functions aren't available from the CMake context

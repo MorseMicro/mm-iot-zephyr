@@ -1,0 +1,15 @@
+# Copyright 2026 Morse Micro
+# SPDX-License-Identifier: Apache-2.0
+
+menu "mbedTLS Configuration"
+
+config MMMBEDTLS_ECP_OPTIMISATIONS
+	bool "Optimised elliptic curve arithmetic"
+	default y
+	help
+	  Enable MBEDTLS_HAVE_ASM and MBEDTLS_ECP_NIST_OPTIM in the morselib
+	  mbedTLS library. These significantly reduce the time taken by the
+	  elliptic curve operations in the WPA3-SAE handshake, at a cost of
+	  approximately 2kB of ROM.
+
+endmenu

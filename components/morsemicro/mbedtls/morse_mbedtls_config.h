@@ -50,6 +50,12 @@
 #define MBEDTLS_PLATFORM_CALLOC_MACRO mmosal_calloc
 #define MBEDTLS_PLATFORM_FREE_MACRO   mmosal_free
 
+#ifdef CONFIG_MMMBEDTLS_ECP_OPTIMISATIONS
+/* Speed up the elliptic curve operations used by the SAE handshake */
+#define MBEDTLS_HAVE_ASM
+#define MBEDTLS_ECP_NIST_OPTIM
+#endif /* CONFIG_MMMBEDTLS_ECP_OPTIMISATIONS */
+
 /* Ensure that mbedTLS features that are required for morselib are enabled. */
 #include "mm_mbedtls_config.h"
 
