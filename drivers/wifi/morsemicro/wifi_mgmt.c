@@ -197,6 +197,10 @@ static int morsemicro_mgmt_connect(const struct device *dev, struct wifi_connect
 
 	switch (params->mfp) {
 	case WIFI_MFP_DISABLE: {
+		if (sta_args->security_type == MMWLAN_SAE) {
+			LOG_ERR("MFP disabled, WPA3-SAE networks cannot be joined");
+			return -EINVAL;
+		}
 		sta_args->pmf_mode = MMWLAN_PMF_DISABLED;
 		break;
 	}
